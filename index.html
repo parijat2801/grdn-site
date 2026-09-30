@@ -29,7 +29,7 @@
     border-radius: 18px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
     transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
   @media (hover: hover) { .thing:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(16,36,58,.05), 0 12px 28px rgba(16,36,58,.08); } }
-  .thing.enter { animation: rise .8s cubic-bezier(.2,.7,.2,1) backwards; }
+  .thing.enter, .garden header.enter { animation: rise .8s cubic-bezier(.2,.7,.2,1) backwards; }
   @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.975); } }
   .kept { display: inline-block; transition: color .3s; }
   .kept.bump { animation: bump .6s cubic-bezier(.2,.7,.2,1); color: #c4552f; }
@@ -73,10 +73,10 @@
     background: #FAF8F2; border: 1px solid rgba(16,36,58,.08); border-radius: 28px; padding: 44px 44px 34px;
     box-shadow: 0 2px 6px rgba(16,36,58,.04), 0 24px 60px rgba(16,36,58,.10);
     transition: opacity .5s cubic-bezier(.2,.7,.2,1), transform .5s cubic-bezier(.2,.7,.2,1);
-    animation: cardIn 1s .35s cubic-bezier(.2,.7,.2,1) backwards; }
+    animation: cardIn .9s .1s cubic-bezier(.2,.7,.2,1) backwards; }
   @keyframes cardIn { from { opacity: 0; transform: translate(-50%,-46%) scale(.98); } }
   #card > * { animation: up .8s cubic-bezier(.2,.7,.2,1) backwards; }
-  #card .mark { animation-delay: .55s; } #card h1 { animation-delay: .65s; } #card .lede { animation-delay: .8s; } #card .stance { animation-delay: .88s; } #card form { animation-delay: .95s; } #card .fine { animation-delay: 1.05s; }
+  #card .mark { animation-delay: .25s; } #card h1 { animation-delay: .32s; } #card .lede { animation-delay: .45s; } #card .stance { animation-delay: .52s; } #card form { animation-delay: .6s; } #card .fine { animation-delay: .68s; }
   @keyframes up { from { opacity: 0; transform: translateY(10px); } }
   #scrim { position: fixed; inset: 0; pointer-events: none; transition: opacity .6s ease;
     display: none; }
@@ -417,10 +417,10 @@ addEventListener('resize', () => { setZmin(); apply(); }); apply();
 // ---------- motion: ripple in from the centre ----------
 if (!calm) {
   const cx = innerWidth / 2, cy = innerHeight / 2;
-  document.querySelectorAll('.thing').forEach(el => { const r = el.getBoundingClientRect();
+  document.querySelectorAll('.thing, .garden header').forEach(el => { const r = el.getBoundingClientRect();
     if (r.bottom < -200 || r.top > innerHeight + 200 || r.right < -200 || r.left > innerWidth + 200) return;
     const d = Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy);
-    el.style.animationDelay = Math.min(1.1, d / 1400).toFixed(2) + 's'; el.classList.add('enter'); });
+    el.style.animationDelay = (1.1 + Math.min(1.1, d / 1400)).toFixed(2) + 's'; /* the card first, then the garden grows around it */ el.classList.add('enter'); });
 }
 
 // ---------- life: now and then, someone keeps a thing you can see ----------
@@ -436,7 +436,7 @@ function keepSomething() {
   h.className = 'heart'; h.textContent = '♥'; h.style.left = (kr.left - tr.left - 2) + 'px'; h.style.top = (kr.top - tr.top - 8) + 'px';
   thing.appendChild(h); setTimeout(() => h.remove(), 1500);
 }
-if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 + Math.random() * 2200); }, 2600);
+if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 + Math.random() * 2200); }, 3800);
 
 // ---------- card ----------
 const card = document.getElementById('card'), pill = document.getElementById('pill');
