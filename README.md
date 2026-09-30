@@ -9,6 +9,6 @@
   - `render.js` — headless Chromium frame capture → ffmpeg (4 sub-frames per frame for motion blur). `node render.js preview` for a quick low-res cut.
   - `audio.js` — synthesises the score from the page's sound events.
   - `check.js` — WCAG 2.2 contrast and overlap checks against real rendered pixels.
-  - `grdn-explainer-v4-phone.mp4`, `grdn-preview-v6.mp4` — latest cuts.
+  - Rendered `.mp4` outputs stay local (gitignored); re-render with `node render.js video`.
 
 Local preview: `python3 -m http.server 8787`, then open http://localhost:8787.
