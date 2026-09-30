@@ -1,0 +1,20 @@
+.DS_Store
+# scratch from design reviews
+shot-*.png
+sheet.html
+sheet.png
+index.v*.html
+# video: large or regenerable outputs (masters exceed GitHub's 100 MB limit)
+video/stills/
+video/*-master.mp4
+video/video-silent.mp4
+video/preview-silent.mp4
+video/grdn-explainer-v3.mp4
+video/*.wav
+video/sheet.*
+video/check-report.txt
+video/index-v*.html
+video/audio-v*.js
+/*.png
+/web*.json
+/shot.js

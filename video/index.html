@@ -1,0 +1,597 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=block" rel="stylesheet">
+<style>
+  :root { --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+  body { font-family: 'Bricolage Grotesque', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  #cam { position: absolute; inset: 0; overflow: hidden; background: var(--paper); }
+  #dots { position: absolute; inset: -200px; background: radial-gradient(circle at 1px 1px, rgba(16,36,58,.075) 1.3px, transparent 0) 0 0/32px 32px; }
+  #bg, #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .blob { position: absolute; border-radius: 50%; transform: translate(-50%,-50%); }
+  .abs { position: absolute; left: 0; top: 0; }
+  .serif { font-family: 'Newsreader', serif; }
+
+  /* cards */
+  .c { width: 300px; border-radius: 22px; background: #fff; padding: 12px; border: 1px solid rgba(16,36,58,.07);
+    box-shadow: 0 1px 2px rgba(16,36,58,.05), 0 12px 30px rgba(16,36,58,.08); }
+  .c img { display: block; width: 100%; height: 170px; object-fit: cover; border-radius: 14px; }
+  .c .b { display: flex; gap: 14px; align-items: center; padding: 10px 6px 4px; }
+  .c .ic { width: 58px; height: 58px; border-radius: 15px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .c .k { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #56616e; }
+  .c .t { font-size: 23px; font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; margin-top: 2px; }
+  .c .n { font-family: 'Newsreader', serif; font-size: 25px; line-height: 1.35; padding: 8px 8px 6px; }
+  .c .m { font-size: 16px; color: #56616e; margin-top: 4px; }
+  .c .kept { font-size: 16px; color: #56616e; padding: 2px 6px 4px; text-align: right; }
+  .c .kept::before { content: '♥ '; color: #e08a68; }
+  .keepbtn { position: absolute; right: 22px; top: 22px; background: var(--ink); color: var(--paper); font-weight: 700; font-size: 18px; padding: 8px 16px; border-radius: 999px; }
+  .mc { width: 220px; border-radius: 18px; background: #fff; padding: 8px; box-shadow: 0 8px 22px rgba(16,36,58,.07); }
+  .mc img { display: block; width: 100%; height: 120px; object-fit: cover; border-radius: 12px; }
+  .mc .e { height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 56px; }
+  .mc .l { height: 14px; width: 70%; border-radius: 7px; background: rgba(16,36,58,.12); margin: 12px 4px 6px; }
+
+  /* the messy browser */
+  .win { width: 1560px; height: 820px; border-radius: 26px; background: #fbf9f3; border: 1px solid rgba(16,36,58,.08);
+    box-shadow: 0 30px 80px rgba(16,36,58,.12); overflow: hidden; }
+  .tabs { position: absolute; left: 0; right: 0; top: 0; height: 66px; background: #ebe6d8; display: flex; align-items: flex-end; gap: 4px; padding: 0 16px; }
+  .tab { height: 50px; flex: 0 0 150px; background: #f6f2e8; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 8px; padding: 0 12px;
+    font-size: 15px; font-weight: 600; color: #3f4b59; overflow: hidden; white-space: nowrap; }
+  .side { position: absolute; left: 0; top: 66px; bottom: 0; width: 290px; border-right: 1px solid rgba(16,36,58,.07); padding: 26px 22px; }
+  .side h4 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #56616e; margin-bottom: 14px; }
+  .bm { font-size: 19px; padding: 9px 0; color: #3f4b59; white-space: nowrap; }
+  .chat { position: absolute; right: 0; top: 66px; bottom: 0; width: 350px; border-left: 1px solid rgba(16,36,58,.07); padding: 26px 22px; overflow: hidden; }
+  .bub { font-size: 19px; padding: 12px 16px; border-radius: 18px; background: #efeadd; margin-bottom: 12px; max-width: 270px; }
+  .bub.me { background: #DDF3EF; margin-left: auto; }
+
+  .gl { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+  .gl span { font-family: 'Newsreader', serif; font-style: italic; font-weight: 400; font-size: 36px; color: #56616e; margin-left: 12px; }
+  .panel { border-radius: 44px; border: 3px dashed rgba(15,143,128,.35); background: rgba(221,243,239,.28); }
+  .num { width: 58px; height: 58px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .step { font-size: 24px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+  .chip { font-size: 17px; font-weight: 700; color: #0a5a51; background: #DDF3EF; padding: 6px 14px; border-radius: 999px; white-space: nowrap; }
+  .gz { border-radius: 60px; background: rgba(255,255,255,.45); }
+
+  /* type */
+  #ui { position: absolute; inset: 0; pointer-events: none; }
+  #wash { position: absolute; left: 0; top: 0; width: 1500px; height: 520px; opacity: 0;
+    background: radial-gradient(ellipse 70% 60% at 0% 0%, rgba(248,245,236,.96) 0%, rgba(248,245,236,.85) 45%, rgba(248,245,236,0) 100%); }
+  .ttl { position: absolute; left: 110px; top: 62px; }
+  .h { font-size: 76px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; white-space: nowrap; }
+  .sub { font-family: 'Newsreader', serif; font-style: italic; font-size: 40px; color: #3f4b59; margin-top: 10px; white-space: nowrap; }
+  .acc { font-family: 'Newsreader', serif; font-style: italic; font-weight: 500; }
+  .teal { color: var(--teal); } .coral { color: var(--coral); }
+  .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .06em .16em 0; margin: 0 -.06em -.16em 0; }
+  .w > span { display: inline-block; will-change: transform; }
+  #paperwash { position: absolute; inset: 0; background: var(--paper); opacity: 0; }
+  #vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 75% at 50% 50%, rgba(16,36,58,0) 60%, rgba(16,36,58,.10) 100%); }
+  #grain { position: absolute; inset: 0; width: 1920px; height: 1080px; opacity: .06; mix-blend-mode: multiply; }
+  .cta { font-size: 32px; font-weight: 600; background: var(--ink); color: var(--paper); padding: 20px 44px; border-radius: 999px; display: inline-block; }
+</style>
+</head>
+<body>
+<div id="cam"><div id="dots"></div><div id="bg"></div><div id="world"></div></div>
+<div id="ui"><div id="scrimA" style="position:absolute;left:0;right:0;bottom:0;height:460px;opacity:0;background:linear-gradient(to top, rgba(8,16,28,.82) 0%, rgba(8,16,28,.55) 45%, rgba(8,16,28,0) 100%)"></div><div id="wash"></div><div id="washE" style="position:absolute;left:0;top:0;width:1920px;height:1080px;opacity:0;background:radial-gradient(ellipse 58% 42% at 22% 12%, rgba(248,245,236,1) 0%, rgba(248,245,236,.98) 55%, rgba(248,245,236,0) 100%)"></div><div id="paperwash"></div></div>
+<canvas id="grain" width="960" height="540"></canvas>
+<div id="vig"></div>
+<script>
+// ---------------- helpers ----------------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eIO5 = x => x < .5 ? 16 * Math.pow(x, 5) : 1 - Math.pow(-2 * x + 2, 5) / 2;
+const eOut = x => 1 - Math.pow(1 - x, 3);
+const eOut5 = x => 1 - Math.pow(1 - x, 5);
+const eBack = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const world = document.getElementById('world'), bg = document.getElementById('bg'), ui = document.getElementById('ui');
+function el(tag, cls, parent, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; (parent || world).appendChild(e); return e; }
+function place(e, x, y, s = 1, o = 1, r = 0) { e.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%) scale(${s}) rotate(${r}deg)`; e.style.opacity = o; e.style.visibility = o > 0.001 ? 'visible' : 'hidden'; }
+const fmt = n => Math.round(n).toLocaleString('en-US');
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+function C(o, parent) {
+  const c = el('div', 'c abs', parent);
+  if (o.w) c.style.width = o.w + 'px';
+  if (o.note) c.innerHTML = `<div class="b" style="padding-bottom:0"><div class="k">Note</div></div><div class="n">${o.note}</div>`;
+  else c.innerHTML = `${o.img ? `<img src="web/${o.img}">` : ''}<div class="b">${o.e ? `<div class="ic" style="background:${o.bg}">${o.e}</div>` : ''}<div><div class="k">${o.k}</div><div class="t">${o.t}</div>${o.m ? `<div class="m">${o.m}</div>` : ''}</div></div>`;
+  if (o.kept) c.innerHTML += `<div class="kept">kept by <b>${fmt(o.kept)}</b></div>`;
+  c.style.visibility = 'hidden';
+  return c;
+}
+const SFX = []; const sfx = (t, type, i = 0) => SFX.push({ t: +t.toFixed(3), type, i });
+
+// kinetic type: segments [[text, cls], ...]
+function T(lines, style, parent) {
+  const box = el('div', 'ttl', parent || ui); if (style) box.style.cssText += style;
+  const rows = lines.map(([cls, segs]) => { const r = el('div', cls, box); const words = [];
+    segs.forEach(([txt, sc]) => txt.split(' ').filter(Boolean).forEach((w, i, a) => { const o = el('span', 'w ' + (sc || ''), r); const inner = el('span', '', o, w); words.push(inner); r.appendChild(document.createTextNode(' ')); }));
+    return words; });
+  box.style.opacity = 0; return { box, rows };
+}
+function showT(T0, t, a, b, stagger = .055) {
+  let vis = 0;
+  T0.rows.forEach((words, ri) => words.forEach((w, i) => {
+    const s = a + ri * .28 + i * stagger, p = eOut5(prog(t, s, s + .75));
+    const q = b == null ? 0 : eIO(prog(t, b + i * .025, b + .45 + i * .025));
+    w.style.transform = `translateY(${(1 - p) * 110 - q * 110}%)`;
+    vis = Math.max(vis, p * (1 - q));
+  }));
+  T0.box.style.opacity = vis > 0 ? 1 : 0;
+  return vis;
+}
+
+// ---------------- camera ----------------
+const K = [ // t, x, y, z
+  [0, 10, -29, 7.4], [4.1, 10, -29, 6.7], [7.3, 30, -90, 1.0], [12.2, 30, -90, 1.0], [13.4, 0, 20, 1.25], [18.5, 0, 20, 1.25],
+  [21.2, 0, -60, .72], [26.4, 0, -60, .72], [28.6, 0, -100, .55], [30.4, 0, -100, .55], [31.9, 0, -80, 1.05], [37.3, 0, -80, 1.05],
+  [39.3, -1300, -340, 1.15], [42.3, -1300, -340, 1.15], /* tracked flight 42.3–46.0 */ [46.0, 1400, 1260, 1.15], [46.8, 1400, 1260, 1.15],
+  [49.8, 0, 500, .16], [55.6, 0, 520, .16], [58.2, 1600, 1180, .92], [62.9, 1600, 1180, .92], [64.4, 1415, 1165, 2.6], [68.8, 1415, 1165, 2.6],
+  [71.4, 0, 550, .165], [77.4, 0, 550, .158],
+];
+const Y = { x: 1400, y: 1275 }, SLOT = { x: 1235, y: 1500 };
+function camAt(t) {
+  if (t > 42.3 && t < 46.0) { // follow the kept thing
+    const p = eIO(prog(t, 42.3, 46.0));
+    const bx = (1 - p) * (1 - p) * -1300 + 2 * (1 - p) * p * 100 + p * p * 1400;
+    const by = (1 - p) * (1 - p) * -340 + 2 * (1 - p) * p * -250 + p * p * 1260;
+    return { x: bx, y: by, z: 1.15 - Math.sin(p * Math.PI) * .55 };
+  }
+  let i = 0; while (i < K.length - 2 && t > K[i + 1][0]) i++;
+  const [t0, x0, y0, z0] = K[i], [t1, x1, y1, z1] = K[i + 1];
+  const p = eIO5(prog(t, t0, t1));
+  return { x: lerp(x0, x1, p), y: lerp(y0, y1, p), z: Math.exp(lerp(Math.log(z0), Math.log(z1), p)) };
+}
+[18.6, 30.4, 37.4, 55.7, 62.9].forEach(t => sfx(t, 'whoosh')); [42.3, 46.9, 68.9].forEach(t => sfx(t, 'whooshL'));
+
+// ---------------- background depth ----------------
+for (let i = 0; i < 70; i++) { const b = el('div', 'blob', bg); const s = 300 + rnd() * 900;
+  b.style.width = b.style.height = s + 'px'; b.style.left = (rnd() - .5) * 16000 + 'px'; b.style.top = (rnd() - .5) * 10000 + 'px';
+  const c = ['127,209,199', '255,158,122', '242,178,51', '164,180,230'][i % 4];
+  b.style.background = `radial-gradient(circle, rgba(${c},.16) 0%, rgba(${c},0) 70%)`; }
+
+// ================= A: something wonderful, then gone =================
+const win = el('div', 'win abs');
+const tabsEl = el('div', 'tabs', win);
+const tabNames = [['🌊', 'The Great Wave off…'], ['⌚', 'Mechanical Watch'], ['📜', 'Hope is the thing…'], ['🐙', 'Cephalopod intel…'], ['📻', 'Radio Garden'], ['📄', 'untitled (3)'], ['🔖', 'Read later'], ['💬', 'New chat'], ['🎥', 'Watch later'], ['📚', 'Reading list'], ['🧩', 'that one game'], ['❓', 'where was it']];
+const tabs = tabNames.map(([e, n]) => el('div', 'tab', tabsEl, `<span>${e}</span>${n}`));
+const side = el('div', 'side', win, '<h4>Bookmarks</h4>');
+const bms = ['📁 Read later (212)', '📁 Unsorted', '📁 cool stuff', '📁 cool stuff 2', '📁 misc', '📁 Watch later', '📁 untitled folder', '📁 old bookmarks (2019)'].map(b => el('div', 'bm', side, b));
+const chat = el('div', 'chat', win);
+const bubs = [['look at this 🌊', 1], ['saving this for later', 1], ['omg yes', 0], ['wait, where was that link?', 1], ['no idea, scroll up?', 0], ['can’t find it anymore', 1]].map(([t, me]) => el('div', 'bub' + (me ? ' me' : ''), chat, t));
+const clutter = [
+  [C({ img: 'ciechanow-ski-3.png', k: 'Explorable', t: 'How a watch works' }), -250, -165, .82, -5],
+  [C({ note: 'Hope is the thing with feathers, that perches in the soul.' }), 270, -185, .82, 4],
+  [C({ img: 'octopus.jpg', k: 'Essay', t: 'Octopus minds' }), -240, 215, .82, 3],
+  [C({ img: 'radio-garden-0.jpg', k: 'Toy', t: 'Radio from anywhere' }), 255, 230, .82, -4],
+];
+const wave = C({ img: 'great-wave-hi.jpg', k: 'Art', t: 'The Great Wave off Kanagawa' });
+const tA1 = T([['h', [['You found something', ''], ['wonderful.', 'acc']]]], 'top:auto;bottom:96px;color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.45)');
+tA1.box.classList.add('over-ok'); // deliberately over the painting, on its own dark scrim
+const tA2 = T([['h', [['And then it’s', ''], ['gone.', 'acc coral']]], ['sub', [['Lost in a tab. Buried in bookmarks. Scrolled past in a chat.', '']]]]);
+tabs.forEach((_, i) => sfx(8.3 + i * .27, 'tick'));
+sfx(0.9, 'swell');
+
+// ================= B: the seed =================
+const seedEl = el('div', 'abs'); seedEl.style.cssText += 'width:26px;height:34px;border-radius:50%;background:#5a4030';
+const ground = el('div', 'abs'); ground.style.cssText += 'width:420px;height:40px;border-radius:50%;background:radial-gradient(ellipse, rgba(90,64,48,.28), rgba(90,64,48,0) 70%)';
+const sprout = el('div', 'abs'); sprout.style.cssText += 'width:300px;height:300px';
+sprout.innerHTML = `<svg width="300" height="300" viewBox="-150 -300 300 300"><path id="stem" d="M0 0 C 0 -70, -5 -120, 2 -200" stroke="#2f8f5e" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <path id="lf1" d="M0 -140 C -60 -160, -90 -200, -80 -230 C -40 -230, -5 -195, 0 -140 Z" fill="#7FD1C7"/>
+  <path id="lf2" d="M2 -180 C 60 -200, 100 -240, 90 -275 C 45 -272, 8 -235, 2 -180 Z" fill="#9BE0B4"/></svg>`;
+const stem = sprout.querySelector('#stem'), stemL = stem.getTotalLength(); stem.style.strokeDasharray = stemL;
+const lf = [sprout.querySelector('#lf1'), sprout.querySelector('#lf2')];
+const tB = T([['h', [['Grdn', '']]], ['sub', [['a garden for everything worth a revisit.', '']]]], 'left:0;right:0;top:120px;text-align:center');
+tB.box.querySelector('.h').style.cssText += 'font-size:220px;letter-spacing:-0.04em;line-height:1';
+sfx(13.05, 'thud'); sfx(13.5, 'rise'); sfx(14.3, 'pop', 2); sfx(14.6, 'pop', 4);
+
+// ================= C: keep anything → gardens → path =================
+const pathSvg = el('div', 'abs'); pathSvg.innerHTML = `<svg width="1400" height="40" viewBox="-700 -20 1400 40" style="display:block"><path id="pl" d="M-630 0 L 630 0" stroke="#0f8f80" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round" fill="none"/></svg>`;
+const pl = pathSvg.querySelector('#pl');
+const defs = [
+  { img: 'octopus.jpg', k: 'Video', t: 'An octopus opens a jar', kept: 88 },   // 0
+  { img: 'pudding-cool-16.jpg', k: 'Essays', t: 'The Pudding' },          // 1
+  { e: '📕', bg: '#FFE3D6', k: 'Book', t: 'Other Minds', kept: 412 },     // 2
+  { e: '🎧', bg: '#E4E8F7', k: 'Podcast', t: 'Do octopuses dream?', kept: 57 }, // 3
+  { note: 'Two thirds of the neurons are in the arms.' },                 // 4
+  { img: 'ocw-mit-edu-29.jpg', k: 'Course', t: '18.06 Linear Algebra' },  // 5
+  { e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake' },               // 6
+  { img: 'redblobgames-com-11.jpg', k: 'Explorable', t: 'Hexagonal grids' }, // 7
+  { img: 'ciechanow-ski-4.png', k: 'Explorable', t: 'How GPS works' },    // 8
+  { img: 'starry-night.jpg', k: 'Art', t: 'The Starry Night' },           // 9
+  { img: 'pale-blue-dot.png', k: 'Photo', t: 'Pale Blue Dot' },           // 10
+  { img: 'earth-nullschool-net-10.jpg', k: 'Live map', t: 'The wind, right now' }, // 11
+  { note: 'A matrix is a machine that moves space.' },                    // 12
+  { e: '▶️', bg: '#FFD0BD', k: 'Video', t: 'Eigenvectors in 60 seconds' },  // 13
+];
+const cards = defs.map(o => C(o));
+const PA = [[-1350, -380], [-700, -560], [380, -620], [1050, -520], [1500, -200], [-1500, 250], [-850, 120], [850, 160], [1450, 480], [-1100, 650], [-350, 560], [350, 620], [1000, 760], [20, -400]];
+const landOrder = [9, 0, 5, 2, 11, 4, 6, 8, 1, 10, 3, 7, 13, 12];
+const PAof = i => { const [x, y] = PA[landOrder.indexOf(i)]; return [x * .74, (y + 60) * .64]; };
+const GO = { x: -1300, y: -100 }, GL = { x: 0, y: -100 }, GU = { x: 1300, y: -100 };
+const cell = (g, c, r) => [g.x + (c ? 165 : -165), g.y + (r - .5) * 260 - (r === 2 ? 0 : 0)];
+const PB = []; PB[0] = cell(GO, 0, 0); PB[2] = cell(GO, 1, 0); PB[3] = cell(GO, 1, 1); PB[4] = cell(GO, 0, 1);
+PB[5] = cell(GL, 0, 0); PB[7] = cell(GL, 1, 0); PB[13] = cell(GL, 0, 1); PB[6] = cell(GL, 1, 1); PB[12] = cell(GL, 0, 2);
+PB[8] = cell(GU, 0, 0); PB[9] = cell(GU, 1, 0); PB[10] = cell(GU, 0, 1); PB[11] = cell(GU, 1, 1);
+const PC = []; [13, 5, 6, 7].forEach((k, i) => PC[k] = [-630 + i * 420, -40]);
+const labels = [['Octopus minds', 'Ines', GO], ['Linear algebra', 'Tom', GL], ['Looking up', 'Ada', GU]].map(([n, b, g]) => ({ e: el('div', 'gl abs', world, `${n}<span>${b}</span>`), g }));
+const steps = ['Watch', 'Read', 'Play', 'Explore'].map((w, i) => el('div', 'abs', world, `<div style="display:flex;align-items:center;gap:14px"><div class="num">${i + 1}</div><div class="step">${w}</div></div>`));
+landOrder.forEach((ci, k) => sfx(19.5 + k * .27, 'pop', k));
+sfx(26.5, 'whoosh'); steps.forEach((_, i) => sfx(33.1 + i * .3, 'pop', i + 1));
+const tC1 = T([['h', [['Keep', ''], ['anything.', 'acc teal']]], ['sub', [['Videos, essays, books, art, notes, games.', '']]]]);
+const tC2 = T([['h', [['Near things', ''], ['find each other.', 'acc teal']]], ['sub', [['Your garden sorts itself as you keep.', '']]]]);
+const tC3 = T([['h', [['Gardens become', ''], ['paths.', 'acc coral']]], ['sub', [['Start here: linear algebra. And it keeps growing.', '']]]]);
+
+// ================= D: keep from someone else's garden =================
+const yPanel = el('div', 'panel abs'); yPanel.style.width = '800px'; yPanel.style.height = '860px';
+const yLabel = el('div', 'gl abs', world, 'Your garden<span>things you keep</span>');
+const mine = [[C({ e: '✏️', bg: '#F1ECE0', k: 'Tool', t: 'Gesture timer' }), 1235, 1060], [C({ note: 'Draw from the shoulder.' }), 1235, 1260]];
+const pizza = C({ e: '🍕', bg: '#FFE3D6', k: 'Game', t: 'Fraction Pizza', m: 'made by you, for class 4B', kept: 1204 });
+const pz = document.createElement('div'); pz.innerHTML = `<svg width="276" height="200" viewBox="-138 -100 276 200" style="display:block"><circle r="92" fill="#e5b87a"/><g id="sl"></g></svg>`; pizza.insertBefore(pz, pizza.firstChild);
+const slices = []; for (let i = 0; i < 8; i++) { const a0 = i / 8 * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / 8 * Math.PI * 2 - Math.PI / 2; const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p.setAttribute('d', `M0 0 L${86 * Math.cos(a0)} ${86 * Math.sin(a0)} A86 86 0 0 1 ${86 * Math.cos(a1)} ${86 * Math.sin(a1)} Z`); p.setAttribute('fill', '#FBE3C4'); p.setAttribute('stroke', '#fff'); p.setAttribute('stroke-width', 3); pz.querySelector('#sl').appendChild(p); slices.push(p); }
+const PIZ = { x: 1565, y: 1165 };
+const keepBtn = el('div', 'keepbtn', cards[0], 'Keep'); keepBtn.style.opacity = 0;
+const clone = C(defs[0]);
+const cursor = el('div', 'abs', world, `<svg width="44" height="52" viewBox="0 0 34 40"><path d="M2 2 L2 34 L11 26 L18 39 L24 36 L17 24 L30 24 Z" fill="#10243A" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg>`);
+const ring = el('div', 'abs'); ring.style.cssText += 'width:80px;height:80px;border-radius:50%;border:5px solid #c4552f';
+const keptB = cards[0].querySelector('.kept b');
+const tD = T([['h', [['Walk other people’s', ''], ['rabbit holes.', 'acc coral']]], ['sub', [['Keep what catches you. It lands in your garden.', '']]]]);
+sfx(41.3, 'click'); sfx(41.35, 'pop', 3); sfx(46.0, 'pop', 5);
+
+// ================= E: the whole world, ranked by love =================
+const gardens = [];
+const imgs = ['great-wave.jpg', 'octopus.jpg', 'radio-garden-0.jpg', 'starry-night.jpg', 'pale-blue-dot.png', 'earth-nullschool-net-10.jpg', 'pudding-cool-16.jpg', 'ciechanow-ski-3.png', 'ciechanow-ski-4.png', 'mandelbrot.jpg', 'redblobgames-com-11.jpg'];
+const emos = [['🐦', '#DDF3EF'], ['🎹', '#FFE3D6'], ['🍳', '#FCEBC2'], ['🔭', '#E4E8F7'], ['🧩', '#FCEBC2'], ['🌱', '#DDF3EF'], ['📕', '#FFE3D6'], ['🎧', '#E4E8F7'], ['✏️', '#F1ECE0'], ['🗺️', '#DDF3EF'], ['🐸', '#DDF3EF'], ['🧪', '#F1ECE0'], ['🎲', '#FFE3D6'], ['🌙', '#E4E8F7']];
+for (let gx = -5500; gx <= 5500; gx += 1100) for (let gy = -2500; gy <= 3600; gy += 1020) {
+  const x = gx + (rnd() - .5) * 260, y = gy + (rnd() - .5) * 220;
+  if (x > -2800 && x < 2900 && y > -1400 && y < 2000) continue;
+  const g = { x, y, cards: [] };
+  const z = el('div', 'gz abs'); z.style.width = '860px'; z.style.height = '520px'; place(z, x, y);
+  for (let k = 0; k < 5; k++) { const m = el('div', 'mc abs deco');
+    if (rnd() < .45) m.innerHTML = `<img src="web/${imgs[(rnd() * imgs.length) | 0]}"><div class="l"></div>`;
+    else { const [e, c] = emos[(rnd() * emos.length) | 0]; m.innerHTML = `<div class="e" style="background:${c}">${e}</div><div class="l"></div>`; }
+    const cx = x + (k < 3 ? (k - 1) * 260 : (k - 3.5) * 260), cy = y + (k < 3 ? -110 : 110);
+    place(m, cx, cy, 1, 1, (rnd() - .5) * 4); g.cards.push([cx, cy]); }
+  gardens.push(g);
+}
+gardens.push({ x: GO.x, y: GO.y }, { x: GL.x, y: GL.y }, { x: GU.x, y: GU.y }, { x: Y.x, y: Y.y });
+const islands = [
+  { name: 'Whodunit movies', by: 'Leo & friends', x: -20, y: 780, things: [
+    { e: '🔪', bg: '#FFE3D6', k: 'Film', t: 'Knives Out' }, { e: '🚂', bg: '#E4E8F7', k: 'Film', t: 'Murder on the Orient Express' },
+    { e: '🎩', bg: '#FCEBC2', k: 'Film', t: 'Gosford Park' }, { note: 'The butler never did it. Check the alibis twice.' }] },
+  { name: 'Recipes that work', by: 'Priya & Sam', x: -20, y: 1620, things: [
+    { e: '🍝', bg: '#FCEBC2', k: 'Recipe', t: 'Cacio e pepe, the real way' }, { e: '🥟', bg: '#FFE3D6', k: 'Recipe', t: 'Grandma’s dumplings' },
+    { e: '🍞', bg: '#F1ECE0', k: 'Recipe', t: 'No-knead bread' }, { note: 'Salt the pasta water like the sea.' }] },
+];
+islands.forEach(g => {
+  place(el('div', 'gl abs', world, `${g.name}<span>${g.by}</span>`), g.x, g.y - 300);
+  g.things.forEach((o, i) => { const c = C(o); place(c, g.x + (i % 2 ? 165 : -165), g.y + (i < 2 ? -130 : 130)); });
+  gardens.push({ x: g.x, y: g.y });
+});
+const arcSvgWrap = el('div', 'abs'); arcSvgWrap.style.cssText += 'width:14000px;height:9000px;transform:translate(-7000px,-3500px)';
+arcSvgWrap.innerHTML = `<svg width="14000" height="9000" viewBox="-7000 -3500 14000 9000" style="display:block;overflow:visible"><g id="arcs"></g></svg>`;
+const arcsG = arcSvgWrap.querySelector('#arcs');
+const arcs = [];
+for (let i = 0; i < 34; i++) {
+  const a = gardens[(rnd() * gardens.length) | 0]; let b = gardens[(rnd() * gardens.length) | 0]; if (a === b) b = gardens[(gardens.indexOf(a) + 7) % gardens.length];
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - Math.hypot(b.x - a.x, b.y - a.y) * .35;
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', `M${a.x} ${a.y} Q ${mx} ${my} ${b.x} ${b.y}`);
+  path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#e0764f'); path.setAttribute('stroke-width', 16); path.setAttribute('stroke-linecap', 'round'); arcsG.appendChild(path);
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); dot.setAttribute('r', 34); dot.setAttribute('fill', '#c4552f'); arcsG.appendChild(dot);
+  const L = path.getTotalLength(); path.style.strokeDasharray = `${L} ${L}`;
+  const t0 = 49.2 + (i / 34) * 6.0 + rnd() * .3;
+  const heart = el('div', 'abs deco', world, '♥'); heart.style.cssText += 'font-size:260px;color:#c4552f;line-height:1';
+  arcs.push({ a, b, path, dot, L, t0, heart }); sfx(t0 + 1.5, 'heart', i);
+}
+const tE = T([['h', [['Ranked by', ''], ['love.', 'acc coral']]], ['sub', [['Not by who made it. By who keeps it, and keeps coming back.', '']]]]);
+
+// ================= F: what you keep shapes what finds you =================
+const arrivals = [
+  [C({ e: '🦑', bg: '#FFE3D6', k: 'Video', t: 'How cuttlefish change colour' }), 2330, 980],
+  [C({ e: '📄', bg: '#E4E8F7', k: 'Paper', t: 'Arm autonomy in octopus' }), 2330, 1250],
+  [C({ note: 'One octopus changed colour in its sleep.' }), 2330, 1520],
+];
+const chips = arrivals.map(() => el('div', 'chip abs', world, 'new, near your garden'));
+arrivals.forEach((_, i) => sfx(59.0 + i * .9 + 1.0, 'pop', i + 2));
+const tF = T([['h', [['What you keep', ''], ['shapes what finds you.', 'acc teal']]], ['sub', [['No settings. Your garden is the algorithm.', '']]]]);
+
+// ================= G: even the things you make =================
+const tG = T([['h', [['Even the things', '']]], ['h', [['you make.', 'acc coral']]], ['sub', [['Tiny games, tools and explainers,', '']]], ['sub', [['the newest things worth keeping.', '']]]], 'top:330px');
+[0, 1, 2, 3, 4, 5].forEach(i => sfx(65.0 + i * .34, 'pop', i));
+
+// ================= H: finale =================
+const tH = T([['h', [['Find.', ''], ['Keep.', 'teal'], ['Wander.', 'coral'], ['Return.', '']]]], 'left:0;right:0;top:470px;text-align:center');
+tH.box.querySelector('.h').style.fontSize = '96px';
+const paperwash = document.getElementById('paperwash');
+const logo = T([['h', [['Grdn', '']]], ['sub', [['Everything worth a revisit.', '']]]], 'left:0;right:0;top:250px;text-align:center');
+logo.box.querySelector('.h').style.cssText += 'font-size:230px;letter-spacing:-0.04em;line-height:1';
+logo.box.querySelector('.sub').style.cssText += 'font-size:60px;color:rgba(16,36,58,.85);margin-top:22px';
+const cta = el('div', 'abs', ui, '<span class="cta">Reserve yours</span>'); cta.style.cssText += 'left:0;right:0;top:720px;text-align:center';
+[71.9, 72.35, 72.8, 73.25].forEach((t, i) => sfx(t, 'tick', i)); sfx(74.4, 'chime');
+
+// ================= inserted beats (global time) =================
+// A: "Every thing keeps its face" — spliced in at base 26.0. B: "Your agents can walk them too" — at base 46.8.
+const A0 = 26.0, LA = 8.8, B0b = 46.8, LB = 9.0;
+const GA = A0, GB = B0b + LA;                      // global start of each beat
+const baseT = g => g < GA ? g : g < GA + LA ? A0 : g < GB ? g - LA : g < GB + LB ? B0b : g - LA - LB;
+const toGlobal = b => b < A0 ? b : b < B0b ? b + LA : b + LA + LB;
+const NSFX = [];
+const nsfx = (t, type, i = 0) => NSFX.push({ t: +t.toFixed(3), type, i });
+
+// ---------- A: faces ----------
+function faceCard(k, t, inner, m) {
+  const c = el('div', 'c abs face');
+  c.innerHTML = `<div class="fv">${inner}</div><div class="b"><div><div class="k">${k}</div><div class="t">${t}</div>${m ? `<div class="m">${m}</div>` : ''}</div></div>`;
+  c.style.visibility = 'hidden'; return c;
+}
+const figma = faceCard('Figma', 'Onboarding, v3', `
+  <div style="position:absolute;inset:0;background:#e9e9ee"></div>
+  <div style="position:absolute;left:0;top:0;bottom:0;width:22px;background:#2c2c2c;display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:9px">${'<i style="width:9px;height:9px;border-radius:2px;background:#8a8a8a;display:block"></i>'.repeat(4)}</div>
+  <div class="fgf" style="position:absolute;left:38px;top:14px;width:108px;height:142px;background:#fff;border-radius:7px;overflow:hidden">
+    <div style="height:14px;background:#10243A"></div>
+    <div id="fgImg" style="height:50px;margin:8px;border-radius:5px;background:#FFD0BD;transition:none"></div>
+    <div style="height:6px;margin:6px 8px;border-radius:3px;background:#d9d6ce"></div><div style="height:6px;margin:6px 8px;width:60%;border-radius:3px;background:#d9d6ce"></div>
+    <div style="height:16px;margin:10px 8px;width:50%;border-radius:8px;background:#0f8f80"></div></div>
+  <div style="position:absolute;left:158px;top:14px;width:104px;height:142px;background:#fff;border-radius:7px;overflow:hidden">
+    <div style="height:14px;background:#10243A"></div><div style="height:70px;margin:8px;border-radius:5px;background:#DDF3EF"></div>
+    <div style="height:6px;margin:6px 8px;border-radius:3px;background:#d9d6ce"></div><div style="height:6px;margin:6px 8px;width:70%;border-radius:3px;background:#d9d6ce"></div></div>
+  <div id="fgSel" style="position:absolute;border:2px solid #3b82f6;border-radius:6px"></div>
+  <div id="fgCur" style="position:absolute;left:0;top:0"><svg width="14" height="17" viewBox="0 0 34 40"><path d="M2 2 L2 34 L11 26 L18 39 L24 36 L17 24 L30 24 Z" fill="#8a5cc4" stroke="#fff" stroke-width="3"/></svg><span style="position:absolute;left:12px;top:12px;font:700 8px Bricolage Grotesque;color:#fff;background:#8a5cc4;padding:1px 5px;border-radius:6px">Saara</span></div>`, 'figma.com');
+const sheetRows = [['Week', 'Pages', 'Hours', 'Notes'], ['1', '42', '3.5', '6'], ['2', '58', '4', '9'], ['3', '37', '2.5', '4'], ['4', '64', '5', '11'], ['5', '', '', ''], ['Total', '201', '15', '30']];
+const sheet = faceCard('Google Sheets', 'Reading log 2026', `
+  <div style="position:absolute;inset:0;background:#fff"></div>
+  <div style="position:absolute;left:0;right:0;top:0;height:16px;background:#f1f3f4;border-bottom:1px solid #dadce0;font:600 8px Bricolage Grotesque;color:#3f4b59;padding:3px 6px">fx&nbsp;&nbsp;<span id="shFx">=SUM(B2:B6)</span></div>
+  <div style="position:absolute;left:0;top:16px;right:0;bottom:0;display:grid;grid-template-columns:62px 53px 53px 54px 54px">${sheetRows.map((r, ri) => ['' + (ri + 1), ...r].slice(1).concat(['']).map((c, ci) => `<div data-r="${ri}" data-c="${ci}" style="height:22px;border-right:1px solid #e2e3e5;border-bottom:1px solid #e2e3e5;font:${ri === 0 || ri === 6 ? 700 : 500} 10px Bricolage Grotesque;color:#10243A;padding:5px 5px;background:${ri === 0 ? '#f1f3f4' : ri === 6 ? '#e6f4ea' : '#fff'};text-align:${ci ? 'right' : 'left'}">${c}</div>`).join('')).join('')}</div>
+  <div id="shCell" style="position:absolute;border:2px solid #188038"></div>`, 'docs.google.com');
+const web = faceCard('Website', 'Fish: a tap essay', `
+  <div style="position:absolute;inset:0;background:#fff;overflow:hidden">
+    <div id="webPage" style="position:absolute;left:0;right:0;top:18px">
+      <img src="web/sloan-fish.png" style="display:block;width:100%;height:150px;object-fit:cover;border-radius:0">
+      <div style="font:italic 500 17px Newsreader;color:#10243A;padding:10px 12px 4px">This is a tap essay.</div>
+      <div style="font:400 11px Newsreader;color:#3f4b59;padding:0 12px;line-height:1.5">It is about the difference between liking something and loving it. Liking is easy. Love is a return.</div>
+      <div style="height:90px;margin:10px 12px;border-radius:6px;background:#FCEBC2"></div></div>
+    <div style="position:absolute;left:0;right:0;top:0;height:18px;background:#ebe6d8;display:flex;align-items:center;gap:4px;padding:0 6px">${'<i style="width:6px;height:6px;border-radius:50%;background:#c9c2b0;display:block"></i>'.repeat(3)}<span style="margin-left:6px;flex:1;height:11px;border-radius:6px;background:#f6f2e8;font:600 7px Bricolage Grotesque;color:#3f4b59;padding:1px 6px">robinsloan.com/fish</span></div></div>`, 'robinsloan.com');
+const builder = faceCard('Tool', 'Make a website', `
+  <div style="position:absolute;inset:0;background:#f6f2e8"></div>
+  <div style="position:absolute;left:0;top:0;bottom:0;width:66px;background:#ebe6d8;padding:8px 6px;display:flex;flex-direction:column;gap:6px">${['Heading', 'Image', 'Text', 'Button'].map(n => `<div style="font:700 8px Bricolage Grotesque;color:#10243A;background:#fff;border-radius:5px;padding:5px 6px">${n}</div>`).join('')}</div>
+  <div style="position:absolute;left:78px;top:8px;right:8px;bottom:8px;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(16,36,58,.08)"></div>
+  <div class="blk" style="position:absolute;height:14px;border-radius:3px;background:#10243A"></div>
+  <div class="blk" style="position:absolute;height:52px;border-radius:5px;background:#9BE0B4"></div>
+  <div class="blk" style="position:absolute;height:22px;border-radius:3px;background:repeating-linear-gradient(#d9d6ce 0 5px, transparent 5px 9px)"></div>
+  <div class="blk" style="position:absolute;height:16px;width:60px;border-radius:8px;background:#c4552f"></div>`, 'blocks snap together');
+const doc = faceCard('Doc', 'Lecture notes', `
+  <div style="position:absolute;inset:0;background:#eef0f3"></div>
+  <div style="position:absolute;left:40px;right:40px;top:10px;bottom:0;background:#fff;padding:12px 14px">
+    <div style="font:700 11px Bricolage Grotesque;color:#10243A;margin-bottom:8px">Week 3: the cave</div>
+    ${'<div style="height:5px;border-radius:3px;background:#d9d6ce;margin:6px 0"></div>'.repeat(6)}</div>`, 'docs.google.com');
+const faces = [[figma, 250, -640], [sheet, 610, -640], [web, -280, 110], [builder, 970, -640]];
+doc.remove();
+const faceCSS = document.createElement('style');
+faceCSS.textContent = `.c.face .fv { position: relative; height: 170px; border-radius: 14px; overflow: hidden; }`;
+document.head.appendChild(faceCSS);
+const fgSel = figma.querySelector('#fgSel'), fgCur = figma.querySelector('#fgCur'), fgImg = figma.querySelector('#fgImg');
+const shCell = sheet.querySelector('#shCell'), shFx = sheet.querySelector('#shFx'), shCells = [...sheet.querySelectorAll('[data-r]')];
+const webPage = web.querySelector('#webPage'), blks = [...builder.querySelectorAll('.blk')];
+const tAf = T([['h', [['Every thing', '']]], ['h', [['keeps its face.', 'acc teal']]], ['sub', [['A Figma file, a sheet,', '']]], ['sub', [['a website, a tool that makes them.', '']]]], 'top:320px');
+const washA = el('div', 'abs', ui); washA.style.cssText = 'position:absolute;left:0;top:0;width:1100px;height:1080px;opacity:0;background:linear-gradient(90deg, rgba(248,245,236,1) 0%, rgba(248,245,236,.97) 55%, rgba(248,245,236,0) 100%)';
+ui.insertBefore(washA, tAf.box);
+// camera path through the four faces
+const FZ = 2.9, SX = 1330;
+const fcam = (c) => { const [e, x, y] = c; return [x - (SX - 960) / FZ, y - 0, FZ]; };
+const AK = (() => { const base = [0, -60, .72], F = fcam(faces[0]), S = fcam(faces[1]), W = fcam(faces[2]), B = fcam(faces[3]);
+  const seq = [[0, base], [1.0, F], [2.2, F], [3.0, S], [4.1, S], [4.9, W], [6.0, W], [6.8, B], [8.0, B], [8.8, base]];
+  return seq.map(([dt, [x, y, z]]) => [GA + dt, x, y, z]); })();
+[GA + .05, GA + 2.2, GA + 4.1, GA + 6.0, GA + 8.0].forEach(t => nsfx(t, 'whoosh'));
+[0, 1, 2, 3].forEach(i => nsfx(GA + 6.95 + i * .26, 'pop', i + 2));
+nsfx(GA + 1.9, 'click'); [0, 1].forEach(i => nsfx(GA + 3.4 + i * .3, 'tick'));
+function renderFaces(gt, bt) {
+  // faces land with the other "keep anything" things, fade when gardens form
+  faces.forEach(([c, x, y], i) => { const land = eOut5(prog(bt, 23.2 + i * .25, 24.0 + i * .25)), gone = eIO(prog(bt, 26.5, 27.6));
+    let o = clamp(land * 1.6) * (1 - gone); if (gt > GA && gt < GA + LA) o = 1;
+    place(c, x, y + (1 - land) * 90 + Math.sin(gt * 1.1 + i * 2.3) * 4, lerp(.55, 1, eBack(prog(bt, 23.2 + i * .25, 24.0 + i * .25))), bt < 23.1 ? 0 : o, ((i * 29) % 5 - 2) * 1.1 * (1 - gone)); });
+  const a = gt - GA;
+  // Figma: Saara's cursor walks, selects the image block, recolours it
+  { const p1 = eIO(prog(a, .3, 1.3)), p2 = eIO(prog(a, 1.4, 1.9));
+    const cx = lerp(lerp(230, 120, p1), 90, p2), cy = lerp(lerp(140, 60, p1), 50, p2);
+    fgCur.style.transform = `translate(${cx}px,${cy}px)`;
+    const sel = a > 1.6; fgSel.style.cssText += `;left:44px;top:34px;width:96px;height:50px;opacity:${sel ? 1 : 0}`;
+    fgImg.style.background = a > 1.9 ? '#9BE0B4' : '#FFD0BD'; }
+  // Sheet: type 71 into week 5, total updates
+  { const typed = a > 3.3 ? (a > 3.6 ? '71' : '7') : '';
+    const cell = (r, c) => shCells.find(e => +e.dataset.r === r && +e.dataset.c === c);
+    cell(5, 1).textContent = typed; cell(6, 1).textContent = a > 3.75 ? '272' : '201';
+    cell(6, 1).style.background = a > 3.75 && a < 4.4 ? '#c6e7cf' : '#e6f4ea';
+    const c = cell(5, 1); shCell.style.cssText += `;left:${62 - 1}px;top:${16 + 5 * 22 - 1}px;width:55px;height:24px`;
+    shFx.textContent = a > 3.2 && a < 3.75 ? typed : '=SUM(B2:B6)'; }
+  // Website: scroll
+  webPage.style.transform = `translateY(${-eIO(prog(a, 4.9, 5.9)) * 150}px)`;
+  // Builder: blocks fly from the palette into the page
+  const slots = [[90, 18, 150], [90, 40, 170], [90, 100, 170], [90, 132, null]], src = [[10, 14], [10, 38], [10, 62], [10, 86]];
+  blks.forEach((b, i) => { const p = eOut5(prog(a, 6.8 + i * .26, 7.1 + i * .26)), [sx, sy] = src[i], [tx, ty, w] = slots[i];
+    b.style.left = lerp(sx, tx, p) + 'px'; b.style.top = lerp(sy, ty, p) + 'px'; if (w) b.style.width = lerp(46, w, p) + 'px'; b.style.opacity = a > 6.75 || gt > GA + LA ? 1 : 0; });
+  // dim everything else while a face is in focus
+  const dim = eIO(prog(a, 0, .9)) * (1 - eIO(prog(a, 7.9, 8.8)));
+  return dim;
+}
+
+// ---------- B: an agent walks Saara's garden ----------
+const SG = { x: -1350, y: 1350 };
+const sLabel = el('div', 'gl abs', world, 'Philosophy 101<span>Saara</span>');
+const sCards = [
+  [C({ e: '📜', bg: '#FCEBC2', k: 'Book', t: 'The Republic', m: 'Plato' }), -165, -130],
+  [C({ e: '▶️', bg: '#FFD0BD', k: 'Video', t: 'The cave, animated' }), 165, -130],
+  [C({ note: 'Shadows on the wall are not the things themselves.' }), -165, 130],
+  [C({ e: '🏛️', bg: '#E4E8F7', k: 'Link', t: 'Plato, Stanford Encyclopedia' }), 165, 130],
+];
+const rings = sCards.map(() => { const r = el('div', 'abs'); r.style.cssText += 'width:320px;height:140px;border-radius:26px;border:5px solid #0f8f80'; return r; });
+const expl = C({ e: '▶️', bg: '#FFD0BD', k: 'Video', t: 'Plato’s cave in 90 seconds', m: 'made by your agent, from Saara’s garden' });
+const tagAI = el('div', 'chip', expl, 'agent involved'); tagAI.style.cssText += 'position:absolute;right:14px;top:-14px';
+const EX = { x: 1565, y: 1530 };
+const PROMPT_TXT = 'Hey! Check the things Saara shared for the philosophy lecture and make me an explainer.';
+const agChat = el('div', 'abs over-ok', ui); agChat.style.cssText = 'position:absolute;left:410px;top:auto;width:1100px;bottom:56px;opacity:0';
+agChat.innerHTML = `<div id="agR0" style="margin:0 0 12px 0;display:flex;justify-content:flex-end;opacity:0"><div style="background:#10243A;color:#F8F5EC;font:500 24px Bricolage Grotesque;padding:14px 22px;border-radius:22px 22px 6px 22px;max-width:820px">${PROMPT_TXT}</div></div>
+  <div id="agR1" style="margin:0 0 12px 0;display:flex;opacity:0"><div style="background:#DDF3EF;color:#10243A;font:500 26px Bricolage Grotesque;padding:14px 22px;border-radius:22px 22px 22px 6px">Reading 4 things from Saara’s garden…</div></div>
+  <div id="agR2" style="margin:0 0 12px 0;display:flex;opacity:0"><div style="background:#DDF3EF;color:#10243A;font:500 26px Bricolage Grotesque;padding:14px 22px;border-radius:22px 22px 22px 6px">Made you an explainer. It’s in your garden.</div></div>
+  <div style="background:#fff;border:1px solid rgba(16,36,58,.12);border-radius:28px;box-shadow:0 18px 50px rgba(16,36,58,.14);padding:20px 26px;display:flex;align-items:center;gap:16px">
+    <div style="width:44px;height:44px;border-radius:50%;background:#10243A;color:#F8F5EC;font:700 16px Bricolage Grotesque;display:flex;align-items:center;justify-content:center;flex:none">you</div>
+    <div id="agTxt" style="font:500 28px Bricolage Grotesque;color:#10243A;flex:1;min-height:36px"></div></div>`;
+const agR0 = agChat.querySelector('#agR0'), agTxt = agChat.querySelector('#agTxt'), agR1 = agChat.querySelector('#agR1'), agR2 = agChat.querySelector('#agR2');
+const PROMPT = 'Hey! Check the things Saara shared for the philosophy lecture and make me an explainer.';
+const tB2 = T([['h', [['Your agents can', ''], ['walk them too.', 'acc coral']]], ['sub', [['Anything shared with you. Any agent you use.', '']]]]);
+for (let i = 0; i < PROMPT.length; i += 6) nsfx(GB + .5 + (i / PROMPT.length) * 2.0, 'tick');
+nsfx(GB + 2.6, 'whooshL'); [0, 1, 2, 3].forEach(i => nsfx(GB + 4.1 + i * .4, 'pop', i)); nsfx(GB + 5.9, 'pop', 7); nsfx(GB + 6.3, 'whooshL'); nsfx(GB + 8.3, 'pop', 5);
+const Ycam = [1400, 1260, 1.15], Scam = [SG.x, SG.y - 60, .95];
+function camB(gt) {
+  const a = gt - GB, bez = (p, P0, P1, c) => [(1 - p) * (1 - p) * P0[0] + 2 * (1 - p) * p * c[0] + p * p * P1[0], (1 - p) * (1 - p) * P0[1] + 2 * (1 - p) * p * c[1] + p * p * P1[1]];
+  if (a < 2.6) return { x: Ycam[0], y: Ycam[1], z: Ycam[2] - eIO(prog(a, 0, 2.6)) * .1 };
+  if (a < 4.0) { const p = eIO(prog(a, 2.6, 4.0)), [x, y] = bez(p, Ycam, Scam, [0, 1900]); return { x, y, z: Math.exp(lerp(Math.log(1.05), Math.log(.95), p)) - Math.sin(p * Math.PI) * .45 }; }
+  if (a < 6.3) return { x: Scam[0], y: Scam[1], z: Scam[2] };
+  if (a < 8.4) { const p = eIO(prog(a, 6.3, 8.4)), [x, y] = expPos(p); return { x: lerp(x, Ycam[0], p * .5), y, z: .95 + (1.15 - .95) * p - Math.sin(p * Math.PI) * .45 }; }
+  const p = eIO(prog(a, 8.4, 9.0)); return { x: lerp(EX.x * .5 + Ycam[0] * .5, Ycam[0], p), y: lerp(EX.y, Ycam[1], p), z: 1.15 };
+}
+const EXs = { x: SG.x, y: SG.y + 400 };
+const expPos = p => [(1 - p) * (1 - p) * EXs.x + 2 * (1 - p) * p * 100 + p * p * EX.x, (1 - p) * (1 - p) * EXs.y + 2 * (1 - p) * p * 2100 + p * p * EX.y];
+function renderAgent(gt, bt, focus) {
+  place(sLabel, SG.x, SG.y - 300, 1, 1); sCards.forEach(([c, dx, dy]) => place(c, SG.x + dx, SG.y + dy, 1, 1));
+  const a = gt - GB, inB = gt > GB && gt < GB + LB;
+  sCards.forEach(([c, dx, dy], i) => { const rp = prog(a, 4.1 + i * .4, 4.6 + i * .4); place(rings[i], SG.x + dx, SG.y + dy, lerp(.9, 1.06, eOut(rp)), inB && rp > 0 ? (rp < 1 ? 1 : 1 - prog(a, 6.0, 6.4)) : 0); });
+  // explainer: forms under Saara's garden, flies to yours, stays
+  { const form = eBack(prog(a, 5.9, 6.3)), p = eIO(prog(a, 6.3, 8.4)), [x, y] = expPos(p);
+    const done = gt >= GB + 8.4;
+    if (gt < GB + 5.9) place(expl, 0, 0, 1, 0);
+    else if (!done) place(expl, x, y, lerp(.5, 1, clamp(form)) * (1 + Math.sin(p * Math.PI) * .12), clamp(form * 2), Math.sin(p * Math.PI) * -6);
+    else place(expl, EX.x, EX.y, 1, 1 - focus); }
+  // agChat
+  const cin = eOut5(prog(a, .1, .6)), cout = eIO(prog(a, 8.5, 9.0)); agChat.style.opacity = inB ? cin * (1 - cout) : 0; agChat.style.transform = `translateY(${(1 - cin) * 30}px)`;
+  const n = Math.floor(PROMPT.length * clamp((a - .5) / 2.0)); agTxt.textContent = a > 2.4 ? '' : PROMPT.slice(0, n);
+  if (a > 2.4) agTxt.innerHTML = `<span style="color:#56616e">Ask your agent…</span>`;
+  agR0.style.opacity = eOut(prog(a, 2.4, 2.7)); agR0.style.display = a >= 2.4 ? 'flex' : 'none';
+  agR1.style.opacity = eOut(prog(a, 2.8, 3.2)) * (1 - prog(a, 7.8, 8.1)); agR1.style.display = a < 7.95 ? 'flex' : 'none';
+  agR2.style.opacity = eOut(prog(a, 7.9, 8.3)); agR2.style.display = a >= 7.95 ? 'flex' : 'none';
+  // the typed request stays visible as a sent bubble after send
+  return showT(tB2, gt, GB + 3.3, GB + 6.2);
+}
+function beatCam(gt) {
+  if (gt > GA && gt < GA + LA) { let i = 0; while (i < AK.length - 2 && gt > AK[i + 1][0]) i++;
+    const [t0, x0, y0, z0] = AK[i], [t1, x1, y1, z1] = AK[i + 1], p = eIO5(prog(gt, t0, t1));
+    return { x: lerp(x0, x1, p), y: lerp(y0, y1, p), z: Math.exp(lerp(Math.log(z0), Math.log(z1), p)) }; }
+  if (gt > GB && gt < GB + LB) return camB(gt);
+  return null;
+}
+
+// ---------------- grain ----------------
+const gctx = document.getElementById('grain').getContext('2d'), gimg = gctx.createImageData(960, 540);
+function grain(f) { let s = (f * 7919 + 13) >>> 0; const d = gimg.data;
+  for (let i = 0; i < d.length; i += 4) { s = (s * 1664525 + 1013904223) >>> 0; const v = 128 + ((s >>> 24) - 128) * .9; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+  gctx.putImageData(gimg, 0, 0); }
+
+// ================= render =================
+const DURATION = 77.4 + LA + LB; window.DURATION = DURATION; window.SFX = SFX.map(e => ({ ...e, t: +toGlobal(e.t).toFixed(3) })).concat(NSFX).sort((a, b) => a.t - b.t);
+const washE = document.getElementById('washE'), wash = document.getElementById('wash'), dots = document.getElementById('dots');
+window.seek = function (gt) {
+  const t = baseT(gt);
+  const cam = beatCam(gt) || camAt(t);
+  const dx = Math.sin(t * .31) * 6 / cam.z, dy = Math.cos(t * .23) * 5 / cam.z;
+  const cx = cam.x + dx, cy = cam.y + dy, z = cam.z;
+  world.style.transform = `translate(${960 - cx * z}px,${540 - cy * z}px) scale(${z})`;
+  const bz = Math.pow(z, .45); bg.style.transform = `translate(${960 - cx * .35 * bz}px,${540 - cy * .35 * bz}px) scale(${bz})`;
+  const dz = Math.pow(z, .7), ds = 32 * dz; dots.style.backgroundSize = `${ds}px ${ds}px`; dots.style.backgroundPosition = `${(-cx * z) % ds}px ${(-cy * z) % ds}px`;
+  dots.style.opacity = clamp(.35 + z * .5, 0, 1);
+
+  // --- A
+  const winO = 1 - prog(t, 11.2, 12.2);
+  place(win, 40, 0, 1, winO);
+  tabs.forEach((tb, i) => { const c = eIO(prog(t, 8.3 + i * .27, 8.75 + i * .27)); tb.style.flexBasis = (150 * (1 - c)) + 'px'; tb.style.padding = `0 ${12 * (1 - c)}px`; tb.style.opacity = 1 - c; });
+  bms.forEach((b, i) => { const c = eIO(prog(t, 8.8 + i * .18, 9.5 + i * .18)); b.style.opacity = 1 - c; b.style.transform = `translateX(${-60 * c}px)`; b.style.filter = `grayscale(${c})`; });
+  bubs.forEach((b, i) => { const c = eIO(prog(t, 9.0 + i * .12, 10.2 + i * .12)); b.style.transform = `translateY(${-300 * c}px)`; b.style.opacity = 1 - c; });
+  clutter.forEach(([c, x, y, s, r], i) => { const g = prog(t, 8.6, 10.2), f = eIO(prog(t, 10.0 + i * .22, 11.0 + i * .22));
+    place(c, x, y + f * 260, s, (t < 12.3 ? 1 : 0) * (1 - f), r + f * (i % 2 ? 8 : -8)); c.style.filter = `grayscale(${g}) blur(${f * 6}px)`; });
+  { const g = prog(t, 9.0, 10.6), f = eIO(prog(t, 10.9, 11.9)); place(wave, 10, f * 200, 1, t < 12.3 ? 1 - f : 0, f * 6); wave.style.filter = `grayscale(${g * .9}) blur(${f * 6}px)`; }
+  const a1 = showT(tA1, t, .7, 3.9); document.getElementById('scrimA').style.opacity = eIO(prog(t, .2, .9)) * (1 - eIO(prog(t, 4.0, 5.0))); const a2 = showT(tA2, t, 7.5, 12.2);
+
+  // --- B
+  const sd = prog(t, 12.6, 13.1), sdb = eBack(prog(t, 12.6, 13.2));
+  place(seedEl, 0, lerp(-520, 200, clamp(sdb, 0, 1.08)) - (sdb > 1 ? (sdb - 1) * 60 : 0), 1, t > 12.55 && t < 13.7 ? 1 : 0);
+  place(ground, 0, 212, 1, prog(t, 12.9, 13.4) * (1 - prog(t, 24, 25.5)));
+  place(sprout, 0, 60, 1, t > 13.3 ? 1 - prog(t, 24, 25.5) : 0);
+  stem.style.strokeDashoffset = stemL * (1 - eOut(prog(t, 13.45, 14.5)));
+  lf.forEach((l, i) => { const p = eBack(prog(t, 14.2 + i * .3, 14.9 + i * .3)); l.style.transformOrigin = i ? '2px -180px' : '0px -140px'; l.style.transformBox = 'view-box'; l.style.transform = `scale(${clamp(p, 0, 1.2)})`; });
+  const b1 = showT(tB, t, 14.7, 18.1);
+
+  // --- C
+  const dimA = renderFaces(gt, t);
+  { const holds = [[1.0, 2.2], [3.0, 4.1], [4.9, 6.0], [6.8, 8.0]], a = gt - GA;
+    faces.forEach(([c], i) => { const [h0, h1] = holds[i], w = prog(a, h0 - .8, h0) * (1 - prog(a, h1, h1 + .8));
+      c.style.opacity = +c.style.opacity * lerp(1, w, dimA); }); }
+  const tBm = eIO(prog(t, 26.5, 28.3)), tCm = eIO(prog(t, 31.6, 33.2));
+  cards.forEach((c, i) => {
+    const k = landOrder.indexOf(i), a = PAof(i), land = eOut5(prog(t, 19.5 + k * .27, 20.3 + k * .27));
+    let x = a[0], y = a[1] + (1 - land) * 90, s = lerp(.55, 1, eBack(prog(t, 19.5 + k * .27, 20.3 + k * .27))), o = clamp(land * 1.6), r = ((i * 37) % 7 - 3) * 1.2;
+    const b = PB[i], cc = PC[i];
+    if (b) { x = lerp(x, b[0], tBm); y = lerp(y, b[1], tBm); r = lerp(r, 0, tBm); } else o *= 1 - tBm;
+    if (b && cc) { x = lerp(x, cc[0], tCm); y = lerp(y, cc[1], tCm); } else if (b && GL.x === (PB[i] && Math.round((PB[i][0] + 165) / 1300) * 1300 - 0) && false) {}
+    if (i === 12) o *= 1 - tCm;
+    const bob = Math.sin(gt * 1.1 + i * 1.9) * 4;
+    if (t < 19.4) o = 0;
+    place(c, x, y + bob, s, o * (1 - .8 * dimA), r);
+  });
+  labels.forEach(({ e, g }, i) => { const p = eOut(prog(t, 27.4 + i * .15, 28.2 + i * .15)) * (g === GL ? 1 - prog(t, 31.4, 32) : 1); place(e, g.x, g.y - 470, 1, p); });
+  { const p = eIO(prog(t, 32.9, 34.3)); pl.setAttribute('d', `M-630 0 L ${lerp(-630, 630, p)} 0`); place(pathSvg, 0, -40, 1, p > 0 ? 1 - prog(t, 38.5, 39.5) : 0); }
+  steps.forEach((s, i) => { const p = eBack(prog(t, 33.1 + i * .3, 33.7 + i * .3)); place(s, -630 + i * 420, -300, lerp(.6, 1, p), clamp(p * 2) * (1 - prog(t, 38.5, 39.5))); });
+  const c1 = showT(tC1, t, 19.2, 25.3), c2 = showT(tC2, t, 26.8, 30.3), c3 = showT(tC3, t, 32.0, 37.3);
+
+  // --- D
+  const focus = eIO(prog(t, 63.0, 64.2)) * (1 - eIO(prog(t, 68.9, 70.2)));
+  const yp = eOut(prog(t, 44.0, 45.2));
+  place(yPanel, Y.x, Y.y, lerp(.96, 1, yp), yp * (1 - focus)); place(yLabel, Y.x, 900, 1, yp * (1 - focus));
+  mine.forEach(([c, x, y], i) => place(c, x, y, 1, eOut(prog(t, 44.3 + i * .2, 45.0 + i * .2)) * (1 - focus)));
+  place(pizza, PIZ.x, PIZ.y, 1, eOut(prog(t, 44.6, 45.3)));
+  const m1 = eIO(prog(t, 39.6, 40.9)), aft = eIO(prog(t, 41.7, 42.6));
+  const cxp = lerp(lerp(-900, -1395, m1), -1250, aft), cyp = lerp(lerp(250, -418, m1), -200, aft);
+  const clk = prog(t, 41.25, 41.45);
+  cursor.style.transform = `translate(${cxp}px,${cyp}px) scale(${1 - Math.sin(clk * Math.PI) * .15})`; cursor.style.opacity = prog(t, 39.5, 39.8) * (1 - prog(t, 42.3, 42.7));
+  const hov = prog(t, 40.8, 41.1); keepBtn.style.opacity = hov * (1 - prog(t, 42.0, 42.3)); keepBtn.style.transform = `scale(${lerp(.8, 1, hov)})`;
+  { const rp = prog(t, 41.3, 42.0); place(ring, -1335, -445, lerp(.3, 1.8, eOut(rp)), rp > 0 && rp < 1 ? 1 - rp : 0); }
+  keptB.textContent = t > 41.35 ? '89' : '88';
+  { const p = eIO(prog(t, 42.3, 46.0)); const s0 = PB[0];
+    const bx = (1 - p) * (1 - p) * s0[0] + 2 * (1 - p) * p * 100 + p * p * SLOT.x, by = (1 - p) * (1 - p) * s0[1] + 2 * (1 - p) * p * -250 + p * p * SLOT.y;
+    place(clone, bx, by, 1 + Math.sin(p * Math.PI) * .12, (t > 42.3 ? 1 : 0) * (1 - focus), Math.sin(p * Math.PI) * -6);
+    clone.style.boxShadow = `0 ${12 + Math.sin(p * Math.PI) * 40}px ${30 + Math.sin(p * Math.PI) * 50}px rgba(16,36,58,${.08 + Math.sin(p * Math.PI) * .08})`; }
+  const d1 = showT(tD, t, 38.6, 42.0);
+
+  // --- E
+  arcSvgWrap.style.visibility = t > 46.5 && t < 57 ? 'visible' : 'hidden';
+  arcs.forEach(A => { const p = eIO(prog(t, A.t0, A.t0 + 1.5)), fadeOut = prog(t, A.t0 + 1.5, A.t0 + 2.6);
+    const head = p * A.L, tail = Math.max(0, head - A.L * .45);
+    A.path.style.strokeDasharray = `0 ${tail} ${head - tail} ${A.L}`; A.path.style.opacity = (p > 0 ? 1 : 0) * (1 - fadeOut) * .75;
+    const pt = A.path.getPointAtLength(head); A.dot.setAttribute('cx', pt.x); A.dot.setAttribute('cy', pt.y); A.dot.setAttribute('opacity', p > 0 && p < 1 ? 1 : 0);
+    const hp = prog(t, A.t0 + 1.5, A.t0 + 2.4); place(A.heart, A.b.x, A.b.y - hp * 200, lerp(.4, 1.3, eOut(hp)), hp > 0 && hp < 1 ? Math.sin(hp * Math.PI) : 0); });
+  const e1 = showT(tE, t, 49.4, 55.5);
+
+  // --- F
+  arrivals.forEach(([c, x, y], i) => { const a = 59.0 + i * .9, p = eOut5(prog(t, a, a + 1.4)); place(c, lerp(x + 1100, x, p), y, 1, clamp(p * 1.4) * (1 - focus), lerp(8, 0, p));
+    const cp = eBack(prog(t, a + 1.0, a + 1.4)); place(chips[i], x, y - 128, lerp(.7, 1, cp), clamp(cp) * (1 - focus)); });
+  const f1 = showT(tF, t, 57.2, 62.6);
+
+  // --- G
+  slices.forEach((p, i) => p.setAttribute('fill', t > 65.0 + i * .34 && i < 6 ? '#FF9E7A' : '#FBE3C4'));
+  const g1 = showT(tG, t, 64.3, 68.7, .06);
+
+  // --- H
+  const h1 = showT(tH, t, 71.9, 73.8, .45);
+  paperwash.style.opacity = eIO(prog(t, 71.0, 71.9)) * .97;
+  const l1 = showT(logo, t, 74.2, null, .1);
+  { const p = eOut5(prog(t, 75.1, 75.9)); cta.style.opacity = p; cta.style.transform = `translateY(${(1 - p) * 30}px)`; }
+
+  const fa = showT(tAf, gt, GA + .4, GA + 7.6, .06); washA.style.opacity = fa;
+  const agentT = renderAgent(gt, t, focus);
+  wash.style.opacity = Math.max(a2, c1, c2, c3, d1, f1, g1 * .9, agentT); washE.style.opacity = e1;
+  grain(Math.floor(gt * 30));
+};
+window.seek(0);
+if (location.search.includes('play')) { const t0 = performance.now(); const loop = () => { window.seek(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }
+</script>
+</body>
+</html>

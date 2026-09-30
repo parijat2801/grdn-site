@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grdn — everything worth a revisit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; --line:rgba(16,36,58,.10); --muted:rgba(16,36,58,.55); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: var(--paper); color: var(--ink);
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .serif { font-family: 'Newsreader', Georgia, serif; }
+
+  #view { position: fixed; inset: 0; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+    background: radial-gradient(circle at 1px 1px, rgba(16,36,58,.07) 1.2px, transparent 0) 0 0/28px 28px; }
+  #view.dragging { cursor: grabbing; }
+  #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+
+  .garden { position: absolute; width: 580px; }
+  .garden header { display: flex; align-items: baseline; gap: 10px; margin: 0 4px 14px; }
+  .garden h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .garden .by { font-family: 'Newsreader', serif; font-style: italic; font-size: 16px; color: var(--muted); }
+  .cols { display: flex; gap: 14px; align-items: flex-start; }
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+
+  .thing { position: relative; background: #fff; border: 1px solid rgba(16,36,58,.07);
+    border-radius: 18px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
+    transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
+  @media (hover: hover) { .thing:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(16,36,58,.05), 0 12px 28px rgba(16,36,58,.08); } }
+  .thing.enter { animation: rise .8s cubic-bezier(.2,.7,.2,1) backwards; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.975); } }
+  .kept { display: inline-block; transition: color .3s; }
+  .kept.bump { animation: bump .6s cubic-bezier(.2,.7,.2,1); color: #c4552f; }
+  @keyframes bump { 30% { transform: scale(1.18); } }
+  .heart { position: absolute; pointer-events: none; color: #e08a68; font-size: 18px; animation: float 1.4s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes float { from { opacity: 0; transform: translate(0,0) scale(.6); } 20% { opacity: 1; transform: translate(0,-10px) scale(1.1); } to { opacity: 0; transform: translate(-6px,-46px) scale(.9); } }
+  .link img { transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+  @media (hover: hover) { .link:hover img { transform: scale(1.02); } }
+  .k { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .t { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; margin-top: 3px; }
+  .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .kept::before { content: '♥ '; color: #e08a68; }
+  .row { display: flex; gap: 12px; align-items: center; }
+  .ic { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
+  .note p { font-family: 'Newsreader', serif; font-size: 18px; line-height: 1.4; }
+  .link .dom { font-size: 13px; color: var(--muted); }
+  .link .strip { height: 70px; border-radius: 10px; margin-bottom: 10px; }
+  .link img { display: block; width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; background: #F1ECE0; }
+  .link a { color: inherit; text-decoration: none; }
+  .video .thumb { height: 120px; border-radius: 10px; margin-bottom: 10px; background: linear-gradient(135deg,#10243A,#2b4a6b);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; }
+  .flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .flow span { font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #F1ECE0; }
+  .flow i { font-style: normal; color: var(--muted); }
+  .live { cursor: default; }
+  .live .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--teal); }
+  .live button, .live .hit { cursor: pointer; }
+
+  /* live widgets */
+  .pizza svg path { cursor: pointer; transition: fill .15s; }
+  .palette { display: flex; height: 64px; border-radius: 10px; overflow: hidden; margin-top: 10px; cursor: pointer; }
+  .palette div { flex: 1; transition: background .3s; }
+  .keys { display: flex; gap: 4px; margin-top: 10px; }
+  .keys button { flex: 1; height: 64px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 12px 'Bricolage Grotesque'; color: var(--muted); }
+  .keys button:active, .keys button.on { background: #DDF3EF; }
+  .dice { font-size: 54px; line-height: 1; margin-top: 8px; cursor: pointer; user-select: none; letter-spacing: 6px; }
+  .moon { font-size: 54px; line-height: 1; margin-top: 8px; }
+
+  /* the quiet card */
+  #card { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(600px, calc(100vw - 32px));
+    background: #FAF8F2; border: 1px solid rgba(16,36,58,.08); border-radius: 28px; padding: 44px 44px 34px;
+    box-shadow: 0 2px 6px rgba(16,36,58,.04), 0 24px 60px rgba(16,36,58,.10);
+    transition: opacity .5s cubic-bezier(.2,.7,.2,1), transform .5s cubic-bezier(.2,.7,.2,1);
+    animation: cardIn 1s .35s cubic-bezier(.2,.7,.2,1) backwards; }
+  @keyframes cardIn { from { opacity: 0; transform: translate(-50%,-46%) scale(.98); } }
+  #card > * { animation: up .8s cubic-bezier(.2,.7,.2,1) backwards; }
+  #card .mark { animation-delay: .55s; } #card h1 { animation-delay: .65s; } #card .lede { animation-delay: .8s; } #card .stance { animation-delay: .88s; } #card form { animation-delay: .95s; } #card .fine { animation-delay: 1.05s; }
+  @keyframes up { from { opacity: 0; transform: translateY(10px); } }
+  #scrim { position: fixed; inset: 0; pointer-events: none; transition: opacity .6s ease;
+    display: none; }
+  #scrim.away { opacity: 0; }
+  #card.away { opacity: 0; transform: translate(-50%,-47%) scale(.97); pointer-events: none; }
+  .mark { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+  #card h1 { text-wrap: balance; font-size: clamp(34px, 5vw, 50px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.04; margin-top: 22px; }
+  #card .lede { font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; color: rgba(16,36,58,.75); margin-top: 16px; }
+  #card .stance { font-size: 16px; font-weight: 600; letter-spacing: -0.005em; color: #0a5a51; margin-top: 14px; }
+  form { display: flex; gap: 8px; margin-top: 26px; }
+  input[type=email] { flex: 1; min-width: 0; font: 400 17px 'Bricolage Grotesque'; padding: 14px 18px; border-radius: 999px;
+    border: 1px solid rgba(16,36,58,.18); background: #fff; color: var(--ink); outline: none; }
+  input[type=email]:focus { border-color: var(--teal); }
+  .btn { font: 600 16px 'Bricolage Grotesque'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
+  .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
+  .wander { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  #pill { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    transition: all .35s ease; }
+  #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
+</style>
+</head>
+<body>
+<div id="view"><div id="world"></div></div>
+<div id="scrim"></div>
+
+<section id="card" aria-label="Reserve yours">
+  <div class="mark">Grdn</div>
+  <h1>Everything worth a&nbsp;revisit.</h1>
+  <p class="lede">The tools and games you make, the links and notes you find, somewhere others can wander in and keep what they love.</p>
+  <p class="stance">A discovery engine you control, not one which controls you.</p>
+  <form id="f">
+    <input type="email" required placeholder="you@example.com" aria-label="Email">
+    <button class="btn" type="submit">Reserve yours</button>
+  </form>
+  <p class="thanks" id="thanks">Thank you. We’ll write when your garden is ready.</p>
+  <div class="fine"><button class="wander" id="wander">Wander</button></div>
+</section>
+<button class="btn" id="pill">Reserve yours</button>
+
+<script>
+// ---------- content ----------
+const G = [
+  { name: 'Fractions, by hand', by: 'Ms. Rao’s class 4B', things: [
+    { live: 'pizza' },
+    { type: 'note', text: 'Everyone gets a slice. Then we ask: who got more?', kept: 12 },
+    { type: 'app', e: '📏', bg: '#FCEBC2', k: 'Game', t: 'Number line jump', kept: 214 },
+    { type: 'link', dom: 'khanacademy.org', t: 'Fractions on a number line', kept: 31 },
+  ]},
+  { name: 'Octopus minds', by: 'a rabbit hole by Ines', things: [
+    { type: 'link', img: 'web/octopus.jpg', href: 'https://en.wikipedia.org/wiki/Cephalopod_intelligence', dom: 'wikipedia.org', t: 'Cephalopod intelligence', kept: 88 },
+    { type: 'note', text: 'Two thirds of the neurons are in the arms. Do the arms think?', kept: 40 },
+    { type: 'video', t: 'An octopus opens a jar', dom: 'youtube.com', kept: 302 },
+    { type: 'app', e: '🐙', bg: '#FFE3D6', k: 'Toy', t: 'Eight-arm drawing', kept: 57 },
+    { type: 'link', dom: 'arxiv.org', t: 'Distributed control in soft arms', kept: 9 },
+  ]},
+  { name: 'Small shop, less admin', by: 'Arjun’s ops', things: [
+    { type: 'flow', k: 'Workflow', t: 'Morning order check', steps: ['Orders sheet', 'find splits', 'note'], kept: 23 },
+    { type: 'app', e: '📦', bg: '#DDF3EF', k: 'Tool', t: 'Split order #48213', meta: 'used once · today' },
+    { type: 'note', text: '3 orders need splitting before the 11am pickup.', meta: 'made by workflow' },
+    { type: 'app', e: '🧾', bg: '#FCEBC2', k: 'Tool', t: 'Invoice fixer', kept: 64 },
+  ]},
+  { name: 'Sound toys', by: 'Kenji', things: [
+    { live: 'synth' },
+    { type: 'app', e: '🥁', bg: '#FFE3D6', k: 'Toy', t: 'Sixteen-step drums', kept: 410 },
+    { type: 'link', img: 'web/musiclab-chromeexperiments-com-18.jpg', href: 'https://musiclab.chromeexperiments.com/Song-Maker/', dom: 'musiclab.chromeexperiments.com', t: 'Song Maker', kept: 76 },
+    { type: 'link', img: 'web/patatap-com-12.png', href: 'https://patatap.com', dom: 'patatap.com', t: 'Patatap', kept: 512 },
+  ]},
+  { name: 'Colour', by: 'a garden by Mo', things: [
+    { live: 'palette' },
+    { type: 'note', text: 'Warm paper, one ink, one accent. Everything else is noise.', kept: 19 },
+    { type: 'link', img: 'web/oklch-com-23.png', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
+    { type: 'link', img: 'web/weavesilk-com-13.png', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
+  ]},
+  { name: 'Moon & sky', by: 'Grandpa Tom', things: [
+    { live: 'moon' },
+    { type: 'app', e: '🔭', bg: '#E4E8F7', k: 'App', t: 'What’s up tonight', kept: 205 },
+    { type: 'note', text: 'Saturn is low in the east after nine. Take the kids.', kept: 6 },
+    { type: 'link', img: 'web/pale-blue-dot.png', href: 'https://en.wikipedia.org/wiki/Pale_Blue_Dot', dom: 'wikipedia.org', t: 'Pale Blue Dot', kept: 3120 },
+    { type: 'link', img: 'web/nasa-gov-27.jpg', href: 'https://www.nasa.gov/image-of-the-day/', dom: 'nasa.gov', t: 'NASA image of the day', kept: 640 },
+  ]},
+  { name: 'Robin Sloan', by: 'love, not likes', things: [
+    { type: 'link', img: 'web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com', t: 'Fish: a tap essay', kept: 3420 },
+    { type: 'link', img: 'web/sloan-home-cooked.png', href: 'https://www.robinsloan.com/notes/home-cooked-app/', dom: 'robinsloan.com', t: 'An app can be a home-cooked meal', kept: 5210 },
+    { type: 'note', text: 'Liking is cheap. Love is coming back.', kept: 612 },
+    { type: 'link', img: 'web/sloan-moonbound.jpg', href: 'https://www.robinsloan.com/moonbound/', dom: 'robinsloan.com', t: 'Moonbound, a novel', kept: 890 },
+  ]},
+  { name: 'Digital gardens', by: 'the people who planted the idea', things: [
+    { type: 'link', img: 'web/appleton-garden-history.png', href: 'https://maggieappleton.com/garden-history', dom: 'maggieappleton.com · Maggie Appleton', t: 'A Brief History & Ethos of the Digital Garden', kept: 4870 },
+    { type: 'link', img: 'web/appleton-garden.png', href: 'https://maggieappleton.com/garden', dom: 'maggieappleton.com · Maggie Appleton', t: 'The Garden of Maggie Appleton', kept: 2310 },
+    { type: 'link', href: 'https://notes.andymatuschak.org/Evergreen_notes', dom: 'notes.andymatuschak.org · Andy Matuschak', t: 'Evergreen notes', kept: 3950 },
+    { type: 'link', img: 'web/ttft.png', href: 'https://numinous.productions/ttft/', dom: 'numinous.productions · Andy Matuschak & Michael Nielsen', t: 'How can we develop transformative tools for thought?', kept: 2780 },
+    { type: 'link', href: 'https://hapgood.us/2015/10/17/the-garden-and-the-stream-a-technopastoral/', dom: 'hapgood.us · Mike Caulfield', t: 'The Garden and the Stream: A Technopastoral', kept: 1640 },
+    { type: 'link', href: 'https://tomcritchlow.com/2019/02/17/building-digital-garden/', dom: 'tomcritchlow.com · Tom Critchlow', t: 'Building a digital garden', kept: 720 },
+    { type: 'link', img: 'web/arena.png', href: 'https://www.are.na', dom: 'are.na', t: 'Are.na', kept: 2600 },
+    { type: 'link', img: 'web/hypothesis.png', href: 'https://web.hypothes.is', dom: 'web.hypothes.is', t: 'Hypothesis, notes on the whole web', kept: 880 },
+    { type: 'link', img: 'web/tabfs.png', href: 'https://omar.website/tabfs/', dom: 'omar.website · Omar Rizwan', t: 'TabFS: your browser tabs as files', kept: 1520 },
+    { type: 'note', text: 'Tend ideas in public, and let them grow slowly.', kept: 205 },
+  ]},
+  { name: 'Where Grdn comes from', by: 'a 2021 thesis, still growing', things: [
+    { type: 'link', img: 'web/diamond-age.jpg', href: 'https://en.wikipedia.org/wiki/The_Diamond_Age', dom: 'Neal Stephenson · wikipedia.org', t: 'The Diamond Age', kept: 2810 },
+    { type: 'note', text: 'The Primer: a book that learns its reader, and grows with her.', kept: 340 },
+    { type: 'link', href: 'https://proto-knowledge.blogspot.com/2011/11/building-young-ladys-illustrated-primer.html', dom: 'proto-knowledge.blogspot.com', t: 'Building “A Young Lady’s Illustrated Primer”', kept: 260 },
+    { type: 'link', img: 'web/mother-of-all-demos.jpg', href: 'https://en.wikipedia.org/wiki/The_Mother_of_All_Demos', dom: 'Doug Engelbart, 1968 · wikipedia.org', t: 'The Mother of All Demos', kept: 3120 },
+    { type: 'link', img: 'web/dynabook.png', href: 'https://en.wikipedia.org/wiki/Dynabook', dom: 'Alan Kay · wikipedia.org', t: 'The Dynabook', kept: 1740 },
+    { type: 'link', href: 'https://worrydream.com/MediaForThinkingTheUnthinkable/', dom: 'worrydream.com · Bret Victor', t: 'Media for Thinking the Unthinkable', kept: 4410 },
+    { type: 'link', href: 'http://hyperphysics.phy-astr.gsu.edu/hbase/index.html', dom: 'Rod Nave · hyperphysics.phy-astr.gsu.edu', t: 'HyperPhysics: pathways through physics', kept: 980 },
+    { type: 'link', img: 'web/las-pozas.jpg', href: 'https://en.wikipedia.org/wiki/Las_Pozas', dom: 'Edward James · wikipedia.org', t: 'Las Pozas, a garden in the jungle', kept: 1290 },
+    { type: 'link', href: 'https://www.nowness.com/series/great-gardens/great-gardens-las-pozas-toby-amies', dom: 'nowness.com · Toby Amies', t: 'Great Gardens: Las Pozas', kept: 410 },
+    { type: 'app', e: '📗', bg: '#DDF3EF', k: 'Book', t: 'Metaphors We Live By', meta: 'Lakoff & Johnson', kept: 1150 },
+  ]},
+  { name: 'Small, opinionated apps', by: 'made by one person, loved by many', things: [
+    { type: 'link', img: 'web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com · Robin Sloan', t: 'Fish: a tap essay', kept: 3420 },
+    { type: 'link', img: 'web/pointer-pointer.jpg', href: 'https://pointerpointer.com', dom: 'pointerpointer.com', t: 'Pointer Pointer', kept: 6200 },
+    { type: 'link', img: 'web/little-alchemy.jpg', href: 'https://littlealchemy2.com', dom: 'littlealchemy2.com', t: 'Little Alchemy 2', kept: 5400 },
+    { type: 'link', img: 'web/orb-farm.png', href: 'https://orb.farm', dom: 'orb.farm · Max Bittker', t: 'orb.farm, a tiny aquarium ecosystem', kept: 2750 },
+    { type: 'link', img: 'web/is-it-christmas.png', href: 'https://isitchristmas.com', dom: 'isitchristmas.com', t: 'Is It Christmas?', kept: 3900 },
+    { type: 'link', img: 'web/kinopio.png', href: 'https://kinopio.club', dom: 'kinopio.club', t: 'Kinopio, spatial thinking', kept: 1480 },
+    { type: 'link', img: 'web/wordle.png', href: 'https://www.nytimes.com/games/wordle/index.html', dom: 'Josh Wardle, made for his partner', t: 'Wordle', kept: 9100 },
+    { type: 'link', img: 'web/spring83.jpg', href: 'https://www.robinsloan.com/lab/specifying-spring-83/', dom: 'robinsloan.com · Robin Sloan', t: 'Specifying Spring ’83', kept: 610 },
+    { type: 'link', href: 'https://alexanderperrin.com.au/paper/shorttrip/', dom: 'alexanderperrin.com.au', t: 'Short Trip, a tram through the hills', kept: 1330 },
+    { type: 'link', href: 'https://thisissand.com', dom: 'thisissand.com', t: 'This Is Sand', kept: 2050 },
+    { type: 'link', href: 'https://pippinbarr.com/itisasifyouweredoingwork/', dom: 'pippinbarr.com · Pippin Barr', t: 'It is as if you were doing work', kept: 870 },
+    { type: 'link', href: 'https://asoftmurmur.com', dom: 'asoftmurmur.com', t: 'A Soft Murmur', kept: 1760 },
+  ]},
+  { name: 'Windows onto the world', by: 'a garden by Amara', things: [
+    { type: 'link', img: 'web/radio-garden-0.jpg', href: 'https://radio.garden', dom: 'radio.garden', t: 'Radio Garden', kept: 4210 },
+    { type: 'link', img: 'web/window-swap-com-5.png', href: 'https://www.window-swap.com', dom: 'window-swap.com', t: 'WindowSwap', kept: 2980 },
+    { type: 'link', img: 'web/earth-nullschool-net-10.jpg', href: 'https://earth.nullschool.net', dom: 'earth.nullschool.net', t: 'Earth, the wind right now', kept: 1575 },
+    { type: 'note', text: 'Morning coffee: a window in Reykjavík, radio from Dakar.', kept: 73 },
+  ]},
+  { name: 'Things that explain themselves', by: 'a garden by Nico', things: [
+    { type: 'link', img: 'web/ciechanow-ski-3.png', href: 'https://ciechanow.ski/mechanical-watch/', dom: 'ciechanow.ski', t: 'Mechanical Watch', kept: 5120 },
+    { type: 'link', img: 'web/ciechanow-ski-4.png', href: 'https://ciechanow.ski/gps/', dom: 'ciechanow.ski', t: 'GPS', kept: 3380 },
+    { type: 'link', img: 'web/ncase-me-20.png', href: 'https://ncase.me/trust/', dom: 'ncase.me', t: 'The Evolution of Trust', kept: 4470 },
+    { type: 'link', img: 'web/ncase-me-6.png', href: 'https://ncase.me/polygons/', dom: 'ncase.me', t: 'Parable of the Polygons', kept: 2160 },
+    { type: 'link', img: 'web/pudding-cool-16.jpg', href: 'https://pudding.cool', dom: 'pudding.cool', t: 'The Pudding', kept: 1210 },
+  ]},
+  { name: 'Walls I’d hang', by: 'public domain, kept by Sol', things: [
+    { type: 'link', img: 'web/great-wave.jpg', href: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa', dom: 'wikipedia.org', t: 'The Great Wave off Kanagawa', kept: 6040 },
+    { type: 'link', img: 'web/starry-night.jpg', href: 'https://en.wikipedia.org/wiki/The_Starry_Night', dom: 'wikipedia.org', t: 'The Starry Night', kept: 5530 },
+    { type: 'link', img: 'web/mandelbrot.jpg', href: 'https://en.wikipedia.org/wiki/Mandelbrot_set', dom: 'wikipedia.org', t: 'The Mandelbrot set', kept: 2210 },
+    { type: 'link', img: 'web/publicdomainreview-org-7.png', href: 'https://publicdomainreview.org', dom: 'publicdomainreview.org', t: 'The Public Domain Review', kept: 870 },
+  ]},
+  { name: 'Linear algebra, start here', by: 'crafted by Grdn', things: [
+    { type: 'video', t: 'Eigenvectors in 60 seconds', dom: 'made by a node', kept: 980 },
+    { type: 'app', e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake', kept: 1204 },
+    { type: 'note', text: 'A matrix is a machine that moves space. Watch where the grid goes.', kept: 311 },
+    { type: 'link', img: 'web/ocw-mit-edu-29.jpg', href: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', dom: 'ocw.mit.edu', t: '18.06 Linear Algebra', kept: 530 },
+    { type: 'link', img: 'web/redblobgames-com-11.jpg', href: 'https://www.redblobgames.com/grids/hexagons/', dom: 'redblobgames.com', t: 'Hexagonal grids', kept: 2240 },
+  ]},
+  { name: 'Board game night', by: 'the Friday table', things: [
+    { live: 'dice' },
+    { type: 'app', e: '🏆', bg: '#FCEBC2', k: 'Tool', t: 'Score keeper', kept: 93 },
+    { type: 'note', text: 'House rule: robber goes home after a seven.', kept: 4 },
+  ]},
+  { name: 'Robotics, new this week', by: 'Lena’s lab', things: [
+    { type: 'flow', k: 'Node · Veo', t: 'Explain anything new', steps: ['arXiv stream', 'Veo', 'video'], kept: 48 },
+    { type: 'video', t: 'Tactile SLAM, in 40 seconds', dom: 'made by a node', kept: 71 },
+    { type: 'link', dom: 'arxiv.org', t: 'New in cs.RO', kept: 35 },
+    { type: 'note', text: 'Why does my robot drift? Start with the wheel odometry.', kept: 11 },
+  ]},
+  { name: 'Kitchen', by: 'Priya & Sam', things: [
+    { type: 'app', e: '🍳', bg: '#FFE3D6', k: 'App', t: 'Meal roulette', kept: 377 },
+    { type: 'link', dom: 'seriouseats.com', t: 'The food lab: eggs', kept: 60 },
+    { type: 'note', text: 'Leftover rice: fried, never microwaved.', kept: 22 },
+  ]},
+  { name: 'Learning to draw', by: 'a garden by Ada', things: [
+    { type: 'app', e: '✏️', bg: '#F1ECE0', k: 'Tool', t: 'Two-minute gesture timer', kept: 188 },
+    { type: 'link', dom: 'drawabox.com', t: 'Lesson 1: lines', kept: 141 },
+    { type: 'note', text: 'Draw from the shoulder. Ghost the line first.', kept: 57 },
+  ]},
+  { name: 'Tiny games', by: 'Leo, age 11', things: [
+    { type: 'app', e: '🐸', bg: '#DDF3EF', k: 'Game', t: 'Frog jump', kept: 1630 },
+    { type: 'app', e: '🏓', bg: '#FFE3D6', k: 'Game', t: 'Pong for two', kept: 902 },
+    { type: 'app', e: '🧩', bg: '#FCEBC2', k: 'Game', t: 'Word ladder', kept: 244 },
+    { type: 'link', img: 'web/quickdraw-withgoogle-com-9.png', href: 'https://quickdraw.withgoogle.com', dom: 'quickdraw.withgoogle.com', t: 'Quick, Draw!', kept: 990 },
+  ]},
+  { name: 'Birds at the window', by: 'Nana Ruth', things: [
+    { type: 'app', e: '🐦', bg: '#DDF3EF', k: 'App', t: 'Who is singing?', kept: 640 },
+    { type: 'note', text: 'Wren again, 7:10am. Same branch as yesterday.', kept: 8 },
+    { type: 'link', dom: 'allaboutbirds.org', t: 'Wren songs and calls', kept: 97 },
+  ]},
+  { name: 'Running, slowly', by: 'Tunde', things: [
+    { type: 'app', e: '🏃', bg: '#FFE3D6', k: 'Tool', t: 'Easy-pace calculator', kept: 283 },
+    { type: 'note', text: 'If you can’t talk, you’re going too fast.', kept: 150 },
+  ]},
+  { name: 'Type & letters', by: 'a garden by Wen', things: [
+    { type: 'app', e: '🔤', bg: '#F1ECE0', k: 'Toy', t: 'Kerning game', kept: 1120 },
+    { type: 'link', dom: 'fonts.google.com', t: 'Newsreader, by Production Type', kept: 45 },
+    { type: 'note', text: 'Set it big, then take away weight until it breathes.', kept: 33 },
+  ]},
+  { name: 'Money basics', by: 'for my kids', things: [
+    { type: 'app', e: '🪙', bg: '#FCEBC2', k: 'Game', t: 'Pocket money jar', kept: 470 },
+    { type: 'app', e: '📈', bg: '#DDF3EF', k: 'Toy', t: 'What compounding looks like', kept: 812 },
+  ]},
+  { name: 'Trip to Kyoto', by: 'Mei & Jo', things: [
+    { type: 'link', dom: 'maps.google.com', t: 'Temples we can walk between', kept: 12 },
+    { type: 'app', e: '🗺️', bg: '#E4E8F7', k: 'App', t: 'Day planner, rain or shine', kept: 66 },
+    { type: 'note', text: 'Fushimi Inari before 7am. Nobody else there.', kept: 29 },
+  ]},
+  { name: 'Quiz night', by: 'The Crown, Thursdays', things: [
+    { type: 'app', e: '🎯', bg: '#FFE3D6', k: 'Tool', t: 'Buzzer for six teams', kept: 355 },
+    { type: 'note', text: 'Round 4 is always flags. Always.', kept: 17 },
+  ]},
+  { name: 'Home lab', by: 'Dev at night', things: [
+    { type: 'flow', k: 'Workflow', t: 'Back up the photos', steps: ['phone', 'NAS', 'note'], kept: 38 },
+    { type: 'app', e: '🧪', bg: '#F1ECE0', k: 'Tool', t: 'Plant watering log', kept: 74 },
+  ]},
+  { name: 'Poems I carry', by: 'a garden by Sol', things: [
+    { type: 'note', text: 'Hope is the thing with feathers, that perches in the soul.', kept: 2210 },
+    { type: 'link', dom: 'poetryfoundation.org', t: 'Emily Dickinson, “Hope” is the thing with feathers', kept: 380 },
+  ]},
+];
+
+// ---------- rendering ----------
+const world = document.getElementById('world');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const meta = th => `<div class="meta"><span>${th.meta ? esc(th.meta) : ''}</span>${th.kept ? `<span class="kept">kept by ${th.kept.toLocaleString('en-US')}</span>` : ''}</div>`;
+function thingHTML(th) {
+  if (th.live) return liveHTML(th.live);
+  switch (th.type) {
+    case 'note': return `<div class="thing note"><div class="k">Note</div><p style="margin-top:6px">${esc(th.text)}</p>${meta(th)}</div>`;
+    case 'app': return `<div class="thing"><div class="row"><div class="ic" style="background:${th.bg}">${th.e}</div><div><div class="k">${esc(th.k)}</div><div class="t">${esc(th.t)}</div></div></div>${meta(th)}</div>`;
+    case 'link': return `<div class="thing link">${th.img ? `<img src="${th.img}" alt="" loading="lazy" draggable="false">` : ''}<div class="k">Link</div><div class="t">${th.href ? `<a href="${th.href}" target="_blank" rel="noopener">${esc(th.t)}</a>` : esc(th.t)}</div><div class="dom">${esc(th.dom)}</div>${meta(th)}</div>`;
+    case 'video': return `<div class="thing video"><div class="thumb">▶</div><div class="k">Video</div><div class="t">${esc(th.t)}</div><div class="dom" style="font-size:13px;color:var(--muted)">${esc(th.dom)}</div>${meta(th)}</div>`;
+    case 'flow': return `<div class="thing"><div class="k">${esc(th.k)}</div><div class="t">${esc(th.t)}</div><div class="flow">${th.steps.map(esc).map(s => `<span>${s}</span>`).join('<i>→</i>')}</div>${meta(th)}</div>`;
+  }
+}
+function liveHTML(kind) {
+  const head = (k, t) => `<div class="row" style="justify-content:space-between"><div><div class="k">${k}</div><div class="t">${t}</div></div><span class="tag">TRY IT</span></div>`;
+  if (kind === 'pizza') {
+    let paths = '';
+    for (let i = 0; i < 8; i++) { const a0 = i / 8 * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / 8 * Math.PI * 2 - Math.PI / 2;
+      paths += `<path data-i="${i}" d="M0 0 L${70 * Math.cos(a0)} ${70 * Math.sin(a0)} A70 70 0 0 1 ${70 * Math.cos(a1)} ${70 * Math.sin(a1)} Z" fill="#FBE3C4" stroke="#fff" stroke-width="3"/>`; }
+    return `<div class="thing live pizza">${head('Game', 'Fraction Pizza')}<div class="row" style="margin-top:10px"><svg width="150" height="150" viewBox="-75 -75 150 150"><circle r="73" fill="#e5b87a"/>${paths}</svg><div class="serif" style="font-size:36px" data-out>0/8</div></div><div class="meta"><span>tap the slices</span><span class="kept">kept by 1,204</span></div></div>`;
+  }
+  if (kind === 'palette') return `<div class="thing live">${head('Tool', 'Palette maker')}<div class="palette" data-pal>${'<div></div>'.repeat(5)}</div><div class="meta"><span>tap for another</span><span class="kept">kept by 522</span></div></div>`;
+  if (kind === 'synth') return `<div class="thing live">${head('Toy', 'Tiny synth')}<div class="keys">${['C', 'D', 'E', 'G', 'A', 'C'].map((n, i) => `<button data-f="${[261.6, 293.7, 329.6, 392, 440, 523.3][i]}">${n}</button>`).join('')}</div><div class="meta"><span>play a tune</span><span class="kept">kept by 318</span></div></div>`;
+  if (kind === 'dice') return `<div class="thing live">${head('Tool', 'Two dice')}<div class="dice" data-dice>⚂⚄</div><div class="meta"><span>tap to roll</span><span class="kept">kept by 141</span></div></div>`;
+  if (kind === 'moon') return `<div class="thing live">${head('App', 'Moon tonight')}<div class="row"><div class="moon" data-moon></div><div class="serif" style="font-size:20px" data-moontxt></div></div><div class="meta"><span>live</span><span class="kept">kept by 87</span></div></div>`;
+}
+const COLS = 6, COLW = 640, GAP = 70;
+const heights = Array(COLS).fill(60);
+const order = [2, 3, 1, 4, 0, 5]; // fill the middle first
+G.forEach((g, i) => {
+  const d = document.createElement('div'); d.className = 'garden';
+  d.innerHTML = `<header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="cols"><div class="col"></div><div class="col"></div></div>`;
+  world.appendChild(d);
+  const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
+  g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
+    (cols[0].offsetHeight <= cols[1].offsetHeight ? cols[0] : cols[1]).appendChild(el); });
+  let c = order[0]; for (const k of order) if (heights[k] < heights[c] - 40) c = k;
+  d.style.left = (60 + c * COLW) + 'px'; d.style.top = heights[c] + 'px';
+  heights[c] += d.offsetHeight + GAP;
+});
+const WW = 60 * 2 + COLS * COLW - 60, WH = Math.max(...heights) + 60;
+// ---------- endless garden: every column loops vertically, the columns loop sideways ----------
+const PW = COLS * COLW, colP = heights.map(h => h - 60);
+const tiles = [...world.querySelectorAll('.garden')].map(el => ({ el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top), h: el.offsetHeight, c: Math.round((parseFloat(el.style.left) - 60) / COLW), x: null, y: null }));
+const maxGH = Math.max(...tiles.map(t => t.h));
+
+// ---------- live widgets ----------
+document.querySelectorAll('.pizza').forEach(p => {
+  const out = p.querySelector('[data-out]'); const on = new Set();
+  p.querySelectorAll('path').forEach(s => s.addEventListener('click', () => { const i = s.dataset.i; on.has(i) ? on.delete(i) : on.add(i);
+    s.setAttribute('fill', on.has(i) ? '#FF9E7A' : '#FBE3C4'); const n = on.size; out.textContent = n === 8 ? '1 whole' : n === 4 ? '4/8 = ½' : n === 2 ? '2/8 = ¼' : n === 6 ? '6/8 = ¾' : `${n}/8`; }));
+});
+const hsl = (h, s, l) => `hsl(${h} ${s}% ${l}%)`;
+document.querySelectorAll('[data-pal]').forEach(p => { const roll = () => { const h = Math.random() * 360; [...p.children].forEach((c, i) => c.style.background = hsl((h + i * 28) % 360, 45 + i * 6, 88 - i * 14)); }; roll(); p.addEventListener('click', roll); });
+let actx; document.querySelectorAll('.keys button').forEach(b => b.addEventListener('pointerdown', () => {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'triangle'; o.frequency.value = +b.dataset.f; g.gain.setValueAtTime(.18, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + .6);
+  o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + .6); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 150); }));
+const faces = '⚀⚁⚂⚃⚄⚅'; document.querySelectorAll('[data-dice]').forEach(d => d.addEventListener('click', () => { let n = 0; const iv = setInterval(() => {
+  d.textContent = faces[Math.random() * 6 | 0] + faces[Math.random() * 6 | 0]; if (++n > 8) clearInterval(iv); }, 60); }));
+(() => { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14) / 864e5; const age = (((Date.now() / 864e5 - ref) % syn) + syn) % syn;
+  const idx = Math.round(age / syn * 8) % 8, lit = Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100);
+  const names = ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
+  document.querySelectorAll('[data-moon]').forEach(m => m.textContent = [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx]);
+  document.querySelectorAll('[data-moontxt]').forEach(m => m.innerHTML = `${names[idx]}<br><span style="font-size:15px;color:var(--muted)">${lit}% lit</span>`); })();
+
+// ---------- pan everywhere, pinch zoom on touch screens only, gentle drift until touched ----------
+const view = document.getElementById('view');
+const ZMAX = 1.5; let ZMIN = .35;
+const setZmin = () => { ZMIN = Math.max(.35, innerHeight / (Math.min(...colP) - maxGH - 80), innerWidth / (PW - COLW - 80)); };
+setZmin();
+let z = innerWidth < 700 ? .72 : .82;
+let px = innerWidth / 2 - WW * z / 2, py = innerHeight / 2 - WH * z / 2, drifting = true, t0 = performance.now();
+const wrap = () => { // place each garden in the copy of the loop nearest the view; no clones
+  const L = -px / z, T = -py / z;
+  for (const t of tiles) {
+    const x = t.x0 + PW * Math.ceil((L - COLW - t.x0) / PW), P = colP[t.c], y = t.y0 + P * Math.ceil((T - t.h - 80 - t.y0) / P);
+    if (x !== t.x) { t.el.style.left = x + 'px'; t.x = x; } if (y !== t.y) { t.el.style.top = y + 'px'; t.y = y; }
+  }
+};
+const apply = () => { z = Math.min(ZMAX, Math.max(ZMIN, z)); world.style.transform = `translate(${px}px,${py}px) scale(${z})`; wrap(); };
+function zoomAt(nz, cx, cy) { nz = Math.min(ZMAX, Math.max(ZMIN, nz)); px = cx - (cx - px) * nz / z; py = cy - (cy - py) * nz / z; z = nz; apply(); }
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (calm) drifting = false;
+let vx = 0, vy = 0, zoomAnim = null;
+(function drift(now) {
+  if (zoomAnim) { const p = Math.min(1, (now - zoomAnim.t) / 260), e = 1 - Math.pow(1 - p, 3); zoomAt(zoomAnim.from * Math.pow(zoomAnim.to / zoomAnim.from, e), innerWidth / 2, innerHeight / 2); if (p >= 1) zoomAnim = null; }
+  else if (drifting) { const s = (now - t0) / 1000; px += Math.cos(s * .12) * .35; py += Math.sin(s * .09) * .22; apply(); }
+  else if (!drag && (Math.abs(vx) > .05 || Math.abs(vy) > .05)) { px += vx; py += vy; vx *= .94; vy *= .94; apply(); }
+  requestAnimationFrame(drift);
+})(t0);
+let drag = null; const pts = new Map(); let pinch = null;
+const mid = () => { const [a, b] = [...pts.values()]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) }; };
+view.addEventListener('pointerdown', e => {
+  if (e.target.closest('.live, #card, #pill')) return; e.preventDefault(); drifting = false; vx = vy = 0; zoomAnim = null;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); view.setPointerCapture(e.pointerId);
+  if (pts.size === 2 && e.pointerType === 'touch') { const m = mid(); pinch = { ...m, z, px, py }; drag = null; }
+  else if (pts.size === 1) { drag = { x: e.clientX, y: e.clientY, px, py }; view.classList.add('dragging'); }
+});
+view.addEventListener('pointermove', e => {
+  if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && pts.size >= 2) { const m = mid(), nz = Math.min(ZMAX, Math.max(ZMIN, pinch.z * m.d / pinch.d));
+    px = m.x - (pinch.x - pinch.px) * nz / pinch.z; py = m.y - (pinch.y - pinch.py) * nz / pinch.z; z = nz; apply(); justDragged = true; return; }
+  if (!drag) return; const now = performance.now(), dt = Math.max(1, now - (drag.t || now - 16));
+  vx = (e.clientX - (drag.lx ?? e.clientX)) / dt * 16; vy = (e.clientY - (drag.ly ?? e.clientY)) / dt * 16; drag.lx = e.clientX; drag.ly = e.clientY; drag.t = now;
+  if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 6) drag.moved = true;
+  px = drag.px + e.clientX - drag.x; py = drag.py + e.clientY - drag.y; apply();
+});
+let justDragged = false;
+view.addEventListener('click', e => { if (justDragged) { e.preventDefault(); e.stopPropagation(); justDragged = false; } }, true);
+const lift = e => { pts.delete(e.pointerId);
+  if (pinch) { if (pts.size < 2) { pinch = null; vx = vy = 0; const [r] = [...pts.values()]; drag = r ? { x: r.x, y: r.y, px, py, moved: true } : null; } return; }
+  if (drag && performance.now() - (drag.t || 0) > 80) vx = vy = 0; justDragged = justDragged || !!(drag && drag.moved); drag = null; view.classList.remove('dragging'); };
+view.addEventListener('pointerup', lift); view.addEventListener('pointercancel', lift);
+view.addEventListener('wheel', e => { e.preventDefault(); drifting = false; vx = vy = 0; zoomAnim = null;
+  if (e.ctrlKey || e.metaKey) return; // no zoom on desktop; this also stops trackpad pinch from zooming the page
+  px -= e.deltaX; py -= e.deltaY; apply(); }, { passive: false });
+addEventListener('resize', () => { setZmin(); apply(); }); apply();
+
+// ---------- motion: ripple in from the centre ----------
+if (!calm) {
+  const cx = innerWidth / 2, cy = innerHeight / 2;
+  document.querySelectorAll('.thing').forEach(el => { const r = el.getBoundingClientRect();
+    if (r.bottom < -200 || r.top > innerHeight + 200 || r.right < -200 || r.left > innerWidth + 200) return;
+    const d = Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy);
+    el.style.animationDelay = Math.min(1.1, d / 1400).toFixed(2) + 's'; el.classList.add('enter'); });
+}
+
+// ---------- life: now and then, someone keeps a thing you can see ----------
+function keepSomething() {
+  const card = document.getElementById('card'), cr = card.classList.contains('away') ? null : card.getBoundingClientRect();
+  const seen = [...document.querySelectorAll('.kept')].filter(k => { const r = k.getBoundingClientRect();
+    if (r.top < 40 || r.bottom > innerHeight - 90 || r.left < 20 || r.right > innerWidth - 20) return false;
+    return !cr || r.right < cr.left - 10 || r.left > cr.right + 10 || r.bottom < cr.top - 10 || r.top > cr.bottom + 10; });
+  if (!seen.length) return;
+  const k = seen[Math.random() * seen.length | 0], n = parseInt(k.textContent.replace(/\D/g, ''), 10) + 1;
+  k.textContent = 'kept by ' + n.toLocaleString('en-US'); k.classList.remove('bump'); void k.offsetWidth; k.classList.add('bump');
+  const thing = k.closest('.thing'), tr = thing.getBoundingClientRect(), kr = k.getBoundingClientRect(), h = document.createElement('span');
+  h.className = 'heart'; h.textContent = '♥'; h.style.left = (kr.left - tr.left - 2) + 'px'; h.style.top = (kr.top - tr.top - 8) + 'px';
+  thing.appendChild(h); setTimeout(() => h.remove(), 1500);
+}
+if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 + Math.random() * 2200); }, 2600);
+
+// ---------- card ----------
+const card = document.getElementById('card'), pill = document.getElementById('pill');
+const scrim = document.getElementById('scrim');
+document.getElementById('wander').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false; };
+pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); };
+document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); // prototype: nothing is sent or stored yet
+  e.target.style.display = 'none'; document.getElementById('thanks').style.display = 'block'; });
+</script>
+</body>
+</html>
