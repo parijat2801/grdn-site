@@ -21,3 +21,9 @@ video/audio-v*.js
 
 # rendered video outputs stay local
 video/*.mp4
+
+# local session notes
+HANDOFF.md
+
+# review notes for the owner
+review/
