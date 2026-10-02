@@ -339,10 +339,8 @@ G.keep = seg(7.0, 19.0);              // keep anything; others keep yours
 G.faces = seg(5.0, 26.0, 'hold');     // every thing keeps its face
 G.mid = seg(20.8, 26.0);              // near things, paths, walk Ines's garden
 G.agent = seg(9.0, 46.8, 'hold');     // an agent walks Saara's garden
-G.finds = seg(5.7, 57.2);             // what you keep shapes what finds you
-G.pizza = seg(6.0, 62.9);             // even the things you make
-G.rank = seg(7.5, 70.4, 'hold');      // ranked by love
-G.fin = seg(5.1, 69.3);               // pull out; Find. Keep. Wander. Return.
+G.love = seg(16.1, 46.8);             // ranked by love (the world view); what finds you
+G.pizza = seg(11.5, 62.9);            // even the things you make; pull out; Find. Keep. Wander. Return.
 G.end = seg(5.0, 74.4, 'hold');       // the sprout, then the name
 const segAt = g => { for (let i = SEG.length - 1; i > 0; i--) if (g >= SEG[i].g0) return SEG[i]; return SEG[0]; };
 const baseT = g => { const s = segAt(g); return s.mode === 'lin' ? s.b0 + Math.min(g - s.g0, s.len) : s.b0; };
@@ -576,45 +574,6 @@ function renderVisitors(t) {
   return n;
 }
 
-// ---------- ranked by love ----------
-const RG = { x: 0, y: -650 };
-const rDefs = [
-  [{ img: 'starry-night.jpg', k: 'Art', t: 'The Starry Night', kept: 5530 }, 5530, 5541],
-  [{ e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake', m: 'made by Tom, on a Sunday', kept: 4980 }, 4980, 5612],
-  [{ e: '🔪', bg: '#FFE3D6', k: 'Film', t: 'Knives Out', kept: 3120 }, 3120, 3131],
-  [{ e: '🍞', bg: '#F1ECE0', k: 'Recipe', t: 'No-knead bread', kept: 2870 }, 2870, 2884],
-  [{ note: 'Hope is the thing with feathers.', kept: 1940 }, 1940, 1952],
-];
-const rCards = rDefs.map(([o, n0, n1]) => { const c = C(o); return { c, b: c.querySelector('.kept b'), n0, n1 }; });
-const rNums = [0, 1, 2, 3, 4].map(i => el('div', 'num abs', world, String(i + 1)));
-const RX = k => RG.x - 700 + k * 350;
-const rHearts = Array.from({ length: 16 }, (_, i) => { const h = el('div', 'abs deco', world, '♥'); h.style.cssText += 'font-size:70px;color:#c4552f;line-height:1';
-  const to = i % 5 === 4 ? (i % 3) * 2 % 5 : 1; return { h, to, t: G.rank + 1.7 + i * .16 + rnd() * .1, sx: (rnd() - .5) * 2400, sy: 700 + rnd() * 200 }; });
-rHearts.forEach((v, i) => i % 2 === 0 && nsfx(v.t + .8, 'heart', i));
-nsfx(G.rank + 4.4, 'whoosh'); nsfx(G.rank + 5.0, 'pop', 6);
-const RCAM = { x: RG.x, y: RG.y - 35, z: 1.05 };
-function renderRank(gt) {
-  const a = gt - G.rank, on = a > -2 && gt < G.fin + 3;
-  const sw = eIO(prog(a, 4.3, 5.2));                  // the game overtakes the painting
-  rCards.forEach((r, i) => { const slot = i === 0 ? lerp(0, 1, sw) : i === 1 ? lerp(1, 0, sw) : i;
-    const arc = i < 2 ? Math.sin(sw * Math.PI) * (i === 1 ? -120 : 90) : 0;
-    const h = r.c.offsetHeight, y = RG.y - 140 + h / 2 + arc;
-    place(r.c, RX(slot), y, 1 + (i === 1 ? Math.sin(sw * Math.PI) * .08 : 0), on ? 1 : 0);
-    r.c.style.zIndex = i === 1 ? 3 : 1;
-    r.b.textContent = fmt(lerp(r.n0, r.n1, eIO(prog(a, 1.9, i === 1 ? 4.4 : 4.6)))); });
-  rNums.forEach((e, k) => place(e, RX(k), RG.y - 200, 1, on ? 1 : 0));
-  rHearts.forEach(v => { const hp = prog(gt, v.t, v.t + .9), r = rCards[v.to], slotX = v.to === 0 ? RX(lerp(0, 1, sw)) : v.to === 1 ? RX(lerp(1, 0, sw)) : RX(v.to);
-    const tx = slotX, ty = RG.y - 40, sx = tx + v.sx * .4, sy = RG.y + v.sy, e = eIO(hp);
-    place(v.h, lerp(sx, tx, e), lerp(sy, ty, e) - Math.sin(e * Math.PI) * 220, lerp(.6, .9, e), hp > 0 && hp < 1 ? Math.min(1, hp * 4) * (1 - prog(hp, .85, 1)) : 0); });
-  return showT(tE, gt, G.rank + 1.2, G.rank + 6.6);
-}
-function rankCam(gt) {
-  const a = gt - G.rank, P0 = { x: 1415, y: 1165, z: 2.6 }, p = eIO(prog(a, 0, 1.9));
-  const x = (1 - p) * (1 - p) * P0.x + 2 * (1 - p) * p * 900 + p * p * RCAM.x, y = (1 - p) * (1 - p) * P0.y + 2 * (1 - p) * p * 100 + p * p * RCAM.y;
-  return { x: x + Math.sin(a * .4) * 8, y, z: Math.exp(lerp(Math.log(P0.z), Math.log(RCAM.z), p)) - Math.sin(p * Math.PI) * .5 };
-}
-nsfx(G.rank + .05, 'whooshL');
-
 // ---------- the end: a sprout, then the name ----------
 const endSprout = makeSprout(ui);
 function renderEnd(gt) {
@@ -634,10 +593,6 @@ if (MID) { nsfx(G.sprout + .1, 'rise'); nsfx(G.sprout + .9, 'pop', 2); nsfx(G.sp
 function beatCam(gt) {
   if (gt >= G.stream && gt < G.stream + 8.0) return streamCam(gt - G.stream);
   if (MID && gt >= G.sprout && gt < G.sprout + 2.6) { const p = eIO(prog(gt, G.sprout, G.sprout + 2.6)); return { x: 0, y: 20, z: 1.25 + Math.sin(p * Math.PI) * .04 }; }
-  if (gt >= G.finds && gt < G.finds + 1.6) { const p = eIO(prog(gt, G.finds, G.finds + 1.6)); return { x: lerp(1400, 1600, p), y: lerp(1260, 1180, p), z: Math.exp(lerp(Math.log(1.15), Math.log(.92), p)) }; }
-  if (gt >= G.rank && gt < G.fin) return rankCam(gt);
-  if (gt >= G.fin && gt < G.fin + 2.1) { const p = eIO5(prog(gt, G.fin, G.fin + 2.1)), k = camAt(71.4);
-    return { x: lerp(RCAM.x, k.x, p), y: lerp(RCAM.y, k.y, p), z: Math.exp(lerp(Math.log(RCAM.z), Math.log(k.z), p)) }; }
   if (gt > GA && gt < GA + LA) { let i = 0; while (i < AK.length - 2 && gt > AK[i + 1][0]) i++;
     const [t0, x0, y0, z0] = AK[i], [t1, x1, y1, z1] = AK[i + 1], p = eIO5(prog(gt, t0, t1));
     return { x: lerp(x0, x1, p), y: lerp(y0, y1, p), z: Math.exp(lerp(Math.log(z0), Math.log(z1), p)) }; }
@@ -655,7 +610,7 @@ function grain(f) { let s = (f * 7919 + 13) >>> 0; const d = gimg.data;
 const DURATION = gAcc; window.DURATION = DURATION;
 window.SFX = SFX.flatMap(e => SEG.filter(s => s.mode === 'lin' && e.t >= s.b0 && e.t < s.b0 + s.len).map(s => ({ ...e, t: +(s.g0 + e.t - s.b0).toFixed(3) }))).concat(NSFX).sort((a, b) => a.t - b.t);
 // music cues for audio.js (global seconds)
-window.MARKS = { nature: G.stream + 7.0, natureOut: G.fin + 1.7, phrases: [G.keep + 2.0, G.rank + 1.6, G.fin + .2] };
+window.MARKS = { nature: G.stream + 7.0, natureOut: G.pizza + 8.1, phrases: [G.keep + 2.0, G.love + 3.0, G.pizza + 6.6] };
 const washE = document.getElementById('washE'), wash = document.getElementById('wash'), dots = document.getElementById('dots');
 window.seek = function (gt) {
   const t = baseT(gt);
@@ -740,12 +695,12 @@ window.seek = function (gt) {
     A.path.style.strokeDasharray = `0 ${tail} ${head - tail} ${A.L}`; A.path.style.opacity = (p > 0 ? 1 : 0) * (1 - fadeOut) * .75;
     const pt = A.path.getPointAtLength(head); A.dot.setAttribute('cx', pt.x); A.dot.setAttribute('cy', pt.y); A.dot.setAttribute('opacity', p > 0 && p < 1 ? 1 : 0);
     const hp = prog(t, A.t0 + 1.5, A.t0 + 2.4); place(A.heart, A.b.x, A.b.y - hp * 200, lerp(.4, 1.3, eOut(hp)), hp > 0 && hp < 1 ? Math.sin(hp * Math.PI) : 0); });
-  const e1 = renderRank(gt);
+  const e1 = showT(tE, t, 49.4, 55.5);
 
   // --- F
   arrivals.forEach(([c, x, y], i) => { const a = 59.0 + i * .9, p = eOut5(prog(t, a, a + 1.4)); place(c, lerp(x + 1100, x, p), y, 1, clamp(p * 1.4) * (1 - focus), lerp(8, 0, p));
     const cp = eBack(prog(t, a + 1.0, a + 1.4)); place(chips[i], x, y - 128, lerp(.7, 1, cp), clamp(cp) * (1 - focus)); });
-  const f1 = showT(tF, t, 58.5, 62.6);
+  const f1 = showT(tF, t, 57.2, 62.6);
 
   // --- G
   slices.forEach((p, i) => p.setAttribute('fill', t > 65.0 + i * .34 && i < 6 ? '#FF9E7A' : '#FBE3C4'));
@@ -760,7 +715,7 @@ window.seek = function (gt) {
 
   const fa = showT(tAf, gt, GA + .4, GA + 4.2, .06); washA.style.opacity = fa;
   const agentT = renderAgent(gt, t, focus);
-  wash.style.opacity = Math.max(a2, c1, c2, c3, d1, e1, f1, g1 * .9, agentT); washE.style.opacity = 0;
+  wash.style.opacity = Math.max(a2, c1, c2, c3, d1, f1, g1 * .9, agentT); washE.style.opacity = e1;
   grain(Math.floor(gt * 30));
 };
 window.seek(0);
