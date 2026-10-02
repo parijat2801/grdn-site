@@ -124,7 +124,7 @@ function showT(T0, t, a, b, stagger = .055) {
 
 // ---------------- camera ----------------
 const K = [ // t, x, y, z
-  [0, 10, -29, 7.4], [4.1, 10, -29, 6.7], [7.3, 30, -90, 1.0], [12.2, 30, -90, 1.0], [13.4, 0, 20, 1.25], [18.5, 0, 20, 1.25],
+  [0, 32, -25, 8.4], [5.0, 24, -30, 7.8], /* opening: the painting fills the frame, Fuji above the line */ [7.3, 30, -90, 1.0], [12.2, 30, -90, 1.0], [13.4, 0, 20, 1.25], [18.5, 0, 20, 1.25],
   [21.2, 0, -60, .72], [26.4, 0, -60, .72], [28.6, 0, -100, .55], [30.4, 0, -100, .55], [31.9, 0, -80, 1.05], [37.3, 0, -80, 1.05],
   [39.3, -1300, -340, 1.15], [42.3, -1300, -340, 1.15], /* tracked flight 42.3–46.0 */ [46.0, 1400, 1260, 1.15], [46.8, 1400, 1260, 1.15],
   [49.8, 0, 500, .16], [55.6, 0, 520, .16], [58.2, 1600, 1180, .92], [62.9, 1600, 1180, .92], [64.4, 1415, 1165, 2.6], [68.8, 1415, 1165, 2.6],
@@ -167,7 +167,7 @@ const clutter = [
   [C({ img: 'radio-garden-0.jpg', k: 'Toy', t: 'Radio from anywhere' }), 255, 230, .82, -4],
 ];
 const wave = C({ img: 'great-wave-hi.jpg', k: 'Art', t: 'The Great Wave off Kanagawa' });
-const tA1 = T([['h', [['You found something', ''], ['wonderful.', 'acc']]]], 'top:auto;bottom:96px;color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.45)');
+const tA1 = T([['h', [['You found something', ''], ['wonderful.', 'acc']]]], 'left:0;right:0;top:auto;bottom:96px;text-align:center;color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.45)');
 tA1.box.classList.add('over-ok'); // deliberately over the painting, on its own dark scrim
 sfx(0.9, 'swell');
 
@@ -468,7 +468,8 @@ function camB(gt) {
   if (a < 2.6) return { x: Ycam[0], y: Ycam[1], z: Ycam[2] - eIO(prog(a, 0, 2.6)) * .1 };
   if (a < 4.0) { const p = eIO(prog(a, 2.6, 4.0)), [x, y] = bez(p, Ycam, Scam, [0, 1900]); return { x, y, z: Math.exp(lerp(Math.log(1.05), Math.log(.95), p)) - Math.sin(p * Math.PI) * .45 }; }
   if (a < 6.3) return { x: Scam[0], y: Scam[1], z: Scam[2] };
-  if (a < 8.4) { const p = eIO(prog(a, 6.3, 8.4)), [x, y] = expPos(p); return { x: lerp(x, Ycam[0], p * .5), y, z: .95 + (1.15 - .95) * p - Math.sin(p * Math.PI) * .45 }; }
+  if (a < 8.4) { const p = eIO(prog(a, 6.3, 8.4)), [x, y] = expPos(p), k = eIO(prog(a, 6.3, 7.2)); // ease off Saara's garden onto the explainer
+    return { x: lerp(Scam[0], lerp(x, Ycam[0], p * .5), k), y: lerp(Scam[1], y, k), z: .95 + (1.15 - .95) * p - Math.sin(p * Math.PI) * .45 }; }
   const p = eIO(prog(a, 8.4, 9.0)); return { x: lerp(EX.x * .5 + Ycam[0] * .5, Ycam[0], p), y: lerp(EX.y, Ycam[1], p), z: 1.15 };
 }
 const EXs = { x: SG.x, y: SG.y + 400 };
@@ -495,8 +496,8 @@ function renderAgent(gt, bt, focus) {
 }
 // ---------- the stream: feeds, chats and tabs carry the wave off; you keep it ----------
 const SA = G.stream, SV = 1.05, SC = { x: -60, y: -20 };
-const flowF = a => a * a / (a + 1.5);                 // the stream starts still and picks up
-const waveX = a => 10 - 168 * flowF(a);
+const flowF = a => a * a * a / (a * a + 2.25);        // the stream starts still and eases up to speed
+const waveX = a => 10 - 150 * flowF(a);
 const ribbon = el('div', 'abs'); ribbon.style.cssText += 'width:7000px;height:640px;background:linear-gradient(180deg, rgba(164,180,230,0) 0%, rgba(164,180,230,.16) 30%, rgba(127,209,199,.16) 70%, rgba(127,209,199,0) 100%)';
 world.insertBefore(ribbon, world.firstChild);
 const streamDefs = [
@@ -525,13 +526,14 @@ sBubs.innerHTML = `<div id="sb0">${bubRow('S', '#0a6b60', 'Send me that wave aga
 const sb0 = sBubs.querySelector('#sb0'), sb1 = sBubs.querySelector('#sb1');
 const kCur = el('div', 'abs', world, cursor.innerHTML), kBtn = el('div', 'keepbtn', wave, 'Keep'); kBtn.style.opacity = 0;
 const kRing = el('div', 'abs'); kRing.style.cssText += 'width:80px;height:80px;border-radius:50%;border:5px solid #c4552f';
-const waveKept = el('div', 'kept', wave, 'kept by <b>1</b>'), waveKB = waveKept.querySelector('b'); waveKept.style.opacity = 0;
+const waveKept = el('div', 'kept', wave, 'kept by <b>1</b>'), waveKB = waveKept.querySelector('b'); waveKept.style.display = 'none';
 const KA = 5.6;                                        // the keep click, stream time
 nsfx(SA + .2, 'whooshL'); nsfx(SA + 3.4, 'pop', 1); nsfx(SA + 4.3, 'pop', 3);
 nsfx(SA + KA, 'click'); nsfx(SA + KA + .05, 'pop', 5); nsfx(SA + KA + .3, 'whooshL'); nsfx(SA + 7.2, 'thud');
 function streamCam(a) {
   const c0 = camAt(G.open + 5.0 - 1e-6), p = eIO(prog(a, 0, 2.6));
-  let x = lerp(c0.x, SC.x, p), y = lerp(c0.y, SC.y, p), z = Math.exp(lerp(Math.log(c0.z), Math.log(SV), p));
+  // ride with the wave, then let it go
+  let x = lerp(c0.x + waveX(a) - 10, SC.x, p), y = lerp(c0.y, SC.y, p), z = Math.exp(lerp(Math.log(c0.z), Math.log(SV), p));
   const q = eIO(prog(a, 5.9, 8.0)), zq = Math.exp(lerp(Math.log(SV), Math.log(1.25), q)) - Math.sin(q * Math.PI) * .12;
   return a < 5.9 ? { x, y, z } : { x: lerp(SC.x, 0, q), y: lerp(SC.y, 20, q), z: zq };
 }
@@ -554,7 +556,7 @@ function renderStream(gt) {
   kBtn.style.opacity = inS ? prog(a, 5.1, 5.4) * (1 - prog(a, 5.9, 6.2)) : 0;
   { const rp = prog(a, KA, KA + .7); place(kRing, kx + 95, -112, lerp(.3, 1.8, eOut(rp)), inS && rp > 0 && rp < 1 ? 1 - rp : 0); }
   const fl = eIO(prog(a, KA + .2, 7.2)), bx = (1 - fl) * (1 - fl) * kx + 2 * (1 - fl) * fl * (kx * .3) + fl * fl * WH.x, by = (1 - fl) * (1 - fl) * 0 + 2 * (1 - fl) * fl * -420 + fl * fl * WH.y;
-  return { x: a < KA ? drift : bx, y: a < KA ? Math.sin(drift / 420 + 1.7) * 26 * prog(a, 0, 2) : by, s: 1 + Math.sin(fl * Math.PI) * .14, r: Math.sin(fl * Math.PI) * -5, lift: Math.sin(fl * Math.PI) };
+  return { x: a < KA ? drift : bx, y: a < KA ? (Math.sin(drift / 420 + 1.7) - Math.sin(10 / 420 + 1.7)) * 26 : by + Math.sin(gt * 1.1) * 4 * fl, s: 1 + Math.sin(fl * Math.PI) * .14, r: Math.sin(fl * Math.PI) * -5, lift: Math.sin(fl * Math.PI) };
 }
 
 // ---------- others keep your wave (keep scene, base time) ----------
@@ -615,7 +617,7 @@ const washE = document.getElementById('washE'), wash = document.getElementById('
 window.seek = function (gt) {
   const t = baseT(gt);
   const cam = beatCam(gt) || camAt(t);
-  const dx = Math.sin(t * .31) * 6 / cam.z, dy = Math.cos(t * .23) * 5 / cam.z;
+  const dx = Math.sin(gt * .31) * 6 / cam.z, dy = Math.cos(gt * .23) * 5 / cam.z; // real clock: no jump at cuts
   const cx = cam.x + dx, cy = cam.y + dy, z = cam.z;
   world.style.transform = `translate(${960 - cx * z}px,${540 - cy * z}px) scale(${z})`;
   const bz = Math.pow(z, .45); bg.style.transform = `translate(${960 - cx * .35 * bz}px,${540 - cy * .35 * bz}px) scale(${bz})`;
@@ -635,7 +637,7 @@ window.seek = function (gt) {
 
   // --- the wave: the stream, then the garden, then your garden
   const vn = renderVisitors(t), kn = gt < G.keep ? 0 : t < 44.0 ? vn : 14;
-  waveKept.style.opacity = kn > 0 ? 1 : 0; waveKB.textContent = kn;
+  waveKept.style.display = kn > 0 ? '' : 'none'; waveKB.textContent = kn;
   if (gt >= G.stream) {
     let w;
     if (gt < G.stream + 8.0) w = renderStream(gt);
