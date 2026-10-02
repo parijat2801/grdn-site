@@ -4,7 +4,8 @@
 const { chromium } = require('/Users/parijat/dev/primer-v2/node_modules/@playwright/test');
 const { spawn } = require('child_process');
 const fs = require('fs'), path = require('path');
-const FPS = 30, url = 'file://' + path.join(__dirname, 'index.html');
+// Q=mid=1 node render.js …  → render a variant (query string passed to the page)
+const FPS = 30, url = 'file://' + path.join(__dirname, 'index.html') + (process.env.Q ? '?' + process.env.Q : '');
 (async () => {
   const [mode, arg] = process.argv.slice(2);
   const browser = await chromium.launch();
@@ -15,7 +16,7 @@ const FPS = 30, url = 'file://' + path.join(__dirname, 'index.html');
     fs.mkdirSync(path.join(__dirname, 'stills'), { recursive: true });
     for (const t of arg.split(',').map(Number)) { await page.evaluate(t => window.seek(t), t); await page.screenshot({ path: path.join(__dirname, 'stills', `t-${t}.png`) }); }
   } else if (mode === 'sfx') {
-    fs.writeFileSync(path.join(__dirname, 'sfx.json'), JSON.stringify(await page.evaluate(() => ({ duration: window.DURATION, events: window.SFX }))));
+    fs.writeFileSync(path.join(__dirname, 'sfx.json'), JSON.stringify(await page.evaluate(() => ({ duration: window.DURATION, events: window.SFX, marks: window.MARKS }))));
   } else {
     const preview = mode === 'preview';
     const SUB = preview ? 1 : +(arg || 4), SHUTTER = .5; // 180° shutter

@@ -10,7 +10,7 @@ const path = require('path'), fs = require('fs');
 (async () => {
   const [stepA, fromA, toA] = process.argv.slice(2);
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
-  await p.goto('file://' + path.join(__dirname, 'index.html')); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400);
+  await p.goto('file://' + path.join(__dirname, 'index.html') + (process.env.Q ? '?' + process.env.Q : '')); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400);
   const D = await p.evaluate(() => window.DURATION), step = +(stepA || .25), from = +(fromA || 0), to = +(toA || D);
   const issues = [];
   for (let t = from; t <= to + 1e-6; t += step) {

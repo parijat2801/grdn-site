@@ -5,14 +5,15 @@
 // phrases. Nature arrives with the seed: a babbling stream, insects, birds; leaf rustles on
 // camera moves. Pops are tuned to E minor pentatonic and fed to the echo.
 const fs = require('fs');
-const { duration, events } = JSON.parse(fs.readFileSync(__dirname + '/sfx.json', 'utf8'));
+const { duration, events, marks } = JSON.parse(fs.readFileSync(__dirname + '/sfx.json', 'utf8'));
 const SR = 48000, N = Math.ceil((duration + 2) * SR), TAU = 2 * Math.PI;
 const mk = () => new Float32Array(N);
 const padL = mk(), padR = mk(), dryL = mk(), dryR = mk(), dlyL = mk(), dlyR = mk(), rev = mk();
 const midi = m => 440 * Math.pow(2, (m - 69) / 12);
 let rs = 3; const rnd = () => (rs = (rs * 16807) % 2147483647) / 2147483647;
 const at = (b, i, v) => { if (i >= 0 && i < N) b[i] += v; };
-const natureGain = t => Math.min(1, Math.max(0, (t - 12.8) / 3)) * (1 - Math.min(1, Math.max(0, (t - 87.5) / 3)) * .6);
+const NAT = marks.nature, NAT_OUT = marks.natureOut;
+const natureGain = t => Math.min(1, Math.max(0, (t - NAT) / 3)) * (1 - Math.min(1, Math.max(0, (t - NAT_OUT) / 3)) * .6);
 
 // ---------- pads: Em9 → Cmaj7 → G6 → D/F#
 const chords = [[40, 47, 50, 54, 55], [36, 43, 47, 52, 55], [43, 50, 52, 59, 62], [42, 50, 52, 57, 62]];
@@ -56,9 +57,9 @@ for (let b = 0; b < 6; b++) for (const [off, g] of [[0, 1], [.27, .7]]) {
 
 // ---------- lead synth phrases (original), E minor pentatonic: [midi, seconds, bend-from]
 const phrases = [
-  [21.0, [[71, 1.8, 69], [69, .7], [67, .7], [64, 2.6]]],
-  [67.6, [[74, 1.6, 71], [71, .8], [69, .8], [71, 2.8]]],
-  [87.3, [[67, .9], [69, .9], [71, 1.4, 69], [76, 3.6, 74]]],
+  [marks.phrases[0], [[71, 1.8, 69], [69, .7], [67, .7], [64, 2.6]]],
+  [marks.phrases[1], [[74, 1.6, 71], [71, .8], [69, .8], [71, 2.8]]],
+  [marks.phrases[2], [[67, .9], [69, .9], [71, 1.4, 69], [76, 3.6, 74]]],
 ];
 for (const [start, notes] of phrases) { let t = start;
   for (const [m, d, from] of notes) { const f1 = midi(m), f0 = from ? midi(from) : f1, i0 = Math.floor(t * SR); let ph = 0;
@@ -71,7 +72,7 @@ for (const [start, notes] of phrases) { let t = start;
     t += d; } }
 
 // ---------- nature: stream bubbles, water body, insects, birds
-for (let t = 12.8; t < duration; t += .012 + rnd() * .05) {
+for (let t = NAT; t < duration; t += .012 + rnd() * .05) {
   const g = natureGain(t) * (.4 + rnd() * .6) * .03; if (g <= 0) continue;
   const f0 = 500 + Math.pow(rnd(), 1.6) * 2600, d = .015 + rnd() * .05, i0 = Math.floor(t * SR), pan = (rnd() - .5) * 1.2; let ph = 0;
   for (let k = 0; k < d * SR; k++) { const x = k / SR, f = f0 * (1 + 1.4 * x / d); ph += TAU * f / SR;
@@ -89,7 +90,7 @@ function bird(t, pan) { const n = 2 + Math.floor(rnd() * 4), base = 2200 + rnd()
     for (let k = 0; k < d * SR; k++) { const x = k / SR, p = x / d, f = f0 * (up ? 1 + .45 * p : 1.4 - .45 * p) * (1 + .03 * Math.sin(TAU * 38 * x)); ph += TAU * f / SR;
       const v = Math.sin(ph) * Math.sin(Math.PI * p) * .045 * natureGain(tt); at(dryL, i0 + k, v * (1 - pan)); at(dryR, i0 + k, v * (1 + pan)); at(rev, i0 + k, v * .6); }
     tt += d + .03 + rnd() * .08; } }
-for (let t = 15.5; t < duration - 3; t += 3.2 + rnd() * 5) bird(t, (rnd() - .5) * 1.4);
+for (let t = NAT + 2.7; t < duration - 3; t += 3.2 + rnd() * 5) bird(t, (rnd() - .5) * 1.4);
 
 // ---------- event voices
 function pop(t, idx, gain = .22, oct = 1) {
@@ -116,7 +117,7 @@ for (const e of events) {
     case 'heart': pop(e.t, (e.i * 3) % 10, .07, 2); break;
     case 'tick': tick(e.t); break;
     case 'click': tick(e.t, .1); tick(e.t + .045, .07); break;
-    case 'whoosh': if (e.t > 12.8) rustle(e.t, 1.0, .035); break;
+    case 'whoosh': if (e.t > NAT) rustle(e.t, 1.0, .035); break;
     case 'whooshL': rustle(e.t, 1.9, .04); break;
     case 'thud': thud(e.t); break;
     case 'chime': [76, 79, 83, 88].forEach((m, i) => bell(e.t + i * .16, m, .07)); break;

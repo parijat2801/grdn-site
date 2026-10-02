@@ -130,7 +130,7 @@ const K = [ // t, x, y, z
   [49.8, 0, 500, .16], [55.6, 0, 520, .16], [58.2, 1600, 1180, .92], [62.9, 1600, 1180, .92], [64.4, 1415, 1165, 2.6], [68.8, 1415, 1165, 2.6],
   [71.4, 0, 550, .165], [77.4, 0, 550, .158],
 ];
-const Y = { x: 1400, y: 1275 }, SLOT = { x: 1235, y: 1500 };
+const Y = { x: 1400, y: 1275 }, SLOT = { x: 1235, y: 1518 };
 function camAt(t) {
   if (t > 42.3 && t < 46.0) { // follow the kept thing
     const p = eIO(prog(t, 42.3, 46.0));
@@ -169,22 +169,34 @@ const clutter = [
 const wave = C({ img: 'great-wave-hi.jpg', k: 'Art', t: 'The Great Wave off Kanagawa' });
 const tA1 = T([['h', [['You found something', ''], ['wonderful.', 'acc']]]], 'top:auto;bottom:96px;color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.45)');
 tA1.box.classList.add('over-ok'); // deliberately over the painting, on its own dark scrim
-const tA2 = T([['h', [['And then it’s', ''], ['gone.', 'acc coral']]], ['sub', [['Lost in a tab. Buried in bookmarks. Scrolled past in a chat.', '']]]]);
-tabs.forEach((_, i) => sfx(8.3 + i * .27, 'tick'));
 sfx(0.9, 'swell');
 
-// ================= B: the seed =================
-const seedEl = el('div', 'abs'); seedEl.style.cssText += 'width:26px;height:34px;border-radius:50%;background:#5a4030';
-const ground = el('div', 'abs'); ground.style.cssText += 'width:420px;height:40px;border-radius:50%;background:radial-gradient(ellipse, rgba(90,64,48,.28), rgba(90,64,48,0) 70%)';
-const sprout = el('div', 'abs'); sprout.style.cssText += 'width:300px;height:300px';
-sprout.innerHTML = `<svg width="300" height="300" viewBox="-150 -300 300 300"><path id="stem" d="M0 0 C 0 -70, -5 -120, 2 -200" stroke="#2f8f5e" stroke-width="11" fill="none" stroke-linecap="round"/>
-  <path id="lf1" d="M0 -140 C -60 -160, -90 -200, -80 -230 C -40 -230, -5 -195, 0 -140 Z" fill="#7FD1C7"/>
-  <path id="lf2" d="M2 -180 C 60 -200, 100 -240, 90 -275 C 45 -272, 8 -235, 2 -180 Z" fill="#9BE0B4"/></svg>`;
-const stem = sprout.querySelector('#stem'), stemL = stem.getTotalLength(); stem.style.strokeDasharray = stemL;
-const lf = [sprout.querySelector('#lf1'), sprout.querySelector('#lf2')];
-const tB = T([['h', [['Grdn', '']]], ['sub', [['a garden for everything worth a revisit.', '']]]], 'left:0;right:0;top:120px;text-align:center');
-tB.box.querySelector('.h').style.cssText += 'font-size:220px;letter-spacing:-0.04em;line-height:1';
-sfx(13.05, 'thud'); sfx(13.5, 'rise'); sfx(14.3, 'pop', 2); sfx(14.6, 'pop', 4);
+// ================= the sprout (drawn once per use; p = growth 0..1) =================
+let sproutN = 0;
+function makeSprout(parent) {
+  const n = ++sproutN, box = el('div', 'abs', parent); box.style.cssText += 'width:360px;height:380px';
+  box.innerHTML = `<svg width="360" height="380" viewBox="-180 -340 360 380" style="display:block;overflow:visible"><defs>
+    <radialGradient id="glow${n}"><stop offset="0" stop-color="rgba(242,178,51,.22)"/><stop offset="1" stop-color="rgba(242,178,51,0)"/></radialGradient>
+    <radialGradient id="soil${n}"><stop offset="0" stop-color="rgba(90,64,48,.34)"/><stop offset="1" stop-color="rgba(90,64,48,0)"/></radialGradient>
+    <linearGradient id="stemG${n}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#2b7a52"/><stop offset="1" stop-color="#5dbb83"/></linearGradient>
+    <linearGradient id="leafA${n}" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3fae7c"/><stop offset=".6" stop-color="#7fd1a6"/><stop offset="1" stop-color="#b9ecd0"/></linearGradient>
+    <linearGradient id="leafB${n}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2f9f8a"/><stop offset=".55" stop-color="#7FD1C7"/><stop offset="1" stop-color="#c8f0e6"/></linearGradient></defs>
+    <circle class="sg" cx="0" cy="-150" r="210" fill="url(#glow${n})"/>
+    <ellipse class="ss" cx="0" cy="8" rx="170" ry="22" fill="url(#soil${n})"/>
+    <path class="sm" d="M-74 10 C -50 -12, 50 -12, 74 10 Z" fill="#7a5a44" opacity=".55"/>
+    <g class="sp"><path class="st" d="M0 4 C 4 -50, -12 -110, -2 -150 S 6 -200, 2 -228" stroke="url(#stemG${n})" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <g class="l1"><path d="M0 0 C -28 -4, -80 -24, -112 -70 C -64 -84, -16 -56, 0 0 Z" fill="url(#leafB${n})"/><path d="M-4 -4 Q -54 -30 -104 -68" stroke="rgba(255,255,255,.6)" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+      <g class="l2"><path d="M0 0 C 32 -8, 98 -36, 124 -92 C 70 -100, 18 -64, 0 0 Z" fill="url(#leafA${n})"/><path d="M4 -4 Q 62 -40 116 -88" stroke="rgba(255,255,255,.6)" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+      <g class="l3"><path d="M0 0 C -9 -14, -7 -34, 3 -48 C 13 -32, 11 -14, 0 0 Z" fill="#9BE0B4"/></g></g></svg>`;
+  const q = s => box.querySelector(s), st = q('.st'), L = st.getTotalLength(); st.style.strokeDasharray = L;
+  return { box, set(p, t, o = 1) {
+    st.style.strokeDashoffset = L * (1 - eOut(prog(p, .05, .5)));
+    const leaf = (g, x, y, a, b, r0, fl) => { const k = eBack(prog(p, a, b)); g.setAttribute('transform', `translate(${x} ${y}) rotate(${lerp(r0, 0, clamp(k, 0, 1)) + Math.sin(t * 1.7 + fl) * 2.2 * clamp(k)}) scale(${clamp(k, 0, 1.15)})`); };
+    leaf(q('.l1'), -2, -150, .32, .72, 70, 0); leaf(q('.l2'), 0, -190, .46, .86, -70, 1.3); leaf(q('.l3'), 2, -226, .7, 1, 0, 2.1);
+    q('.sp').setAttribute('transform', `rotate(${Math.sin(t * 1.1) * 1.6 * eOut(prog(p, .5, 1))})`);
+    q('.sm').style.opacity = .55 * eOut(prog(p, 0, .15)); q('.ss').style.opacity = eOut(prog(p, 0, .2)); q('.sg').style.opacity = eOut(prog(p, .4, 1));
+    box.style.opacity = o; box.style.visibility = o > .001 && p > 0 ? 'visible' : 'hidden'; } };
+}
 
 // ================= C: keep anything → gardens → path =================
 const pathSvg = el('div', 'abs'); pathSvg.innerHTML = `<svg width="1400" height="40" viewBox="-700 -20 1400 40" style="display:block"><path id="pl" d="M-630 0 L 630 0" stroke="#0f8f80" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round" fill="none"/></svg>`;
@@ -219,15 +231,16 @@ const labels = [['Octopus minds', 'Ines', GO], ['Linear algebra', 'Tom', GL], ['
 const steps = ['Watch', 'Read', 'Play', 'Explore'].map((w, i) => el('div', 'abs', world, `<div style="display:flex;align-items:center;gap:14px"><div class="num">${i + 1}</div><div class="step">${w}</div></div>`));
 landOrder.forEach((ci, k) => sfx(19.5 + k * .27, 'pop', k));
 sfx(26.5, 'whoosh'); steps.forEach((_, i) => sfx(33.1 + i * .3, 'pop', i + 1));
-const tC1 = T([['h', [['Keep', ''], ['anything.', 'acc teal']]], ['sub', [['Videos, essays, books, art, notes, games.', '']]]]);
-const tC2 = T([['h', [['Near things', ''], ['find each other.', 'acc teal']]], ['sub', [['Your garden sorts itself as you keep.', '']]]]);
-const tC3 = T([['h', [['Gardens become', ''], ['paths.', 'acc coral']]], ['sub', [['Start here: linear algebra. And it keeps growing.', '']]]]);
+const tC1 = T([['h', [['Keep', ''], ['anything.', 'acc teal']]]]);
+const tC2 = T([['h', [['Near things', ''], ['find each other.', 'acc teal']]]]);
+const tC3 = T([['h', [['Gardens become', ''], ['paths.', 'acc coral']]]]);
 
 // ================= D: keep from someone else's garden =================
 const yPanel = el('div', 'panel abs'); yPanel.style.width = '800px'; yPanel.style.height = '860px';
 const yLabel = el('div', 'gl abs', world, 'Your garden<span>things you keep</span>');
-const mine = [[C({ e: '✏️', bg: '#F1ECE0', k: 'Tool', t: 'Gesture timer' }), 1235, 1060], [C({ note: 'Draw from the shoulder.' }), 1235, 1260]];
-const pizza = C({ e: '🍕', bg: '#FFE3D6', k: 'Game', t: 'Fraction Pizza', m: 'made by you, for class 4B', kept: 1204 });
+const mine = [[C({ note: 'Draw from the shoulder.' }), 1235, 1312]];
+const WIN_G = { x: 1235, y: 1100 }; // the kept wave's place in your garden
+const pizza = C({ e: '🍕', bg: '#FFE3D6', k: 'Game', t: 'Fraction Pizza', m: 'made by you, for 4B', kept: 1204 });
 const pz = document.createElement('div'); pz.innerHTML = `<svg width="276" height="200" viewBox="-138 -100 276 200" style="display:block"><circle r="92" fill="#e5b87a"/><g id="sl"></g></svg>`; pizza.insertBefore(pz, pizza.firstChild);
 const slices = []; for (let i = 0; i < 8; i++) { const a0 = i / 8 * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / 8 * Math.PI * 2 - Math.PI / 2; const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   p.setAttribute('d', `M0 0 L${86 * Math.cos(a0)} ${86 * Math.sin(a0)} A86 86 0 0 1 ${86 * Math.cos(a1)} ${86 * Math.sin(a1)} Z`); p.setAttribute('fill', '#FBE3C4'); p.setAttribute('stroke', '#fff'); p.setAttribute('stroke-width', 3); pz.querySelector('#sl').appendChild(p); slices.push(p); }
@@ -237,7 +250,7 @@ const clone = C(defs[0]);
 const cursor = el('div', 'abs', world, `<svg width="44" height="52" viewBox="0 0 34 40"><path d="M2 2 L2 34 L11 26 L18 39 L24 36 L17 24 L30 24 Z" fill="#10243A" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg>`);
 const ring = el('div', 'abs'); ring.style.cssText += 'width:80px;height:80px;border-radius:50%;border:5px solid #c4552f';
 const keptB = cards[0].querySelector('.kept b');
-const tD = T([['h', [['Walk other people’s', ''], ['rabbit holes.', 'acc coral']]], ['sub', [['Keep what catches you. It lands in your garden.', '']]]]);
+const tD = T([['h', [['Walk other people’s', ''], ['rabbit holes.', 'acc coral']]]]);
 sfx(41.3, 'click'); sfx(41.35, 'pop', 3); sfx(46.0, 'pop', 5);
 
 // ================= E: the whole world, ranked by love =================
@@ -265,9 +278,10 @@ const islands = [
     { e: '🍝', bg: '#FCEBC2', k: 'Recipe', t: 'Cacio e pepe, the real way' }, { e: '🥟', bg: '#FFE3D6', k: 'Recipe', t: 'Grandma’s dumplings' },
     { e: '🍞', bg: '#F1ECE0', k: 'Recipe', t: 'No-knead bread' }, { note: 'Salt the pasta water like the sea.' }] },
 ];
+const islandEls = [];   // shown only once the world opens up
 islands.forEach(g => {
-  place(el('div', 'gl abs', world, `${g.name}<span>${g.by}</span>`), g.x, g.y - 300);
-  g.things.forEach((o, i) => { const c = C(o); place(c, g.x + (i % 2 ? 165 : -165), g.y + (i < 2 ? -130 : 130)); });
+  const l = el('div', 'gl abs', world, `${g.name}<span>${g.by}</span>`); islandEls.push([l, g.x, g.y - 300]);
+  g.things.forEach((o, i) => { const c = C(o); islandEls.push([c, g.x + (i % 2 ? 165 : -165), g.y + (i < 2 ? -130 : 130)]); });
   gardens.push({ x: g.x, y: g.y });
 });
 const arcSvgWrap = el('div', 'abs'); arcSvgWrap.style.cssText += 'width:14000px;height:9000px;transform:translate(-7000px,-3500px)';
@@ -285,7 +299,7 @@ for (let i = 0; i < 34; i++) {
   const heart = el('div', 'abs deco', world, '♥'); heart.style.cssText += 'font-size:260px;color:#c4552f;line-height:1';
   arcs.push({ a, b, path, dot, L, t0, heart }); sfx(t0 + 1.5, 'heart', i);
 }
-const tE = T([['h', [['Ranked by', ''], ['love.', 'acc coral']]], ['sub', [['Not by who made it. By who keeps it, and keeps coming back.', '']]]]);
+const tE = T([['h', [['Ranked by', ''], ['love.', 'acc coral']]]]);
 
 // ================= F: what you keep shapes what finds you =================
 const arrivals = [
@@ -295,28 +309,45 @@ const arrivals = [
 ];
 const chips = arrivals.map(() => el('div', 'chip abs', world, 'new, near your garden'));
 arrivals.forEach((_, i) => sfx(59.0 + i * .9 + 1.0, 'pop', i + 2));
-const tF = T([['h', [['What you keep', ''], ['shapes what finds you.', 'acc teal']]], ['sub', [['No settings. Your garden is the algorithm.', '']]]]);
+const tF = T([['h', [['What you keep', ''], ['shapes what finds you.', 'acc teal']]]]);
 
 // ================= G: even the things you make =================
-const tG = T([['h', [['Even the things', '']]], ['h', [['you make.', 'acc coral']]], ['sub', [['Tiny games, tools and explainers,', '']]], ['sub', [['the newest things worth keeping.', '']]]], 'top:330px');
+const tG = T([['h', [['Even the things', '']]], ['h', [['you make.', 'acc coral']]]], 'top:400px');
 [0, 1, 2, 3, 4, 5].forEach(i => sfx(65.0 + i * .34, 'pop', i));
 
 // ================= H: finale =================
 const tH = T([['h', [['Find.', ''], ['Keep.', 'teal'], ['Wander.', 'coral'], ['Return.', '']]]], 'left:0;right:0;top:470px;text-align:center');
 tH.box.querySelector('.h').style.fontSize = '96px';
 const paperwash = document.getElementById('paperwash');
-const logo = T([['h', [['Grdn', '']]], ['sub', [['Everything worth a revisit.', '']]]], 'left:0;right:0;top:250px;text-align:center');
+const logo = T([['h', [['Grdn', '']]], ['sub', [['Everything worth a revisit.', '']]]], 'left:0;right:0;top:400px;text-align:center');
 logo.box.querySelector('.h').style.cssText += 'font-size:230px;letter-spacing:-0.04em;line-height:1';
 logo.box.querySelector('.sub').style.cssText += 'font-size:60px;color:rgba(16,36,58,.85);margin-top:22px';
-const cta = el('div', 'abs', ui, '<span class="cta">Reserve yours</span>'); cta.style.cssText += 'left:0;right:0;top:720px;text-align:center';
-[71.9, 72.35, 72.8, 73.25].forEach((t, i) => sfx(t, 'tick', i)); sfx(74.4, 'chime');
+const cta = el('div', 'abs', ui, '<span class="cta">Reserve yours</span>'); cta.style.cssText += 'left:0;right:0;top:790px;text-align:center';
+[71.9, 72.35, 72.8, 73.25].forEach((t, i) => sfx(t, 'tick', i));
 
 // ================= inserted beats (global time) =================
-// A: "Every thing keeps its face" — spliced in at base 26.0. B: "Your agents can walk them too" — at base 46.8.
-const A0 = 26.0, LA = 8.8, B0b = 46.8, LB = 9.0;
-const GA = A0, GB = B0b + LA;                      // global start of each beat
-const baseT = g => g < GA ? g : g < GA + LA ? A0 : g < GB ? g - LA : g < GB + LB ? B0b : g - LA - LB;
-const toGlobal = b => b < A0 ? b : b < B0b ? b + LA : b + LA + LB;
+// The cut is an edit list over the base scene: 'lin' plays base time b0.. in step with global time,
+// 'hold' freezes base time at b0 while a beat drawn in global time plays over it.
+const MID = /mid=1/.test(location.search);        // test: the sprout also grows mid-video
+const SEG = []; let gAcc = 0;
+const seg = (len, b0, mode = 'lin') => { SEG.push({ g0: gAcc, len, b0, mode }); gAcc += len; return gAcc - len; };
+const G = {};
+G.open = seg(5.0, 0);                 // inside the Great Wave
+G.stream = seg(8.0, 12.4, 'hold');    // the stream carries it off; you keep it
+if (MID) G.sprout = seg(2.6, 18.6, 'hold');
+G.keep = seg(7.0, 19.0);              // keep anything; others keep yours
+G.faces = seg(5.0, 26.0, 'hold');     // every thing keeps its face
+G.mid = seg(20.8, 26.0);              // near things, paths, walk Ines's garden
+G.agent = seg(9.0, 46.8, 'hold');     // an agent walks Saara's garden
+G.finds = seg(5.7, 57.2);             // what you keep shapes what finds you
+G.pizza = seg(6.0, 62.9);             // even the things you make
+G.rank = seg(7.5, 70.4, 'hold');      // ranked by love
+G.fin = seg(5.1, 69.3);               // pull out; Find. Keep. Wander. Return.
+G.end = seg(5.0, 74.4, 'hold');       // the sprout, then the name
+const segAt = g => { for (let i = SEG.length - 1; i > 0; i--) if (g >= SEG[i].g0) return SEG[i]; return SEG[0]; };
+const baseT = g => { const s = segAt(g); return s.mode === 'lin' ? s.b0 + Math.min(g - s.g0, s.len) : s.b0; };
+const GA = G.faces, LA = 5.0, GB = G.agent, LB = 9.0;
+const WH = MID ? { x: -250, y: 110 } : { x: 0, y: 90 }; // where the kept wave lands
 const NSFX = [];
 const nsfx = (t, type, i = 0) => NSFX.push({ t: +t.toFixed(3), type, i });
 
@@ -366,29 +397,27 @@ const doc = faceCard('Doc', 'Lecture notes', `
   <div style="position:absolute;left:40px;right:40px;top:10px;bottom:0;background:#fff;padding:12px 14px">
     <div style="font:700 11px Bricolage Grotesque;color:#10243A;margin-bottom:8px">Week 3: the cave</div>
     ${'<div style="height:5px;border-radius:3px;background:#d9d6ce;margin:6px 0"></div>'.repeat(6)}</div>`, 'docs.google.com');
-const faces = [[figma, 250, -640], [sheet, 610, -640], [web, -280, 110], [builder, 970, -640]];
-doc.remove();
+const faces = [[figma, -190, -610], [sheet, 470, -610]];
+doc.remove(); web.remove(); builder.remove();
 const faceCSS = document.createElement('style');
 faceCSS.textContent = `.c.face .fv { position: relative; height: 170px; border-radius: 14px; overflow: hidden; }`;
 document.head.appendChild(faceCSS);
 const fgSel = figma.querySelector('#fgSel'), fgCur = figma.querySelector('#fgCur'), fgImg = figma.querySelector('#fgImg');
 const shCell = sheet.querySelector('#shCell'), shFx = sheet.querySelector('#shFx'), shCells = [...sheet.querySelectorAll('[data-r]')];
-const webPage = web.querySelector('#webPage'), blks = [...builder.querySelectorAll('.blk')];
-const tAf = T([['h', [['Every thing', '']]], ['h', [['keeps its face.', 'acc teal']]], ['sub', [['A Figma file, a sheet,', '']]], ['sub', [['a website, a tool that makes them.', '']]]], 'top:320px');
+const tAf = T([['h', [['Every thing', '']]], ['h', [['keeps its face.', 'acc teal']]]], 'top:420px');
 const washA = el('div', 'abs', ui); washA.style.cssText = 'position:absolute;left:0;top:0;width:1100px;height:1080px;opacity:0;background:linear-gradient(90deg, rgba(248,245,236,1) 0%, rgba(248,245,236,.97) 55%, rgba(248,245,236,0) 100%)';
 ui.insertBefore(washA, tAf.box);
 // camera path through the four faces
 const FZ = 2.9, SX = 1330;
 const fcam = (c) => { const [e, x, y] = c; return [x - (SX - 960) / FZ, y - 0, FZ]; };
-const AK = (() => { const base = [0, -60, .72], F = fcam(faces[0]), S = fcam(faces[1]), W = fcam(faces[2]), B = fcam(faces[3]);
-  const seq = [[0, base], [1.0, F], [2.2, F], [3.0, S], [4.1, S], [4.9, W], [6.0, W], [6.8, B], [8.0, B], [8.8, base]];
+const AK = (() => { const base = [0, -60, .72], F = fcam(faces[0]), S = fcam(faces[1]);
+  const seq = [[0, base], [.9, F], [2.1, F], [2.8, S], [4.0, S], [5.0, base]];
   return seq.map(([dt, [x, y, z]]) => [GA + dt, x, y, z]); })();
-[GA + .05, GA + 2.2, GA + 4.1, GA + 6.0, GA + 8.0].forEach(t => nsfx(t, 'whoosh'));
-[0, 1, 2, 3].forEach(i => nsfx(GA + 6.95 + i * .26, 'pop', i + 2));
-nsfx(GA + 1.9, 'click'); [0, 1].forEach(i => nsfx(GA + 3.4 + i * .3, 'tick'));
+[GA + .05, GA + 2.1, GA + 4.0].forEach(t => nsfx(t, 'whoosh'));
+nsfx(GA + 1.9, 'click'); [0, 1].forEach(i => nsfx(GA + 3.0 + i * .25, 'tick'));
 function renderFaces(gt, bt) {
   // faces land with the other "keep anything" things, fade when gardens form
-  faces.forEach(([c, x, y], i) => { const land = eOut5(prog(bt, 23.2 + i * .25, 24.0 + i * .25)), gone = eIO(prog(bt, 26.5, 27.6));
+  faces.forEach(([c, x, y], i) => { const land = eOut5(prog(bt, 23.2 + i * .25, 24.0 + i * .25)), gone = eIO(prog(bt, 26.0, 26.8));
     let o = clamp(land * 1.6) * (1 - gone); if (gt > GA && gt < GA + LA) o = 1;
     place(c, x, y + (1 - land) * 90 + Math.sin(gt * 1.1 + i * 2.3) * 4, lerp(.55, 1, eBack(prog(bt, 23.2 + i * .25, 24.0 + i * .25))), bt < 23.1 ? 0 : o, ((i * 29) % 5 - 2) * 1.1 * (1 - gone)); });
   const a = gt - GA;
@@ -399,20 +428,14 @@ function renderFaces(gt, bt) {
     const sel = a > 1.6; fgSel.style.cssText += `;left:44px;top:34px;width:96px;height:50px;opacity:${sel ? 1 : 0}`;
     fgImg.style.background = a > 1.9 ? '#9BE0B4' : '#FFD0BD'; }
   // Sheet: type 71 into week 5, total updates
-  { const typed = a > 3.3 ? (a > 3.6 ? '71' : '7') : '';
+  { const typed = a > 3.0 ? (a > 3.25 ? '71' : '7') : '';
     const cell = (r, c) => shCells.find(e => +e.dataset.r === r && +e.dataset.c === c);
-    cell(5, 1).textContent = typed; cell(6, 1).textContent = a > 3.75 ? '272' : '201';
-    cell(6, 1).style.background = a > 3.75 && a < 4.4 ? '#c6e7cf' : '#e6f4ea';
-    const c = cell(5, 1); shCell.style.cssText += `;left:${62 - 1}px;top:${16 + 5 * 22 - 1}px;width:55px;height:24px`;
-    shFx.textContent = a > 3.2 && a < 3.75 ? typed : '=SUM(B2:B6)'; }
-  // Website: scroll
-  webPage.style.transform = `translateY(${-eIO(prog(a, 4.9, 5.9)) * 150}px)`;
-  // Builder: blocks fly from the palette into the page
-  const slots = [[90, 18, 150], [90, 40, 170], [90, 100, 170], [90, 132, null]], src = [[10, 14], [10, 38], [10, 62], [10, 86]];
-  blks.forEach((b, i) => { const p = eOut5(prog(a, 6.8 + i * .26, 7.1 + i * .26)), [sx, sy] = src[i], [tx, ty, w] = slots[i];
-    b.style.left = lerp(sx, tx, p) + 'px'; b.style.top = lerp(sy, ty, p) + 'px'; if (w) b.style.width = lerp(46, w, p) + 'px'; b.style.opacity = a > 6.75 || gt > GA + LA ? 1 : 0; });
+    cell(5, 1).textContent = typed; cell(6, 1).textContent = a > 3.4 ? '272' : '201';
+    cell(6, 1).style.background = a > 3.4 && a < 4.0 ? '#c6e7cf' : '#e6f4ea';
+    shCell.style.cssText += `;left:${62 - 1}px;top:${16 + 5 * 22 - 1}px;width:55px;height:24px`;
+    shFx.textContent = a > 2.9 && a < 3.4 ? typed : '=SUM(B2:B6)'; }
   // dim everything else while a face is in focus
-  const dim = eIO(prog(a, 0, .9)) * (1 - eIO(prog(a, 7.9, 8.8)));
+  const dim = eIO(prog(a, 0, .9)) * (1 - eIO(prog(a, 4.1, 5.0)));
   return dim;
 }
 
@@ -439,7 +462,6 @@ agChat.innerHTML = `<div id="agR0" style="margin:0 0 12px 0;display:flex;justify
     <div id="agTxt" style="font:500 28px Bricolage Grotesque;color:#10243A;flex:1;min-height:36px"></div></div>`;
 const agR0 = agChat.querySelector('#agR0'), agTxt = agChat.querySelector('#agTxt'), agR1 = agChat.querySelector('#agR1'), agR2 = agChat.querySelector('#agR2');
 const PROMPT = 'Hey! Check the things Saara shared for the philosophy lecture and make me an explainer.';
-const tB2 = T([['h', [['Your agents can', ''], ['walk them too.', 'acc coral']]], ['sub', [['Anything shared with you. Any agent you use.', '']]]]);
 for (let i = 0; i < PROMPT.length; i += 6) nsfx(GB + .5 + (i / PROMPT.length) * 2.0, 'tick');
 nsfx(GB + 2.6, 'whooshL'); [0, 1, 2, 3].forEach(i => nsfx(GB + 4.1 + i * .4, 'pop', i)); nsfx(GB + 5.9, 'pop', 7); nsfx(GB + 6.3, 'whooshL'); nsfx(GB + 8.3, 'pop', 5);
 const Ycam = [1400, 1260, 1.15], Scam = [SG.x, SG.y - 60, .95];
@@ -471,9 +493,151 @@ function renderAgent(gt, bt, focus) {
   agR1.style.opacity = eOut(prog(a, 2.8, 3.2)) * (1 - prog(a, 7.8, 8.1)); agR1.style.display = a < 7.95 ? 'flex' : 'none';
   agR2.style.opacity = eOut(prog(a, 7.9, 8.3)); agR2.style.display = a >= 7.95 ? 'flex' : 'none';
   // the typed request stays visible as a sent bubble after send
-  return showT(tB2, gt, GB + 3.3, GB + 6.2);
+  return 0;
 }
+// ---------- the stream: feeds, chats and tabs carry the wave off; you keep it ----------
+const SA = G.stream, SV = 1.05, SC = { x: -60, y: -20 };
+const flowF = a => a * a / (a + 1.5);                 // the stream starts still and picks up
+const waveX = a => 10 - 168 * flowF(a);
+const ribbon = el('div', 'abs'); ribbon.style.cssText += 'width:7000px;height:640px;background:linear-gradient(180deg, rgba(164,180,230,0) 0%, rgba(164,180,230,.16) 30%, rgba(127,209,199,.16) 70%, rgba(127,209,199,0) 100%)';
+world.insertBefore(ribbon, world.firstChild);
+const streamDefs = [
+  { img: 'octopus.jpg', k: 'Video', t: 'Octopus escapes' }, { bub: 'look at this 🌊' }, { e: '📻', bg: '#E4E8F7', k: 'Toy', t: 'Radio Garden' },
+  { note: 'Hope is the thing with feathers.' }, { tab: ['⌚', 'Mechanical Watch'] }, { img: 'ciechanow-ski-3.png', k: 'Explorable', t: 'How a watch works' },
+  { bub: 'saving this for later' }, { e: '🎧', bg: '#FFE3D6', k: 'Song', t: 'Breathe' }, { tab: ['📄', 'untitled (3)'] }, { img: 'starry-night.jpg', k: 'Art', t: 'The Starry Night' },
+  { bub: 'omg yes' }, { e: '🧩', bg: '#FCEBC2', k: 'Game', t: 'that one game' }, { tab: ['🔖', 'Read later (212)'] }, { img: 'pale-blue-dot.png', k: 'Photo', t: 'Pale Blue Dot' },
+  { note: 'Liking is easy. Love is a return.' }, { bub: 'where was that link?' }, { e: '📕', bg: '#DDF3EF', k: 'Book', t: 'Other Minds' }, { tab: ['🎥', 'Watch later'] },
+  { img: 'radio-garden-0.jpg', k: 'Toy', t: 'Radio from anywhere' }, { bub: 'scroll up?' }, { e: '🍝', bg: '#FCEBC2', k: 'Recipe', t: 'Cacio e pepe' }, { tab: ['❓', 'where was it'] },
+  { img: 'pudding-cool-16.jpg', k: 'Essays', t: 'The Pudding' }, { note: 'Two thirds of the neurons are in the arms.' }, { e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake' },
+  { bub: 'can’t find it anymore' }, { img: 'earth-nullschool-net-10.jpg', k: 'Live map', t: 'The wind, right now' },
+];
+const LANES = [[-225, 150], [0, 172], [215, 160]];      // world y, speed
+const streamItems = [...streamDefs, ...streamDefs.slice(0, 18)].map((o, i) => {
+  let e;
+  if (o.bub) { e = el('div', 'bub abs', world, o.bub); e.style.cssText += ';font-size:24px;white-space:nowrap;box-shadow:0 8px 22px rgba(16,36,58,.07)'; }
+  else if (o.tab) { e = el('div', 'tab abs', world, `<span>${o.tab[0]}</span>${o.tab[1]}`); e.style.cssText += ';border-radius:14px;flex:none;width:auto;font-size:19px;box-shadow:0 8px 22px rgba(16,36,58,.07)'; }
+  else e = C(o);
+  let lane = i % 3; const x0 = -1300 + Math.floor(i / 3) * 330 + (lane === 1 ? 160 : lane * 70) + (rnd() - .5) * 70;
+  if (lane === 1 && Math.abs(x0 - 10) < 420) lane = (i % 2) ? 0 : 2;  // keep the wave's neighbourhood clear
+  return { e, lane, x0, s: o.bub || o.tab ? 1 : .86, r: (rnd() - .5) * 5, ph: rnd() * 6 };
+});
+const sBubs = el('div', 'abs', ui); sBubs.style.cssText = 'position:absolute;left:110px;top:auto;bottom:56px;opacity:0';
+const bubRow = (who, bgc, txt) => `<div style="display:flex;align-items:center;gap:14px;margin-top:12px"><div style="width:48px;height:48px;border-radius:50%;background:${bgc};color:#F8F5EC;font:700 17px Bricolage Grotesque;display:flex;align-items:center;justify-content:center;flex:none">${who}</div><div style="background:#fff;color:#10243A;font:500 32px Bricolage Grotesque;padding:16px 26px;border-radius:24px 24px 24px 6px;box-shadow:0 14px 40px rgba(16,36,58,.12);white-space:nowrap">${txt}</div></div>`;
+sBubs.innerHTML = `<div id="sb0">${bubRow('S', '#0a6b60', 'Send me that wave again? And what you said about it?')}</div><div id="sb1">${bubRow('AI', '#10243A', 'I can’t see it. Where did you save it?')}</div>`;
+const sb0 = sBubs.querySelector('#sb0'), sb1 = sBubs.querySelector('#sb1');
+const kCur = el('div', 'abs', world, cursor.innerHTML), kBtn = el('div', 'keepbtn', wave, 'Keep'); kBtn.style.opacity = 0;
+const kRing = el('div', 'abs'); kRing.style.cssText += 'width:80px;height:80px;border-radius:50%;border:5px solid #c4552f';
+const waveKept = el('div', 'kept', wave, 'kept by <b>1</b>'), waveKB = waveKept.querySelector('b'); waveKept.style.opacity = 0;
+const KA = 5.6;                                        // the keep click, stream time
+nsfx(SA + .2, 'whooshL'); nsfx(SA + 3.4, 'pop', 1); nsfx(SA + 4.3, 'pop', 3);
+nsfx(SA + KA, 'click'); nsfx(SA + KA + .05, 'pop', 5); nsfx(SA + KA + .3, 'whooshL'); nsfx(SA + 7.2, 'thud');
+function streamCam(a) {
+  const c0 = camAt(G.open + 5.0 - 1e-6), p = eIO(prog(a, 0, 2.6));
+  let x = lerp(c0.x, SC.x, p), y = lerp(c0.y, SC.y, p), z = Math.exp(lerp(Math.log(c0.z), Math.log(SV), p));
+  const q = eIO(prog(a, 5.9, 8.0)), zq = Math.exp(lerp(Math.log(SV), Math.log(1.25), q)) - Math.sin(q * Math.PI) * .12;
+  return a < 5.9 ? { x, y, z } : { x: lerp(SC.x, 0, q), y: lerp(SC.y, 20, q), z: zq };
+}
+function renderStream(gt) {
+  const a = gt - SA, inS = a >= 0 && a < 8.0, F = flowF(Math.min(a, 7.6));
+  const show = eOut(prog(a, .4, 1.8)) * (1 - eIO(prog(a, 6.0, 7.4)));
+  place(ribbon, 0, -10, 1, inS ? show : 0);
+  streamItems.forEach(it => { const [ly, v] = LANES[it.lane], x = it.x0 - v * F, y = ly + Math.sin(x / 420 + it.lane * 1.7) * 26 + Math.sin(gt * 1.3 + it.ph) * 4;
+    place(it.e, x, y, it.s, inS ? show : 0, it.r + Math.sin(gt + it.ph) * 1.5); it.e.style.filter = `blur(${prog(a, 6.0, 7.4) * 5}px)`; });
+  // the chat: a friend and an agent both ask for it; nobody can find it
+  const bi = eOut5(prog(a, 3.3, 3.8)), bo = eIO(prog(a, 5.7, 6.3));
+  sBubs.style.opacity = inS ? Math.max(bi, 0) * (1 - bo) : 0;
+  sb0.style.opacity = bi; sb0.style.transform = `translateY(${(1 - bi) * 24}px)`;
+  const b1 = eOut5(prog(a, 4.2, 4.7)); sb1.style.opacity = b1; sb1.style.transform = `translateY(${(1 - b1) * 24}px)`;
+  // you keep it: cursor, Keep, lift out of the stream, land in the garden
+  const kx = waveX(KA), drift = a < KA ? waveX(a) : kx;
+  const cin = eIO(prog(a, 4.6, 5.4)), clk = prog(a, KA - .1, KA + .1);
+  kCur.style.transform = `translate(${lerp(kx + 560, kx + 92, cin)}px,${lerp(380, -112, cin)}px) scale(${1 - Math.sin(clk * Math.PI) * .15})`;
+  kCur.style.opacity = inS ? prog(a, 4.5, 4.8) * (1 - prog(a, 6.0, 6.4)) : 0; kCur.style.visibility = kCur.style.opacity > 0 ? 'visible' : 'hidden';
+  kBtn.style.opacity = inS ? prog(a, 5.1, 5.4) * (1 - prog(a, 5.9, 6.2)) : 0;
+  { const rp = prog(a, KA, KA + .7); place(kRing, kx + 95, -112, lerp(.3, 1.8, eOut(rp)), inS && rp > 0 && rp < 1 ? 1 - rp : 0); }
+  const fl = eIO(prog(a, KA + .2, 7.2)), bx = (1 - fl) * (1 - fl) * kx + 2 * (1 - fl) * fl * (kx * .3) + fl * fl * WH.x, by = (1 - fl) * (1 - fl) * 0 + 2 * (1 - fl) * fl * -420 + fl * fl * WH.y;
+  return { x: a < KA ? drift : bx, y: a < KA ? Math.sin(drift / 420 + 1.7) * 26 * prog(a, 0, 2) : by, s: 1 + Math.sin(fl * Math.PI) * .14, r: Math.sin(fl * Math.PI) * -5, lift: Math.sin(fl * Math.PI) };
+}
+
+// ---------- others keep your wave (keep scene, base time) ----------
+const visitors = [['Ines', '#c4552f', [-900, 520], 21.6, 22.7], ['Tom', '#3b6fd8', [900, -260], 23.0, 24.0]].map(([n, c, from, t0, tc]) => {
+  const e = el('div', 'abs', world, `<svg width="44" height="52" viewBox="0 0 34 40"><path d="M2 2 L2 34 L11 26 L18 39 L24 36 L17 24 L30 24 Z" fill="${c}" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg><span style="position:absolute;left:34px;top:36px;font:700 20px Bricolage Grotesque;color:#fff;background:${c};padding:3px 12px;border-radius:12px">${n}</span>`);
+  sfx(tc, 'click'); sfx(tc + .05, 'heart', 2); return { e, from, t0, tc };
+});
+const vHearts = Array.from({ length: 12 }, (_, i) => { const h = el('div', 'abs deco', world, '♥'); h.style.cssText += 'font-size:46px;color:#c4552f;line-height:1'; return { h, t: i < 2 ? [22.7, 24.0][i] : 24.3 + (i - 2) * .11, dx: (rnd() - .5) * 160 }; });
+vHearts.slice(2).forEach((v, i) => i % 3 === 0 && sfx(v.t, 'heart', i));
+function renderVisitors(t) {
+  visitors.forEach(v => { const p = eIO(prog(t, v.t0, v.tc - .1)), q = eIO(prog(t, v.tc + .3, v.tc + 1.1)), clk = prog(t, v.tc - .1, v.tc + .1);
+    const tx = WH.x + 40, ty = WH.y + 100, x = lerp(lerp(WH.x + v.from[0], tx, p), WH.x + v.from[0] * 1.2, q), y = lerp(lerp(WH.y + v.from[1], ty, p), WH.y + v.from[1] * 1.2, q);
+    v.e.style.transform = `translate(${x}px,${y}px) scale(${1.5 * (1 - Math.sin(clk * Math.PI) * .15)})`; const o = prog(t, v.t0, v.t0 + .3) * (1 - prog(t, v.tc + .8, v.tc + 1.1));
+    v.e.style.opacity = o; v.e.style.visibility = o > 0 ? 'visible' : 'hidden'; });
+  vHearts.forEach(v => { const hp = prog(t, v.t, v.t + .9); place(v.h, WH.x + 100 + v.dx * hp, WH.y + 120 - hp * 260, lerp(.5, 1.1, eOut(hp)), hp > 0 && hp < 1 ? Math.sin(hp * Math.PI) : 0); });
+  const n = t < 22.7 ? 0 : t < 24.0 ? 1 : t < 24.3 ? 2 : Math.min(14, 2 + Math.floor((t - 24.3) / .11) + 1);
+  return n;
+}
+
+// ---------- ranked by love ----------
+const RG = { x: 0, y: -650 };
+const rDefs = [
+  [{ img: 'starry-night.jpg', k: 'Art', t: 'The Starry Night', kept: 5530 }, 5530, 5541],
+  [{ e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake', m: 'made by Tom, on a Sunday', kept: 4980 }, 4980, 5612],
+  [{ e: '🔪', bg: '#FFE3D6', k: 'Film', t: 'Knives Out', kept: 3120 }, 3120, 3131],
+  [{ e: '🍞', bg: '#F1ECE0', k: 'Recipe', t: 'No-knead bread', kept: 2870 }, 2870, 2884],
+  [{ note: 'Hope is the thing with feathers.', kept: 1940 }, 1940, 1952],
+];
+const rCards = rDefs.map(([o, n0, n1]) => { const c = C(o); return { c, b: c.querySelector('.kept b'), n0, n1 }; });
+const rNums = [0, 1, 2, 3, 4].map(i => el('div', 'num abs', world, String(i + 1)));
+const RX = k => RG.x - 700 + k * 350;
+const rHearts = Array.from({ length: 16 }, (_, i) => { const h = el('div', 'abs deco', world, '♥'); h.style.cssText += 'font-size:70px;color:#c4552f;line-height:1';
+  const to = i % 5 === 4 ? (i % 3) * 2 % 5 : 1; return { h, to, t: G.rank + 1.7 + i * .16 + rnd() * .1, sx: (rnd() - .5) * 2400, sy: 700 + rnd() * 200 }; });
+rHearts.forEach((v, i) => i % 2 === 0 && nsfx(v.t + .8, 'heart', i));
+nsfx(G.rank + 4.4, 'whoosh'); nsfx(G.rank + 5.0, 'pop', 6);
+const RCAM = { x: RG.x, y: RG.y - 35, z: 1.05 };
+function renderRank(gt) {
+  const a = gt - G.rank, on = a > -2 && gt < G.fin + 3;
+  const sw = eIO(prog(a, 4.3, 5.2));                  // the game overtakes the painting
+  rCards.forEach((r, i) => { const slot = i === 0 ? lerp(0, 1, sw) : i === 1 ? lerp(1, 0, sw) : i;
+    const arc = i < 2 ? Math.sin(sw * Math.PI) * (i === 1 ? -120 : 90) : 0;
+    const h = r.c.offsetHeight, y = RG.y - 140 + h / 2 + arc;
+    place(r.c, RX(slot), y, 1 + (i === 1 ? Math.sin(sw * Math.PI) * .08 : 0), on ? 1 : 0);
+    r.c.style.zIndex = i === 1 ? 3 : 1;
+    r.b.textContent = fmt(lerp(r.n0, r.n1, eIO(prog(a, 1.9, i === 1 ? 4.4 : 4.6)))); });
+  rNums.forEach((e, k) => place(e, RX(k), RG.y - 200, 1, on ? 1 : 0));
+  rHearts.forEach(v => { const hp = prog(gt, v.t, v.t + .9), r = rCards[v.to], slotX = v.to === 0 ? RX(lerp(0, 1, sw)) : v.to === 1 ? RX(lerp(1, 0, sw)) : RX(v.to);
+    const tx = slotX, ty = RG.y - 40, sx = tx + v.sx * .4, sy = RG.y + v.sy, e = eIO(hp);
+    place(v.h, lerp(sx, tx, e), lerp(sy, ty, e) - Math.sin(e * Math.PI) * 220, lerp(.6, .9, e), hp > 0 && hp < 1 ? Math.min(1, hp * 4) * (1 - prog(hp, .85, 1)) : 0); });
+  return showT(tE, gt, G.rank + 1.2, G.rank + 6.6);
+}
+function rankCam(gt) {
+  const a = gt - G.rank, P0 = { x: 1415, y: 1165, z: 2.6 }, p = eIO(prog(a, 0, 1.9));
+  const x = (1 - p) * (1 - p) * P0.x + 2 * (1 - p) * p * 900 + p * p * RCAM.x, y = (1 - p) * (1 - p) * P0.y + 2 * (1 - p) * p * 100 + p * p * RCAM.y;
+  return { x: x + Math.sin(a * .4) * 8, y, z: Math.exp(lerp(Math.log(P0.z), Math.log(RCAM.z), p)) - Math.sin(p * Math.PI) * .5 };
+}
+nsfx(G.rank + .05, 'whooshL');
+
+// ---------- the end: a sprout, then the name ----------
+const endSprout = makeSprout(ui);
+function renderEnd(gt) {
+  const a = gt - G.end; place(endSprout.box, 960, 230, .9, 1); endSprout.set(clamp(a / 1.9), gt, a > -.1 ? 1 : 0);
+}
+nsfx(G.end + .15, 'thud'); nsfx(G.end + .3, 'rise'); nsfx(G.end + .95, 'pop', 2); nsfx(G.end + 1.3, 'pop', 4); nsfx(G.end + 1.7, 'chime');
+
+// ---------- mid-video sprout (test) ----------
+const midSprout = makeSprout(world);
+function renderMidSprout(gt, t) {
+  if (!MID) { midSprout.box.style.visibility = 'hidden'; return; }
+  const a = gt - G.sprout, o = 1 - prog(t, 24, 25.5);
+  place(midSprout.box, 0, 40, .85, 1); midSprout.set(clamp(a / 2.2), gt, gt < G.sprout ? 0 : o);
+}
+if (MID) { nsfx(G.sprout + .1, 'rise'); nsfx(G.sprout + .9, 'pop', 2); nsfx(G.sprout + 1.3, 'pop', 4); }
+
 function beatCam(gt) {
+  if (gt >= G.stream && gt < G.stream + 8.0) return streamCam(gt - G.stream);
+  if (MID && gt >= G.sprout && gt < G.sprout + 2.6) { const p = eIO(prog(gt, G.sprout, G.sprout + 2.6)); return { x: 0, y: 20, z: 1.25 + Math.sin(p * Math.PI) * .04 }; }
+  if (gt >= G.finds && gt < G.finds + 1.6) { const p = eIO(prog(gt, G.finds, G.finds + 1.6)); return { x: lerp(1400, 1600, p), y: lerp(1260, 1180, p), z: Math.exp(lerp(Math.log(1.15), Math.log(.92), p)) }; }
+  if (gt >= G.rank && gt < G.fin) return rankCam(gt);
+  if (gt >= G.fin && gt < G.fin + 2.1) { const p = eIO5(prog(gt, G.fin, G.fin + 2.1)), k = camAt(71.4);
+    return { x: lerp(RCAM.x, k.x, p), y: lerp(RCAM.y, k.y, p), z: Math.exp(lerp(Math.log(RCAM.z), Math.log(k.z), p)) }; }
   if (gt > GA && gt < GA + LA) { let i = 0; while (i < AK.length - 2 && gt > AK[i + 1][0]) i++;
     const [t0, x0, y0, z0] = AK[i], [t1, x1, y1, z1] = AK[i + 1], p = eIO5(prog(gt, t0, t1));
     return { x: lerp(x0, x1, p), y: lerp(y0, y1, p), z: Math.exp(lerp(Math.log(z0), Math.log(z1), p)) }; }
@@ -488,7 +652,10 @@ function grain(f) { let s = (f * 7919 + 13) >>> 0; const d = gimg.data;
   gctx.putImageData(gimg, 0, 0); }
 
 // ================= render =================
-const DURATION = 77.4 + LA + LB; window.DURATION = DURATION; window.SFX = SFX.map(e => ({ ...e, t: +toGlobal(e.t).toFixed(3) })).concat(NSFX).sort((a, b) => a.t - b.t);
+const DURATION = gAcc; window.DURATION = DURATION;
+window.SFX = SFX.flatMap(e => SEG.filter(s => s.mode === 'lin' && e.t >= s.b0 && e.t < s.b0 + s.len).map(s => ({ ...e, t: +(s.g0 + e.t - s.b0).toFixed(3) }))).concat(NSFX).sort((a, b) => a.t - b.t);
+// music cues for audio.js (global seconds)
+window.MARKS = { nature: G.stream + 7.0, natureOut: G.fin + 1.7, phrases: [G.keep + 2.0, G.rank + 1.6, G.fin + .2] };
 const washE = document.getElementById('washE'), wash = document.getElementById('wash'), dots = document.getElementById('dots');
 window.seek = function (gt) {
   const t = baseT(gt);
@@ -509,20 +676,24 @@ window.seek = function (gt) {
   clutter.forEach(([c, x, y, s, r], i) => { const g = prog(t, 8.6, 10.2), f = eIO(prog(t, 10.0 + i * .22, 11.0 + i * .22));
     place(c, x, y + f * 260, s, (t < 12.3 ? 1 : 0) * (1 - f), r + f * (i % 2 ? 8 : -8)); c.style.filter = `grayscale(${g}) blur(${f * 6}px)`; });
   { const g = prog(t, 9.0, 10.6), f = eIO(prog(t, 10.9, 11.9)); place(wave, 10, f * 200, 1, t < 12.3 ? 1 - f : 0, f * 6); wave.style.filter = `grayscale(${g * .9}) blur(${f * 6}px)`; }
-  const a1 = showT(tA1, t, .7, 3.9); document.getElementById('scrimA').style.opacity = eIO(prog(t, .2, .9)) * (1 - eIO(prog(t, 4.0, 5.0))); const a2 = showT(tA2, t, 7.5, 12.2);
+  const a1 = showT(tA1, t, .7, 3.9); document.getElementById('scrimA').style.opacity = eIO(prog(t, .2, .9)) * (1 - eIO(prog(t, 4.0, 5.0))); const a2 = 0;
 
-  // --- B
-  const sd = prog(t, 12.6, 13.1), sdb = eBack(prog(t, 12.6, 13.2));
-  place(seedEl, 0, lerp(-520, 200, clamp(sdb, 0, 1.08)) - (sdb > 1 ? (sdb - 1) * 60 : 0), 1, t > 12.55 && t < 13.7 ? 1 : 0);
-  place(ground, 0, 212, 1, prog(t, 12.9, 13.4) * (1 - prog(t, 24, 25.5)));
-  place(sprout, 0, 60, 1, t > 13.3 ? 1 - prog(t, 24, 25.5) : 0);
-  stem.style.strokeDashoffset = stemL * (1 - eOut(prog(t, 13.45, 14.5)));
-  lf.forEach((l, i) => { const p = eBack(prog(t, 14.2 + i * .3, 14.9 + i * .3)); l.style.transformOrigin = i ? '2px -180px' : '0px -140px'; l.style.transformBox = 'view-box'; l.style.transform = `scale(${clamp(p, 0, 1.2)})`; });
-  const b1 = showT(tB, t, 14.7, 18.1);
+  // --- the wave: the stream, then the garden, then your garden
+  const vn = renderVisitors(t), kn = gt < G.keep ? 0 : t < 44.0 ? vn : 14;
+  waveKept.style.opacity = kn > 0 ? 1 : 0; waveKB.textContent = kn;
+  if (gt >= G.stream) {
+    let w;
+    if (gt < G.stream + 8.0) w = renderStream(gt);
+    else if (t < 44.0) w = { x: WH.x, y: WH.y + Math.sin(gt * 1.1) * 4, o: 1 - eIO(prog(t, 26.5, 27.6)), s: 1, r: 0, lift: 0 };
+    else w = { x: WIN_G.x, y: WIN_G.y, o: eOut(prog(t, 44.3, 45.0)) * (1 - eIO(prog(t, 63.0, 64.2)) * (1 - eIO(prog(t, 68.9, 70.2)))), s: 1, r: 0, lift: 0 };
+    place(wave, w.x, w.y, w.s, w.o == null ? 1 : w.o, w.r); wave.style.filter = 'none'; wave.style.zIndex = 5;
+    wave.style.boxShadow = `0 ${12 + w.lift * 40}px ${30 + w.lift * 50}px rgba(16,36,58,${.08 + w.lift * .1})`;
+  } else renderStream(gt);
+  renderMidSprout(gt, t);
 
   // --- C
   const dimA = renderFaces(gt, t);
-  { const holds = [[1.0, 2.2], [3.0, 4.1], [4.9, 6.0], [6.8, 8.0]], a = gt - GA;
+  { const holds = [[.9, 2.1], [2.8, 4.0]], a = gt - GA;
     faces.forEach(([c], i) => { const [h0, h1] = holds[i], w = prog(a, h0 - .8, h0) * (1 - prog(a, h1, h1 + .8));
       c.style.opacity = +c.style.opacity * lerp(1, w, dimA); }); }
   const tBm = eIO(prog(t, 26.5, 28.3)), tCm = eIO(prog(t, 31.6, 33.2));
@@ -562,32 +733,34 @@ window.seek = function (gt) {
   const d1 = showT(tD, t, 38.6, 42.0);
 
   // --- E
+  islandEls.forEach(([e, x, y]) => place(e, x, y, 1, prog(t, 43.0, 44.0)));
   arcSvgWrap.style.visibility = t > 46.5 && t < 57 ? 'visible' : 'hidden';
   arcs.forEach(A => { const p = eIO(prog(t, A.t0, A.t0 + 1.5)), fadeOut = prog(t, A.t0 + 1.5, A.t0 + 2.6);
     const head = p * A.L, tail = Math.max(0, head - A.L * .45);
     A.path.style.strokeDasharray = `0 ${tail} ${head - tail} ${A.L}`; A.path.style.opacity = (p > 0 ? 1 : 0) * (1 - fadeOut) * .75;
     const pt = A.path.getPointAtLength(head); A.dot.setAttribute('cx', pt.x); A.dot.setAttribute('cy', pt.y); A.dot.setAttribute('opacity', p > 0 && p < 1 ? 1 : 0);
     const hp = prog(t, A.t0 + 1.5, A.t0 + 2.4); place(A.heart, A.b.x, A.b.y - hp * 200, lerp(.4, 1.3, eOut(hp)), hp > 0 && hp < 1 ? Math.sin(hp * Math.PI) : 0); });
-  const e1 = showT(tE, t, 49.4, 55.5);
+  const e1 = renderRank(gt);
 
   // --- F
   arrivals.forEach(([c, x, y], i) => { const a = 59.0 + i * .9, p = eOut5(prog(t, a, a + 1.4)); place(c, lerp(x + 1100, x, p), y, 1, clamp(p * 1.4) * (1 - focus), lerp(8, 0, p));
     const cp = eBack(prog(t, a + 1.0, a + 1.4)); place(chips[i], x, y - 128, lerp(.7, 1, cp), clamp(cp) * (1 - focus)); });
-  const f1 = showT(tF, t, 57.2, 62.6);
+  const f1 = showT(tF, t, 58.5, 62.6);
 
   // --- G
   slices.forEach((p, i) => p.setAttribute('fill', t > 65.0 + i * .34 && i < 6 ? '#FF9E7A' : '#FBE3C4'));
-  const g1 = showT(tG, t, 64.3, 68.7, .06);
+  const g1 = showT(tG, t, 63.6, 68.2, .06);
 
   // --- H
   const h1 = showT(tH, t, 71.9, 73.8, .45);
   paperwash.style.opacity = eIO(prog(t, 71.0, 71.9)) * .97;
-  const l1 = showT(logo, t, 74.2, null, .1);
-  { const p = eOut5(prog(t, 75.1, 75.9)); cta.style.opacity = p; cta.style.transform = `translateY(${(1 - p) * 30}px)`; }
+  renderEnd(gt);
+  const l1 = showT(logo, gt, G.end + 1.0, null, .1);
+  { const p = eOut5(prog(gt, G.end + 1.9, G.end + 2.7)); cta.style.opacity = p; cta.style.transform = `translateY(${(1 - p) * 30}px)`; }
 
-  const fa = showT(tAf, gt, GA + .4, GA + 7.6, .06); washA.style.opacity = fa;
+  const fa = showT(tAf, gt, GA + .4, GA + 4.2, .06); washA.style.opacity = fa;
   const agentT = renderAgent(gt, t, focus);
-  wash.style.opacity = Math.max(a2, c1, c2, c3, d1, f1, g1 * .9, agentT); washE.style.opacity = e1;
+  wash.style.opacity = Math.max(a2, c1, c2, c3, d1, e1, f1, g1 * .9, agentT); washE.style.opacity = 0;
   grain(Math.floor(gt * 30));
 };
 window.seek(0);
