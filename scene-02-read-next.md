@@ -26,7 +26,7 @@ The filtered list is titled “Read next”, with concise reasons such as “Sta
 
 ## Entry and actor ownership
 
-After Wander, discover this scene by moving it into view. Once Colour finishes, a labelled edge arrow (“A better read next”) also offers a camera move to Robotics. There is no automatic camera trip or forced ordering. The arrow tracks the destination and hides when it is sufficiently visible or completed; manual navigation cancels any requested camera move. Above 60% stage visibility and after navigation settles, Pointy joins Lena's ordinary human cursor with the same +24/+24 companion offset and shared handoff. Only one scene owns Pointy at a time; do not interrupt an existing eligible active scene merely because another is partly visible.
+After Wander, Colour, Robotics (“Read next”), and Writing have directional edge markers available together. Visitors can choose any order or wander into a scene; a completed scene remains linkable when offscreen and does not replay. Each marker hides while its scene is sufficiently visible. Clicking pans there at the shared device scale, and manual navigation cancels the requested pan. Above 60% stage visibility and after navigation settles, Pointy joins Lena's ordinary human cursor with the same +24/+24 companion offset and shared handoff. Only one scene owns Pointy at a time; do not interrupt an existing eligible active scene merely because another is partly visible.
 
 Keep Lena's cursor unlabelled and coral, with Pointy adopting that colour, as in Colour. Accompany Lena before acting. Use the shared pause, departure, re-entry and completion rules. It must be possible to discover Robotics before completing Colour. Target bounds must follow canvas pan/wrap.
 

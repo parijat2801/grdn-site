@@ -203,16 +203,20 @@
   #pill { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
     transition: all .35s ease; }
   #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-  #next-cue { position: fixed; left: 0; top: 0; z-index: 18; display: flex; align-items: center; gap: 9px; max-width: calc(100vw - 32px);
-    padding: 9px 14px 9px 9px; border: 1px solid rgba(15,143,128,.22); border-radius: 999px; background: #FAF8F2;
-    box-shadow: 0 5px 18px rgba(16,36,58,.09); color: var(--ink); font: 600 13px 'Bricolage Grotesque', sans-serif;
-    white-space: nowrap; cursor: pointer; opacity: 0; pointer-events: none; transform: translate(-50%,-50%); transition: opacity .28s ease, box-shadow .28s ease; }
-  #next-cue.show { opacity: 1; pointer-events: auto; }
-  #next-cue:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
-  #next-cue .next-icon { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: #E4F3EF; color: #0a7065; font-size: 19px; line-height: 1; }
-  #next-cue.accent .next-icon { animation: nextAccent .75s ease-out 1; }
+  #scene-nav { position: fixed; inset: 0; z-index: 18; pointer-events: none; }
+  .scene-marker { position: absolute; left: 0; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px;
+    min-height: 44px; min-width: 88px; padding: 6px 13px 6px 7px; border: 1px solid var(--ink); border-radius: 999px;
+    background: #FAF8F2; box-shadow: 0 5px 18px rgba(16,36,58,.15); color: var(--ink);
+    font: 800 13px 'Bricolage Grotesque',sans-serif; white-space: nowrap; cursor: pointer; opacity: 0;
+    pointer-events: none; transform: translate(-50%,-50%); transition: opacity .25s ease, box-shadow .25s ease; }
+  .scene-marker.show { opacity: 1; pointer-events: auto; }
+  .scene-marker.recommended { border-color: #0a7065; background: #0a7065; color: #fff; }
+  .scene-marker:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+  .scene-marker .next-icon { display: grid; place-items: center; flex: none; width: 29px; height: 29px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 19px; line-height: 1; }
+  .scene-marker.recommended .next-icon { background: #fff; color: #0a7065; }
+  .scene-marker.accent .next-icon { animation: nextAccent .75s ease-out 1; }
   @keyframes nextAccent { 45% { box-shadow: 0 0 0 5px rgba(15,143,128,.12); } }
-  @media (max-width: 560px) { #next-cue { padding: 7px 11px 7px 7px; font-size: 12px; gap: 7px; } #next-cue .next-icon { width: 26px; height: 26px; } }
+  @media (max-width: 560px) { .scene-marker { padding-right: 10px; font-size: 12px; gap: 6px; } .scene-marker .next-icon { width: 29px; height: 29px; } }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
 </style>
 </head>
@@ -232,7 +236,11 @@
   <div class="fine"><button class="wander" id="wander">Wander</button></div>
 </section>
 <button class="btn" id="pill">Reserve yours</button>
-<button type="button" id="next-cue" aria-label="A better read next in Lena’s Robotics garden" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span data-next-label>A better read next</span></button>
+<nav id="scene-nav" aria-label="Explore gardens">
+  <button type="button" class="scene-marker" data-scene-marker="colour" aria-label="Go to Colour garden" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span>Colour</span></button>
+  <button type="button" class="scene-marker" data-scene-marker="robot" aria-label="Go to Lena’s read-next garden" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span>Read next</span></button>
+  <button type="button" class="scene-marker" data-scene-marker="writing" aria-label="Go to Wen’s writing garden" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span>Writing</span></button>
+</nav>
 <div class="actor pointy" id="pointy" aria-hidden="true"><b class="seed-glow"></b><svg viewBox="0 0 20 26"><path d="M10 1 C12 5 17 8 18 13 C20 19 15 24 10 24 C4 24 1 20 2 14 C3 9 8 5 10 1Z" fill="var(--actor-color)" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 11 C5.5 14 5.5 17 7 19" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.3" stroke-linecap="round"/></svg></div>
 <div class="actor mo" id="mo" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
 <div class="actor mo" id="lena" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
@@ -490,6 +498,7 @@ function sceneFrameTarget(tile, focus) {
 }
 const nearestRobotFrame = () => sceneFrameTarget(robotTile, robotFocus);
 const nearestWritingFrame = () => sceneFrameTarget(writingTile, writingFocus);
+const nearestColourFrame = () => sceneFrameTarget(colourTile, colourFocus);
 colourTile.el.querySelectorAll('a').forEach(a => { a.tabIndex = -1; a.setAttribute('aria-disabled', 'true'); });
 document.addEventListener('click', e => { if (e.target.closest('.scene-colour a')) e.preventDefault(); }, true);
 
@@ -548,7 +557,7 @@ let sceneReady = false;
 })(t0);
 const pts = new Map(); let pinch = false;
 view.addEventListener('pointerdown', e => {
-  if (e.target.closest('.live, #card, #pill, #next-cue')) return; e.preventDefault(); drifting = false; vx = vy = 0;
+  if (e.target.closest('.live, #card, #pill, .scene-marker')) return; e.preventDefault(); drifting = false; vx = vy = 0;
   sceneNavigation(performance.now());
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); view.setPointerCapture(e.pointerId);
   if (pts.size === 2 && e.pointerType === 'touch') { pinch = true; drag = null; }
@@ -614,7 +623,7 @@ if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 +
 const card = document.getElementById('card'), pill = document.getElementById('pill');
 const scrim = document.getElementById('scrim');
 const wander = document.getElementById('wander');
-const nextCue = document.getElementById('next-cue'), nextArrow = nextCue.querySelector('.next-arrow'), nextLabel = nextCue.querySelector('[data-next-label]');
+const sceneMarkers = Object.fromEntries([...document.querySelectorAll('[data-scene-marker]')].map(el => [el.dataset.sceneMarker, el]));
 const pointy = document.getElementById('pointy'), mo = document.getElementById('mo'), lena = document.getElementById('lena'), wen = document.getElementById('wen');
 const robotCarry = document.getElementById('robot-carry');
 const robotThought = document.getElementById('robot-thought');
@@ -789,33 +798,71 @@ function visibleArea(el) {
   return Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) *
     Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / Math.max(1, r.width * r.height);
 }
-let cueIntroduced = { robot: false, writing: false }, cueHiddenForView = { robot: false, writing: false }, robotSeen = false, writingSeen = false;
-function updateNextCue() {
-  const key = (!robot.finished || (calm && !robotSeen)) ? 'robot' : 'writing';
-  const visibility = visibleArea(taskSpecs[key].focus);
-  if (visibility >= .6) { cueHiddenForView[key] = true; if (calm) { if (key === 'robot') robotSeen = true; else writingSeen = true; } }
-  else if (visibility < .5) cueHiddenForView[key] = false;
-  const show = card.classList.contains('away') && scene.finished &&
-    (key === 'robot' ? (!robot.finished || (calm && !robotSeen)) : (!writing.finished || (calm && !writingSeen))) &&
-    !cueHiddenForView[key] && !guideCamera && !document.hidden;
-  nextCue.classList.toggle('show', show);
-  nextCue.inert = !show; nextCue.tabIndex = show ? 0 : -1; nextCue.setAttribute('aria-hidden', String(!show));
-  nextCue.dataset.target = key;
-  nextLabel.textContent = key === 'robot' ? 'A better read next' : 'Follow the story';
-  nextCue.setAttribute('aria-label', key === 'robot' ? 'A better read next in Lena’s Robotics garden' : 'Follow the story in Wen’s Writing garden');
-  if (!show) return;
-  if (!cueIntroduced[key]) { cueIntroduced[key] = true; nextCue.classList.remove('accent'); void nextCue.offsetWidth; nextCue.classList.add('accent'); }
-  const target = key === 'robot' ? nearestRobotFrame() : nearestWritingFrame(); let dx = target.x - innerWidth / 2, dy = target.y - innerHeight / 2;
-  if (Math.abs(dx) + Math.abs(dy) < 1) dx = 1;
-  const halfW = nextCue.offsetWidth / 2, halfH = nextCue.offsetHeight / 2;
-  const left = halfW + 16, right = innerWidth - halfW - 16, top = halfH + 18, bottom = innerHeight - halfH - 94;
-  const cx = innerWidth / 2, cy = (top + bottom) / 2;
-  const reachX = dx ? (dx > 0 ? right - cx : cx - left) / Math.abs(dx) : Infinity;
-  const reachY = dy ? (dy > 0 ? bottom - cy : cy - top) / Math.abs(dy) : Infinity;
-  const reach = Math.min(reachX, reachY);
-  nextCue.style.left = `${clamp(cx + dx * reach, left, right)}px`;
-  nextCue.style.top = `${clamp(cy + dy * reach, top, bottom)}px`;
-  nextArrow.style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+const markerOrder = ['colour', 'robot', 'writing'];
+const markerInView = { colour: false, robot: false, writing: false };
+const markerIntroduced = { colour: false, robot: false, writing: false };
+const markerTarget = { colour: nearestColourFrame, robot: nearestRobotFrame, writing: nearestWritingFrame };
+function updateSceneMarkers() {
+  const available = [];
+  for (const key of markerOrder) {
+    const el = sceneMarkers[key], visibility = visibleArea(taskSpecs[key].focus);
+    if (visibility >= .6) markerInView[key] = true;
+    else if (visibility < .5) markerInView[key] = false;
+    const show = scene.visited && card.classList.contains('away') && !document.hidden &&
+      !markerInView[key] && guideCamera?.key !== key && !(key === 'colour' && scene.camera);
+    el.classList.toggle('show', show); el.inert = !show; el.tabIndex = show ? 0 : -1;
+    el.setAttribute('aria-hidden', String(!show));
+    if (show) available.push(key);
+  }
+  const recommended = available.find(key => !taskSpecs[key].state.finished) || available[0];
+  for (const key of markerOrder) {
+    const el = sceneMarkers[key]; el.classList.toggle('recommended', key === recommended);
+    if (available.includes(key) && !markerIntroduced[key]) { markerIntroduced[key] = true; el.classList.add('accent'); }
+  }
+  if (!available.length) return;
+  if (innerWidth <= 560) {
+    let x = 12, y = 32;
+    for (const key of available) {
+      const el = sceneMarkers[key], width = el.offsetWidth;
+      if (x + width > innerWidth - 12 && x > 12) { x = 12; y += 52; }
+      el.style.left = `${x + width / 2}px`; el.style.top = `${y}px`; x += width + 8;
+      const target = markerTarget[key]();
+      el.querySelector('.next-arrow').style.transform = `rotate(${Math.atan2(target.y - innerHeight / 2, target.x - innerWidth / 2) * 180 / Math.PI}deg)`;
+    }
+    return;
+  }
+  const groups = { top: [], bottom: [], left: [], right: [] };
+  for (const key of available) {
+    const el = sceneMarkers[key], target = markerTarget[key](), w = el.offsetWidth, h = el.offsetHeight;
+    let dx = target.x - innerWidth / 2, dy = target.y - innerHeight / 2;
+    if (Math.abs(dx) + Math.abs(dy) < 1) dx = 1;
+    const left = w / 2 + 16, right = innerWidth - w / 2 - 16;
+    const top = h / 2 + 18, bottom = innerHeight - h / 2 - 94;
+    const cx = innerWidth / 2, cy = (top + bottom) / 2;
+    const rx = dx ? (dx > 0 ? right - cx : cx - left) / Math.abs(dx) : Infinity;
+    const ry = dy ? (dy > 0 ? bottom - cy : cy - top) / Math.abs(dy) : Infinity;
+    const side = rx < ry ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top');
+    const reach = Math.min(rx, ry);
+    groups[side].push({ el, w, h, x: clamp(cx + dx * reach, left, right), y: clamp(cy + dy * reach, top, bottom) });
+    el.querySelector('.next-arrow').style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+  }
+  for (const [side, items] of Object.entries(groups)) {
+    if (!items.length) continue;
+    const horizontal = side === 'top' || side === 'bottom';
+    items.sort((a, b) => (horizontal ? a.x - b.x : a.y - b.y));
+    const min = horizontal ? 88 : 82, max = horizontal ? innerWidth - 88 : innerHeight - 128;
+    let edge = min;
+    for (const item of items) {
+      const size = horizontal ? item.w : item.h, desired = (horizontal ? item.x : item.y) - size / 2;
+      item.start = Math.max(edge, desired); edge = item.start + size + 8;
+    }
+    const overflow = Math.max(0, edge - 8 - max);
+    for (const item of items) {
+      const center = item.start - overflow + (horizontal ? item.w : item.h) / 2;
+      item.el.style.left = `${horizontal ? center : side === 'left' ? item.w / 2 + 16 : innerWidth - item.w / 2 - 16}px`;
+      item.el.style.top = `${horizontal ? side === 'top' ? item.h / 2 + 18 : innerHeight - item.h / 2 - 94 : center}px`;
+    }
+  }
 }
 function robotHome() { const r = robotLab.getBoundingClientRect(); return { x: r.right - 24, y: r.top + (innerWidth <= 560 ? 93 : 166) }; }
 function robotRowPoint(i) { const r = robotRows[i].getBoundingClientRect(); return { x: r.left - 9, y: r.top + 17 }; }
@@ -1041,7 +1088,7 @@ function sceneFrame(now) {
     actor(lena, calm ? robotHome() : null, calm && visibleArea(robotFocus) >= .5 && card.classList.contains('away'));
     actor(wen, calm ? writingParaPoint(2) : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
   updateSceneFrames(now);
-  updateNextCue();
+  updateSceneMarkers();
 }
 document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') scene.mouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
 document.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') scene.touchSeen = true; }, { passive: true });
@@ -1050,12 +1097,15 @@ renderScene(); renderRobot(); renderWriting(); sceneReady = true;
 wander.onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false;
   if (!scene.visited) beginSceneArrival(performance.now()); else scene.navAt = performance.now(); };
 pill.onclick = () => { guideCamera = null; framedScene = null; card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now());
-  nextCue.classList.remove('show'); nextCue.inert = true; nextCue.tabIndex = -1; nextCue.setAttribute('aria-hidden', 'true'); };
-nextCue.onclick = e => { e.stopPropagation(); if (!nextCue.classList.contains('show')) return;
-  drifting = false; vx = vy = 0; const now = performance.now(), key = nextCue.dataset.target, target = key === 'robot' ? nearestRobotFrame() : nearestWritingFrame();
-  framedScene = key;
-  nextCue.classList.remove('show'); taskSpecs[key].state.navAt = now; scene.navAt = now;
-  if (calm) { px = target.toX; py = target.toY; apply(); if (key === 'robot') robotSeen = true; else writingSeen = true; }
+  for (const el of Object.values(sceneMarkers)) { el.classList.remove('show'); el.inert = true; el.tabIndex = -1; el.setAttribute('aria-hidden', 'true'); } };
+for (const [key, el] of Object.entries(sceneMarkers)) el.onclick = e => {
+  e.stopPropagation(); if (!el.classList.contains('show')) return;
+  drifting = false; vx = vy = 0;
+  const now = performance.now(), target = markerTarget[key]();
+  scenePause(now); scene.camera = null; framedScene = key;
+  scene.navAt = robot.navAt = writing.navAt = now;
+  el.classList.remove('show'); el.inert = true; el.tabIndex = -1; el.setAttribute('aria-hidden', 'true');
+  if (calm) { px = target.toX; py = target.toY; apply(); }
   else { const distance = Math.hypot(target.toX - px, target.toY - py);
     guideCamera = { key, at: now, duration: clamp(840 + distance * .13, 840, 1450), fromX: px, fromY: py,
       toX: target.toX, toY: target.toY }; }
@@ -1065,7 +1115,7 @@ document.getElementById('f').addEventListener('submit', e => { e.preventDefault(
 const reserveButton = card.querySelector('form .btn');
 let reserveNudgeAt = -Infinity;
 document.addEventListener('click', e => {
-  if (e.target.closest('#next-cue')) return;
+  if (e.target.closest('.scene-marker')) return;
   if (e.target.closest('input[type="email"]')) return;
   const clickedCard = e.target.closest('.thing');
   if (clickedCard && (clickedCard.classList.contains('live') || clickedCard.querySelector('a[href]:not([aria-disabled="true"]):not([tabindex="-1"]), button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), audio[controls], video[controls], summary'))) return;
