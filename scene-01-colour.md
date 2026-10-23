@@ -25,20 +25,20 @@ Scope ends after Mo's note and Pointy's palette change. Preserve the existing op
 
 ## Active scene timeline
 
-Times reflect the current implementation, not reusable durations for every future scene.
+Real active-playback time is about 7.75 seconds. The pose clock in `index.html` keeps older authored cue positions, with a piecewise timeline that compresses typing and empty holds while preserving the palette handoff and sweep. Entry attention and the 0.8-second join happen before this clock.
 
 | Seconds | Action |
 | --- | --- |
-| 0.0–0.6 | Recognise Colour and Mo. Palette begins in muted cool colours. Mo approaches the blank note, titled “For the café”; reserve space for the final text. |
-| 0.6–3.8 | Mo types “Warm paper, dark ink, a little terracotta.” Pointy accompanies Mo. Use readable typing with punctuation pauses and a small caret. |
-| 3.8–4.35 | Hold the complete request; remove the caret. |
-| 4.35–5.6 | Pointy leaves Mo and travels to the first swatch using the shared handoff. |
-| 5.6–5.85 | Turn downward once and lower the seed's tip into the palette. |
-| 5.85–7.85 | One continuous eased slide across all five swatch centres. Each colour starts changing as Pointy crosses its centre. No individual dips, stops or repeated turns. |
-| 7.85–8.1 | Lift from the last swatch and turn upright once. |
-| 8.1–9.3 | Hold the result. Mo moves near the palette to inspect it. |
-| 9.3–10.25 | Shared handoff returns Pointy to the visitor, smoothly tracking the visitor's current position. |
-| after 10.25 | Final note and palette persist. Pointy accompanies the visitor. No automatic replay. |
+| 0–0.45 | Recognise Colour and Mo. Palette begins in muted cool colours. Mo approaches the café brief. |
+| 0.45–1.6 | Mo types “Warm paper, dark ink, a little terracotta.” Pointy accompanies Mo. |
+| 1.6–2.35 | Mo explicitly asks “Make a palette for this café” in a compact bubble beside the note. Hold the complete brief. |
+| 2.35–3.4 | Pointy leaves Mo and travels to the first swatch using the shared handoff. |
+| 3.4–3.65 | Turn downward once and lower the seed's tip into the palette. |
+| 3.65–5.15 | One continuous eased slide across all five swatch centres. Each colour starts changing as Pointy crosses its centre. |
+| 5.15–5.4 | Lift from the last swatch and turn upright once. |
+| 5.4–6.75 | Hold the result. Mo moves near the palette to inspect it. |
+| 6.75–7.75 | Shared handoff returns Pointy to the visitor on desktop; on phone it fades locally. |
+| after 7.75 | Final note and palette persist. No automatic replay. |
 
 On phones, the current mobile rule in `MOTION.md` supersedes the visitor-return part of this desktop timeline: Pointy materialises beside Mo on entry and fades within the scene after the result, rather than travelling to an invisible visitor cursor.
 

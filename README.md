@@ -15,4 +15,6 @@ Local preview: `python3 -m http.server 8787`, then open http://localhost:8787.
 
 Scene development: read `MOTION.md` for shared animation rules and the minimum review standard. Scripts: `scene-01-colour.md` (Mo's palette), `scene-02-read-next.md` (Lena's curated reading list), and `scene-03-writing.md` (Wen's responsive Fred Rogers Stream). `AGENTS.md` directs future builders to these instructions.
 
+To change the guided scene sequence, edit the `sceneConfig` array near the start of `index.html`'s inline script. Reorder its entries to change the first Wander destination, phone Next order, and recommended offscreen marker. Set an entry's `enabled` to `false` to remove that scene from the canvas, playback, and navigation; setting all three to `false` leaves the ambient garden explorable without scene controls. This changes the guided sequence, not the physical positions of other garden cards. Edit the title, benefit, support copy, and label there; keep each `id` and `garden` key stable because they identify existing scene markup and behavior.
+
 Upcoming concepts: `coming-soon-scenes.md` records two options each for automations, HTML tools/pages, and custom AI sidebar actions, grounded in Primer v2 GitHub issues. These are discussion options, not built features.

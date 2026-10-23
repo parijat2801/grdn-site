@@ -30,7 +30,20 @@ After Wander, all three scenes have directional edge markers available together.
 
 Keep Lena's cursor unlabelled and coral, with Pointy adopting that colour, as in Colour. Accompany Lena before acting. Use the shared pause, departure, re-entry and completion rules. It must be possible to discover Robotics before completing Colour. Target bounds must follow canvas pan/wrap.
 
-## Beats (approximately 13–16 seconds; tune for readability)
+## Beats (about 9 seconds of active playback)
+
+The implementation keeps authored pose-clock landmarks and maps them to the shorter real active time below. The shared entry/join precedes this timeline; departure and return handoffs remain close to a second each.
+
+| Real active time | Beat |
+| --- | --- |
+| 0–1.35 s | Populated lab and five stream topics resolve; Lena asks why her robot drifts. |
+| 1.35–2.3 s | Pointy leaves Lena for the stream. |
+| 2.3–3.6 s | One continuous scan reads the mixed list. |
+| 3.6–4.3 s | Irrelevant rows withdraw and the three useful rows close gaps. |
+| 4.3–5.25 s | “Read next” settles; Pointy rejoins Lena. |
+| 5.25–7.05 s | Lena selects and carries a legible sourced reference into her lab. |
+| 7.05–8.05 s | Kept card settles; Roma's restrained heart/reaction appears and fades. |
+| 8.05–9 s | Pointy returns on desktop or fades within the phone scene; result persists. |
 
 1. Recognition: show Lena's populated garden and the stream. Pointy joins her cursor and dwells beside it. Lena thinks “Why does my robot drift?” in a chat/thought bubble; hold it long enough to read before Pointy acts.
 2. The five-row list resolves into view as one group with a restrained stagger. Lena remains beside her garden with Pointy accompanying her before its departure. Hold long enough to see the mixture.

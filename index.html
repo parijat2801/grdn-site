@@ -62,6 +62,12 @@
   .pizza svg path { cursor: pointer; transition: fill .15s; }
   .scene-colour .scene-focus, .scene-robotics .robot-focus, .scene-writing .writing-focus { position: relative; --frame-opacity: 0; --frame-colour: var(--teal); }
   .scene-colour .scene-focus::after, .scene-robotics .robot-focus::after, .scene-writing .writing-focus::after { content: ''; position: absolute; inset: -9px; border: 2px solid var(--frame-colour); border-radius: 24px; opacity: var(--frame-opacity); pointer-events: none; }
+  .scene-description { margin: -3px 4px 15px; max-width: 510px; }
+  .scene-description strong { display: block; font: 500 24px/1.08 'Newsreader', Georgia, serif; letter-spacing: -.015em; }
+  .scene-description span { display: block; margin-top: 3px; color: rgba(16,36,58,.74); font-size: 13px; line-height: 1.3; }
+  body.scene-spotlight .garden:not(.scene-active) { filter: blur(2px); opacity: .36; transition: filter .3s ease, opacity .3s ease; }
+  body.scene-spotlight .garden.scene-active .scene-refs { filter: blur(2px); opacity: .36; transition: filter .3s ease, opacity .3s ease; }
+  body.scene-spotlight .garden.scene-active { z-index: 1; }
   .scene-colour .scene-stage { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .scene-colour .scene-note, .scene-colour .scene-palette { min-height: 156px; }
   .scene-colour .scene-note .t { margin-bottom: 22px; }
@@ -70,6 +76,11 @@
   .scene-colour .scene-caret[hidden] { display: none; }
   .scene-colour .scene-swatches { display: flex; height: 74px; margin-top: 14px; overflow: hidden; border-radius: 10px; }
   .scene-colour .scene-swatches span { flex: 1; }
+  .colour-request { position: fixed; z-index: 19; width: 178px; padding: 9px 11px; border-radius: 12px;
+    border: 1px solid rgba(196,85,47,.2); background: #fffaf3; box-shadow: 0 7px 20px rgba(16,36,58,.1);
+    font: 500 15px/1.18 'Newsreader', Georgia, serif; pointer-events: none; opacity: 0; }
+  .colour-request::after { content: ''; position: absolute; left: -5px; bottom: 12px; width: 9px; height: 9px;
+    background: #fffaf3; border-left: 1px solid rgba(196,85,47,.2); border-bottom: 1px solid rgba(196,85,47,.2); transform: rotate(45deg); }
   .scene-colour .scene-refs { margin-top: 14px; }
   .scene-colour .scene-refs a { pointer-events: none; }
   .scene-colour .thing:hover { transform: none; }
@@ -127,6 +138,9 @@
   .scene-writing .writing-result em { display: block; margin-top: 4px; color: #0a7065; font-size: 11px; font-style: normal; font-weight: 700; }
   .scene-writing .thing:hover { transform: none; }
   @media (max-width: 560px) {
+    .scene-description { margin: -5px 4px 10px; }
+    .scene-description strong { font-size: 21px; }
+    .scene-description span { font-size: 12.5px; }
     .scene-colour { width: 400px; }
     .scene-colour .scene-stage { grid-template-columns: 1fr; gap: 10px; }
     .scene-colour .scene-note, .scene-colour .scene-palette { min-height: 112px; }
@@ -134,8 +148,8 @@
     .scene-colour .scene-swatches { height: 42px; margin-top: 8px; }
     .scene-robotics { width: 400px; }
     .scene-robotics .robot-stage { grid-template-columns: 1fr; gap: 10px; }
-    .scene-robotics .robot-lab { height: 220px; }
-    .scene-robotics .robot-shelf { height: 166px; margin-top: 14px; }
+    .scene-robotics .robot-lab { height: 200px; }
+    .scene-robotics .robot-shelf { height: 146px; margin-top: 14px; }
     .scene-robotics .lab-tile { padding: 7px 10px; }
     .scene-robotics .lab-tile strong { margin-top: 3px; font-size: 14px; }
     .scene-robotics .lab-tile.sketch img { width: 54px; height: 54px; margin-top: -2px; }
@@ -144,15 +158,24 @@
     .scene-robotics .robot-kept-card strong { margin-top: 3px; font-size: 14px; }
     .robot-thought { width: 178px; font-size: 17px; }
     .scene-robotics .robot-kept-card small { margin-top: 2px; }
-    .scene-robotics .robot-stream { height: 406px; }
+    .scene-robotics .robot-stream { height: 336px; }
+    .scene-robotics .robot-list { height: 260px; }
+    .scene-robotics .robot-row { height: 52px; padding-top: 5px; padding-bottom: 4px; }
+    .scene-robotics .robot-row strong { font-size: 14px; }
+    .scene-robotics .robot-row small { font-size: 10.5px; }
     .scene-writing { width: 400px; }
     .scene-writing .writing-stage { height: auto; grid-template-columns: 1fr; }
-    .scene-writing .writing-doc { height: 285px; border-right: 0; border-bottom: 1px solid var(--line); }
-    .scene-writing .writing-panel { height: 320px; }
-    .scene-writing .writing-page { padding: 15px 18px; }
-    .scene-writing .writing-page h3 { margin-bottom: 10px; }
-    .scene-writing .writing-para { height: 57px; font-size: 17px; }
-    .scene-writing .writing-result { min-height: 68px; }
+    .scene-writing .writing-doc { height: 230px; border-right: 0; border-bottom: 1px solid var(--line); }
+    .scene-writing .writing-panel { height: 300px; padding: 10px 12px; }
+    .scene-writing .writing-page { padding: 11px 18px; }
+    .scene-writing .writing-page h3 { margin-bottom: 8px; font-size: 22px; }
+    .scene-writing .writing-para { height: 42px; font-size: 16px; }
+    .scene-writing .writing-panel-head { padding-bottom: 5px; }
+    .scene-writing .writing-stream-note { padding-top: 5px; }
+    .scene-writing .writing-result { min-height: 0; margin-top: 5px; padding: 4px 8px; }
+    .scene-writing .writing-result strong { font-size: 16px; margin-top: 1px; }
+    .scene-writing .writing-result small { font-size: 11px; margin-top: 2px; }
+    .scene-writing .writing-result em { font-size: 10px; margin-top: 2px; }
   }
   .keys { display: flex; gap: 4px; margin-top: 10px; }
   .keys button { flex: 1; height: 64px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 12px 'Bricolage Grotesque'; color: var(--muted); }
@@ -218,8 +241,9 @@
   .scene-marker.accent .next-icon { animation: nextAccent .75s ease-out 1; }
   @keyframes nextAccent { 45% { box-shadow: 0 0 0 5px rgba(15,143,128,.12); } }
   @media (max-width: 560px) {
-    #pill { bottom: max(10px, env(safe-area-inset-bottom)); min-height: 44px; padding: 11px 20px; }
-    #phone-next { position: fixed; left: 50%; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 46px);
+    #pill { bottom: calc(20px + env(safe-area-inset-bottom)); min-height: 44px; padding: 10px 20px;
+      background: #FAF8F2; color: var(--ink); border: 1px solid rgba(16,36,58,.22); box-shadow: 0 3px 12px rgba(16,36,58,.1); }
+    #phone-next { position: fixed; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom));
       z-index: 19; display: block; min-height: 44px; max-width: calc(100vw - 32px); padding: 10px 17px;
       border: 1px solid #0a7065; border-radius: 999px; background: #0a7065; color: #fff;
       box-shadow: 0 5px 18px rgba(16,36,58,.15); font: 700 14px 'Bricolage Grotesque', sans-serif;
@@ -227,7 +251,7 @@
       transform: translate(-50%,12px); pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
     #phone-next.show { opacity: 1; transform: translate(-50%,0); pointer-events: auto; }
     #phone-next:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-    body.phone-scene-busy #phone-next.show, body.phone-scene-busy #pill.show { opacity: .62; }
+    body.phone-scene-busy #phone-next.show, body.phone-scene-busy #pill.show { opacity: .7; }
     .scene-marker { min-width: 44px; width: 44px; height: 44px; padding: 6px; justify-content: center;
       border: 0; background: transparent; box-shadow: none; }
     .scene-marker > span:last-child { display: none; }
@@ -264,12 +288,25 @@
 <div class="actor mo" id="mo" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
 <div class="actor mo" id="lena" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
 <div class="actor mo" id="wen" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+<div class="colour-request" id="colour-request" aria-hidden="true">Make a palette for this café.</div>
 <div class="robot-carry" id="robot-carry" aria-hidden="true"><span class="k">Reference</span><strong>Wheel odometry</strong><small>From Karthik’s garden</small></div>
 <div class="robot-thought" id="robot-thought" aria-hidden="true">Why does my robot drift?</div>
 <div class="robot-love" id="robot-love" aria-hidden="true"><span class="heart">♥</span><span>Roma loved it</span></div>
 
 <script>
 // ---------- content ----------
+// Reorder these entries to change Wander/Next priority. Set enabled: false to remove a scene.
+const sceneConfig = [
+  { id: 'colour', enabled: true, garden: 'Colour', title: 'Colour', label: 'Shape an idea', benefit: 'Turn a loose idea into something you can use.',
+    support: 'Grdn works with the notes and references you collect.' },
+  { id: 'robot', enabled: true, garden: 'Robotics, new this week', title: 'Robotics, new this week', label: 'Find what matters', benefit: 'Less noise. More of what helps.',
+    support: 'Grdn filters your stream around what you’re working on.' },
+  { id: 'writing', enabled: true, garden: 'A story taking shape', title: 'A story taking shape', label: 'Connect the dots', benefit: 'Your next reference finds you.',
+    support: 'As your notes develop, Grdn brings relevant material into view.' }
+];
+const enabledScenes = sceneConfig.filter(s => s.enabled);
+const sceneByGarden = Object.fromEntries(sceneConfig.map(s => [s.garden, s]));
+const sceneDescription = s => `<div class="scene-description"><strong>${esc(s.benefit)}</strong><span>${esc(s.support)}</span></div>`;
 const G = [
   { name: 'Fractions, by hand', by: 'Ms. Rao’s class 4B', things: [
     { live: 'pizza' },
@@ -463,20 +500,23 @@ function liveHTML(kind) {
 const COLS = 6, COLW = 640, GAP = 70;
 const heights = Array(COLS).fill(60);
 const order = [2, 3, 1, 4, 0, 5]; // fill the middle first
+const sceneElements = {};
 G.forEach((g, i) => {
   const d = document.createElement('div'); d.className = 'garden';
+  const sceneMeta = sceneByGarden[g.name];
   if (g.name === 'Colour') {
     d.classList.add('scene-colour');
-    d.innerHTML = `<div class="scene-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="scene-stage"><div class="thing scene-note" aria-label="For the café. Warm paper, dark ink, a little terracotta."><div class="k">Note</div><div class="t">For the café</div><p class="scene-copy" aria-hidden="true"><span data-scene-copy></span><i class="scene-caret" data-scene-caret hidden></i></p></div><div class="thing scene-palette" aria-label="Palette: paper, sand, terracotta, sage, ink"><div class="k">Palette</div><div class="scene-swatches" data-scene-palette>${'<span></span>'.repeat(5)}</div></div></div></div><div class="cols scene-refs"><div class="col"></div><div class="col"></div></div>`;
+    d.innerHTML = `<div class="scene-focus"><header><h2>${esc(sceneMeta?.title || g.name)}</h2><span class="by">${esc(g.by)}</span></header>${sceneDescription(sceneMeta)}<div class="scene-stage"><div class="thing scene-note" aria-label="For the café. Warm paper, dark ink, a little terracotta. Mo asks for a palette."><div class="k">Note</div><div class="t">For the café</div><p class="scene-copy" aria-hidden="true"><span data-scene-copy></span><i class="scene-caret" data-scene-caret hidden></i></p></div><div class="thing scene-palette" aria-label="Palette: paper, sand, terracotta, sage, ink"><div class="k">Palette</div><div class="scene-swatches" data-scene-palette>${'<span></span>'.repeat(5)}</div></div></div></div><div class="cols scene-refs"><div class="col"></div><div class="col"></div></div>`;
   } else if (g.name === 'Robotics, new this week') {
     d.classList.add('scene-robotics');
     const topics = ['Wheel odometry: where drift begins', 'Teaching a robot to fold laundry', 'Calibrating wheel radius and axle width', 'A gripper for delicate fruit', 'Correcting drift with visual landmarks'];
     const sources = ['From Karthik’s garden', 'From the web', 'From the web', 'From the web', 'From Ines’s garden'];
-    d.innerHTML = `<div class="robot-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="robot-stage"><div class="thing robot-lab" role="group" aria-label="Lena’s lab. Lena wonders: Why does my robot drift?"><div class="k">Lena’s lab</div><div class="robot-shelf"><div class="lab-tile"><div class="k">Note</div><strong>Check wheel radius again</strong></div><div class="lab-tile sketch"><div class="k">Sketch</div><img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Autonomous_mobile_robot.svg" alt="Top view of a small two-wheeled mobile robot" title="Autonomous mobile robot by Arne Nordmann (norro), public domain, via Wikimedia Commons"></div><div class="lab-tile"><div class="k">Reference</div><strong>Sensor placement notes</strong></div><div class="lab-tile slot"><div class="robot-kept-card" data-robot-kept><div class="k">Reference</div><strong aria-label="${esc(topics[0])}">Wheel odometry</strong><small>Kept from Karthik’s garden</small><small class="kept robot-kept-status">Kept in Lena’s lab</small></div></div></div></div><div class="thing robot-stream"><div class="robot-context">Reading stream</div><div class="robot-heading" data-robot-heading></div><div class="robot-list">${topics.map((title, i) => `<div class="robot-row" data-robot-row="${i}"><strong>${esc(title)}</strong><div class="robot-row-meta"><small>${esc(sources[i])}</small><small data-robot-reason></small></div></div>`).join('')}</div></div></div></div>`;
+    d.innerHTML = `<div class="robot-focus"><header><h2>${esc(sceneMeta?.title || g.name)}</h2><span class="by">${esc(g.by)}</span></header>${sceneDescription(sceneMeta)}<div class="robot-stage"><div class="thing robot-lab" role="group" aria-label="Lena’s lab. Lena wonders: Why does my robot drift?"><div class="k">Lena’s lab</div><div class="robot-shelf"><div class="lab-tile"><div class="k">Note</div><strong>Check wheel radius again</strong></div><div class="lab-tile sketch"><div class="k">Sketch</div><img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Autonomous_mobile_robot.svg" alt="Top view of a small two-wheeled mobile robot" title="Autonomous mobile robot by Arne Nordmann (norro), public domain, via Wikimedia Commons"></div><div class="lab-tile"><div class="k">Reference</div><strong>Sensor placement notes</strong></div><div class="lab-tile slot"><div class="robot-kept-card" data-robot-kept><div class="k">Reference</div><strong aria-label="${esc(topics[0])}">Wheel odometry</strong><small>Kept from Karthik’s garden</small><small class="kept robot-kept-status">Kept in Lena’s lab</small></div></div></div></div><div class="thing robot-stream"><div class="robot-context">Reading stream</div><div class="robot-heading" data-robot-heading></div><div class="robot-list">${topics.map((title, i) => `<div class="robot-row" data-robot-row="${i}"><strong>${esc(title)}</strong><div class="robot-row-meta"><small>${esc(sources[i])}</small><small data-robot-reason></small></div></div>`).join('')}</div></div></div></div>`;
   } else if (g.name === 'A story taking shape') {
     d.classList.add('scene-writing');
-    d.innerHTML = `<div class="writing-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="thing writing-stage" role="group" aria-label="Wen writes a Fred Rogers profile in Grdn while the reading stream becomes more relevant"><div class="writing-doc"><div class="writing-chrome"><strong>Grdn</strong><span>Wen’s Writing garden · Note</span></div><div class="writing-page"><h3>Fred Rogers, for children</h3><p class="writing-para"><span data-writing-para="0"></span><i class="writing-caret" data-writing-caret="0"></i></p><p class="writing-para"><span data-writing-para="1"></span><i class="writing-caret" data-writing-caret="1"></i></p><p class="writing-para"><span data-writing-para="2"></span><i class="writing-caret" data-writing-caret="2"></i></p></div></div><div class="writing-panel"><div class="writing-panel-head"><strong>Stream</strong><small>for this note</small></div><div class="writing-stream-note">Reading that follows the story</div><div class="writing-result" data-writing-result="0"><div class="k">Background</div><strong>About Fred</strong><small>fredrogersinstitute.org</small><em>Life and work</em></div><div class="writing-result" data-writing-result="1"><div class="k">Music</div><strong>The Music</strong><small>misterrogers.org</small><em>Songs helped children name feelings</em></div><div class="writing-result" data-writing-result="2"><div class="k">Public television</div><strong>About Fred Rogers</strong><small>misterrogers.org</small><em>1969 Senate testimony</em></div></div></div></div>`;
-  } else d.innerHTML = `<header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="cols"><div class="col"></div><div class="col"></div></div>`;
+    d.innerHTML = `<div class="writing-focus"><header><h2>${esc(sceneMeta?.title || g.name)}</h2><span class="by">${esc(g.by)}</span></header>${sceneDescription(sceneMeta)}<div class="thing writing-stage" role="group" aria-label="Wen writes a Fred Rogers profile in Grdn while the reading stream becomes more relevant"><div class="writing-doc"><div class="writing-chrome"><strong>Grdn</strong><span>Wen’s Writing garden · Note</span></div><div class="writing-page"><h3>Fred Rogers, for children</h3><p class="writing-para"><span data-writing-para="0"></span><i class="writing-caret" data-writing-caret="0"></i></p><p class="writing-para"><span data-writing-para="1"></span><i class="writing-caret" data-writing-caret="1"></i></p><p class="writing-para"><span data-writing-para="2"></span><i class="writing-caret" data-writing-caret="2"></i></p></div></div><div class="writing-panel"><div class="writing-panel-head"><strong>Stream</strong><small>for this note</small></div><div class="writing-stream-note">Reading that follows the story</div><div class="writing-result" data-writing-result="0"><div class="k">Background</div><strong>About Fred</strong><small>fredrogersinstitute.org</small><em>Life and work</em></div><div class="writing-result" data-writing-result="1"><div class="k">Music</div><strong>The Music</strong><small>misterrogers.org</small><em>Songs helped children name feelings</em></div><div class="writing-result" data-writing-result="2"><div class="k">Public television</div><strong>About Fred Rogers</strong><small>misterrogers.org</small><em>1969 Senate testimony</em></div></div></div></div>`;
+  } else d.innerHTML = `<header><h2>${esc(sceneMeta?.title || g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="cols"><div class="col"></div><div class="col"></div></div>`;
+  if (sceneMeta) { sceneElements[sceneMeta.id] = d; if (!sceneMeta.enabled) return; }
   world.appendChild(d);
   const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
   if (!d.classList.contains('scene-robotics')) g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
@@ -499,11 +539,11 @@ function reflowTileHeights() {
   nextY.forEach((height, c) => { colP[c] = height - 60; });
   maxGH = Math.max(...tiles.map(t => t.h));
 }
-const colourTile = tiles.find(t => t.el.classList.contains('scene-colour'));
+const colourTile = tiles.find(t => t.el.classList.contains('scene-colour')) || { el: sceneElements.colour };
 const colourFocus = colourTile.el.querySelector('.scene-focus');
-const robotTile = tiles.find(t => t.el.classList.contains('scene-robotics'));
+const robotTile = tiles.find(t => t.el.classList.contains('scene-robotics')) || { el: sceneElements.robot };
 const robotFocus = robotTile.el.querySelector('.robot-focus');
-const writingTile = tiles.find(t => t.el.classList.contains('scene-writing'));
+const writingTile = tiles.find(t => t.el.classList.contains('scene-writing')) || { el: sceneElements.writing };
 const writingFocus = writingTile.el.querySelector('.writing-focus');
 function sceneFrameTarget(tile, focus) {
   const worldX = (innerWidth / 2 - px) / z, worldY = (innerHeight / 2 - py) / z;
@@ -512,7 +552,7 @@ function sceneFrameTarget(tile, focus) {
   const x = baseX + Math.round((worldX - baseX) / PW) * PW;
   const periodY = colP[tile.c], y = baseY + Math.round((worldY - baseY) / periodY) * periodY;
   const phoneInset = innerWidth <= 560 ? Math.max(0, parseFloat(getComputedStyle(document.getElementById('pill')).bottom) - 10) : 0;
-  const top = innerWidth <= 560 ? 64 : 32, bottom = innerWidth <= 560 ? 154 + 2 * phoneInset : 76;
+  const top = innerWidth <= 560 ? 64 : 32, bottom = innerWidth <= 560 ? 174 + 2 * phoneInset : 76;
   return { x: px + x * z, y: py + y * z, toX: innerWidth / 2 - x * z,
     toY: (innerHeight + top - bottom) / 2 - y * z };
 }
@@ -544,16 +584,20 @@ const faces = '⚀⚁⚂⚃⚄⚅'; document.querySelectorAll('[data-dice]').for
 // ---------- pan everywhere at one device-width scale, gentle drift until touched ----------
 const view = document.getElementById('view');
 const ZMAX = 1.5; let ZMIN = .35;
+const sceneOuterWidth = () => (innerWidth <= 560 ? 400 : 580) + 18;
 const setZmin = () => { const wrapFloor = Math.max(.35, innerHeight / (Math.min(...colP) - maxGH - 80), innerWidth / (PW - COLW - 80));
-  ZMIN = Math.min(wrapFloor, (innerWidth - 48) / (colourFocus.offsetWidth + 18)); };
+  ZMIN = Math.min(wrapFloor, (innerWidth - 48) / sceneOuterWidth()); };
 setZmin();
 const deviceSceneZoom = () => Math.max(ZMIN, Math.min(innerWidth < 700 ? 1.08 : .82,
-  (innerWidth - 48) / (colourFocus.offsetWidth + 18)));
+  (innerWidth - 48) / sceneOuterWidth()));
 let z = deviceSceneZoom();
 let px = innerWidth / 2 - WW * z / 2, py = innerHeight / 2 - WH * z / 2, drifting = true, t0 = performance.now();
-// Place Colour behind the opening card so Wander reveals a nearby garden.
-px = innerWidth / 2 - (colourTile.x0 + colourFocus.offsetWidth / 2) * z;
-py = innerHeight / 2 - (colourTile.y0 + colourFocus.offsetHeight / 2) * z;
+// Place the first enabled scene behind the opening card.
+const firstSceneTile = enabledScenes.length ? tiles.find(t => t.el === sceneElements[enabledScenes[0].id]) : null;
+if (firstSceneTile) {
+  px = innerWidth / 2 - (firstSceneTile.x0 + firstSceneTile.el.offsetWidth / 2) * z;
+  py = innerHeight / 2 - (firstSceneTile.y0 + firstSceneTile.el.offsetHeight / 2) * z;
+}
 const wrap = () => { // place each garden in the copy of the loop nearest the view; no clones
   const L = -px / z, T = -py / z;
   for (const t of tiles) {
@@ -564,7 +608,7 @@ const wrap = () => { // place each garden in the copy of the loop nearest the vi
 const apply = () => { z = Math.min(ZMAX, Math.max(ZMIN, z)); world.style.transform = `translate(${px}px,${py}px) scale(${z})`; wrap(); };
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (calm) drifting = false;
-let vx = 0, vy = 0, guideCamera = null, drag = null, framedScene = null, phoneFreeWander = false;
+let vx = 0, vy = 0, guideCamera = null, drag = null, framedScene = null, phoneFreeWander = false, phoneFreeWanderKey = null;
 let sceneReady = false;
 (function drift(now) {
   if (guideCamera) { const c = guideCamera, p = ease((now - c.at) / c.duration);
@@ -646,6 +690,10 @@ const scrim = document.getElementById('scrim');
 const wander = document.getElementById('wander');
 const phoneNext = document.getElementById('phone-next');
 const sceneMarkers = Object.fromEntries([...document.querySelectorAll('[data-scene-marker]')].map(el => [el.dataset.sceneMarker, el]));
+for (const entry of sceneConfig) {
+  sceneMarkers[entry.id].setAttribute('aria-label', entry.label);
+  sceneMarkers[entry.id].lastElementChild.textContent = entry.label;
+}
 const pointy = document.getElementById('pointy'), mo = document.getElementById('mo'), lena = document.getElementById('lena'), wen = document.getElementById('wen');
 const robotCarry = document.getElementById('robot-carry');
 const robotThought = document.getElementById('robot-thought');
@@ -661,6 +709,7 @@ const writingParas = [...writingTile.el.querySelectorAll('[data-writing-para]')]
 const writingCarets = [...writingTile.el.querySelectorAll('[data-writing-caret]')];
 const writingResults = [...writingTile.el.querySelectorAll('[data-writing-result]')];
 const sceneNote = colourTile.el.querySelector('.scene-note'), scenePalette = colourTile.el.querySelector('.scene-palette');
+const colourRequest = document.getElementById('colour-request');
 const sceneCopy = colourTile.el.querySelector('[data-scene-copy]'), sceneCaret = colourTile.el.querySelector('[data-scene-caret]');
 const swatches = [...colourTile.el.querySelectorAll('[data-scene-palette] span')];
 const request = 'Warm paper, dark ink, a little terracotta.';
@@ -676,7 +725,7 @@ const robot = { mode: 'waiting', clock: 0, navAt: 0, finished: false, from: null
   returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, finishAt: 0 };
 const writing = { mode: 'waiting', clock: 0, navAt: 0, finished: false, from: null, fromPose: {}, moveAt: 0, playAt: 0,
   returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, finishAt: 0 };
-let owner = null, attention = null;
+let owner = null, attention = null, spotlightSuppressed = false;
 const typeWeights = [...request].map(c => c === ',' || c === '.' ? 2.3 : c === ' ' ? .65 : 1);
 const typeTotal = typeWeights.reduce((a, b) => a + b, 0);
 function actor(el, p, visible = true, pose = {}) {
@@ -712,6 +761,19 @@ function visitorFollowPose(target, dt) { const from = scene.point || target, dis
   return { colour: 0, angle: angleTo(scene.pointPose.angle || 0, desired, 1 - Math.exp(-dt / .12)) }; }
 const SWATCH_START = 5.6, SWEEP_START = 5.85, SWEEP_END = 7.85, SWATCH_END = 8.1, RETURN_START = 9.3, SCENE_END = 10.25;
 const ROBOT_END = 17.5, ROBOT_RETURN = 16.45, WRITING_RETURN = 18.4, WRITING_END = 19.45;
+// [elapsed seconds, authored pose clock]. Holds are compressed; handoffs keep their own readable time.
+const sceneTimelines = {
+  colour: [[0,0],[.45,.6],[1.6,3.8],[2.35,4.35],[3.4,5.6],[3.65,5.85],[5.15,7.85],[5.4,8.1],[6.75,9.3],[7.75,SCENE_END]],
+  robot: [[0,0],[.4,1],[1.35,3.25],[2.3,4.35],[3.6,6.6],[3.83,7.05],[4.3,8.4],[5.25,9.55],[5.45,10.85],[6.05,11.7],[6.25,12.05],[7.05,13.35],[7.2,14.35],[8,15.75],[8.05,16.45],[9,ROBOT_END]],
+  writing: [[0,0],[.25,1],[1.15,3.5],[1.35,4.8],[2.2,7.8],[2.4,8.7],[3.25,9.8],[3.45,10.1],[4.3,11.2],[4.45,11.7],[5.3,14.5],[5.6,15.35],[6.45,16.4],[6.65,16.7],[7.5,17.8],[7.7,18.4],[8.7,WRITING_END]]
+};
+function timelineClock(key, elapsed) {
+  const marks = sceneTimelines[key];
+  for (let i = 1; i < marks.length; i++) if (elapsed <= marks[i][0]) {
+    const [a, b] = marks[i - 1], [c, d] = marks[i]; return b + (d - b) * (elapsed - a) / (c - a);
+  }
+  return marks.at(-1)[1];
+}
 function inverseEase(v) { let a = 0, b = 1; for (let i = 0; i < 16; i++) { const m = (a + b) / 2; if (ease(m) < v) a = m; else b = m; } return (a + b) / 2; }
 const swatchCrossings = swatches.map((_, i) => SWEEP_START + (SWEEP_END - SWEEP_START) * inverseEase(i / 4));
 function pointyAt(t) {
@@ -742,6 +804,12 @@ function renderScene() {
   sceneCopy.textContent = request.slice(0, count);
   sceneCaret.hidden = false;
   sceneCaret.style.visibility = scene.clock >= .6 && scene.clock < 3.8 ? 'visible' : 'hidden';
+  const showing = calm ? scene.finished :
+    scene.clock >= 3.7 && scene.clock <= 5.6 && scene.mode === 'playing';
+  colourRequest.style.opacity = String(showing && visibleArea(colourFocus) >= .5 && card.classList.contains('away') ?
+    (calm ? 1 : ease((scene.clock - 3.7) / .25) * (1 - ease((scene.clock - 5.1) / .5))) : 0);
+  const noteBounds = sceneNote.getBoundingClientRect();
+  colourRequest.style.transform = `translate(${clamp(noteBounds.right - 186, 12, innerWidth - 190).toFixed(2)}px,${(noteBounds.top + 9).toFixed(2)}px)`;
   swatches.forEach((s, i) => {
     s.style.background = mix(initialColours[i], finalColours[i], ease((scene.clock - swatchCrossings[i]) / .14));
   });
@@ -766,6 +834,8 @@ function scenePause(now) {
 function sceneNavigation(now) {
   if (!sceneReady || !scene.visited) return;
   leaveAttention(now);
+  spotlightSuppressed = true; document.body.classList.remove('scene-spotlight');
+  for (const tile of tiles) tile.el.classList.remove('scene-active');
   document.body.classList.remove('phone-scene-busy');
   framedScene = null;
   scene.navAt = now; robot.navAt = now; writing.navAt = now;
@@ -773,19 +843,22 @@ function sceneNavigation(now) {
   if (scene.camera) { scene.camera = null; scene.mode = 'arrival'; }
 }
 function beginSceneArrival(now) {
-  scene.visited = true; scene.mode = calm ? 'finished' : 'arrival'; scene.navAt = now;
-  framedScene = 'colour';
+  const first = markerOrder[0];
+  scene.visited = true; scene.mode = first === 'colour' && !calm ? 'arrival' : 'waiting'; scene.navAt = now;
+  framedScene = first || null;
+  if (!first) return;
+  if (isPhone()) phoneVisitCentered[first] = true;
   if (calm) {
-    scene.clock = SCENE_END; scene.finished = true; renderScene();
-    robot.clock = ROBOT_END; robot.mode = 'finished'; robot.finished = true; renderRobot();
-    writing.clock = WRITING_END; writing.mode = 'finished'; writing.finished = true; renderWriting();
-    const target = sceneFrameTarget(colourTile, colourFocus);
+    for (const spec of Object.values(taskSpecs)) { spec.state.clock = spec.end; spec.state.mode = 'finished'; spec.state.finished = true; spec.render(); }
+    const target = markerTarget[first]();
     px = target.toX; py = target.toY; apply(); return;
   }
-  const target = sceneFrameTarget(colourTile, colourFocus);
-  scene.camera = { at: now, fromX: px, fromY: py, toX: target.toX, toY: target.toY };
-  scene.from = scene.point || visitorPoint(); scene.fromPose = scene.pointPose;
-  owner = 'colour';
+  const target = markerTarget[first]();
+  if (first === 'colour') {
+    scene.camera = { at: now, fromX: px, fromY: py, toX: target.toX, toY: target.toY };
+    scene.from = scene.point || visitorPoint(); scene.fromPose = scene.pointPose;
+    owner = 'colour';
+  } else guideCamera = { key: first, at: now, duration: 900, fromX: px, fromY: py, toX: target.toX, toY: target.toY };
 }
 function blendPose(a, b, p) { return { colour: (a.colour || 0) + ((b.colour || 0) - (a.colour || 0)) * p,
   angle: angleTo(a.angle || 0, b.angle || 0, p), sx: (a.sx ?? 1) + ((b.sx ?? 1) - (a.sx ?? 1)) * p,
@@ -823,23 +896,24 @@ function visibleArea(el) {
   return Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) *
     Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / Math.max(1, r.width * r.height);
 }
-const markerOrder = ['colour', 'robot', 'writing'];
+const markerOrder = enabledScenes.map(s => s.id);
 const markerIntroduced = { colour: false, robot: false, writing: false };
 const markerInView = { colour: false, robot: false, writing: false };
 const markerBelowAt = { colour: 0, robot: 0, writing: 0 };
 const phoneVisitCentered = { colour: false, robot: false, writing: false };
 const phoneVisitOutsideAt = { colour: 0, robot: 0, writing: 0 };
 const markerTarget = { colour: nearestColourFrame, robot: nearestRobotFrame, writing: nearestWritingFrame };
-const markerBenefits = { colour: 'Shape an idea', robot: 'Find what matters', writing: 'Connect the dots' };
+const markerBenefits = Object.fromEntries(sceneConfig.map(s => [s.id, s.label]));
 function phoneNextChoice() {
+  if (isPhone() && phoneFreeWander) return null;
   const start = Math.max(-1, markerOrder.indexOf(framedScene));
-  const order = [...markerOrder.slice(start + 1), ...markerOrder.slice(0, start + 1)];
+  const order = [...markerOrder.slice(start + 1), ...markerOrder.slice(0, start + 1)].filter(key => key !== framedScene);
   return order.find(key => taskSpecs[key].state.mode === 'waiting') ||
     order.find(key => !taskSpecs[key].state.finished && key !== framedScene) ||
     (markerOrder.every(key => taskSpecs[key].state.finished) ? null : order.find(key => key !== framedScene));
 }
 function updatePhoneNext() {
-  const show = isPhone() && scene.visited && card.classList.contains('away') && !document.hidden;
+  const show = isPhone() && markerOrder.length > 0 && scene.visited && card.classList.contains('away') && !document.hidden;
   const key = phoneNextChoice();
   phoneNext.textContent = key ? `Next · ${markerBenefits[key]}` : 'Keep wandering';
   phoneNext.setAttribute('aria-label', key ? `Next: ${markerBenefits[key]}` : 'Keep wandering freely');
@@ -878,7 +952,7 @@ function updateSceneMarkers(now) {
     for (const [side, items] of Object.entries(edges)) {
       items.sort((a, b) => side === 'top' || side === 'bottom' ? a.dx - b.dx : a.dy - b.dy);
       const horizontal = side === 'top' || side === 'bottom';
-      const min = horizontal ? 22 : 82, max = horizontal ? innerWidth - 22 : innerHeight - 205;
+      const min = horizontal ? 22 : 145, max = horizontal ? innerWidth - 22 : innerHeight - 205;
       let edge = min - 22;
       for (const item of items) {
         const preferred = horizontal ? (item.dx < 0 ? min : max) : clamp(innerHeight / 2 + item.dy, min, max);
@@ -955,12 +1029,12 @@ function robotPointPose(t) {
   return { point: robot.returnGoal || visitorPoint(), pose: visitorPose() };
 }
 function renderRobot() {
-  const t = robot.clock;
+  const t = robot.clock, rowStep = isPhone() ? 52 : 66;
   robotRows.forEach((row, i) => {
     const appear = ease((t - 1 - i * .16) / .46), relevant = i === 0 || i === 2 || i === 4;
     const prune = relevant ? 0 : ease((t - 7.05 - (i === 3 ? .14 : 0)) / .62);
     const close = ease((t - 7.5) / .85), finalIndex = i === 2 ? 1 : i === 4 ? 2 : i;
-    const y = (i + (finalIndex - i) * close) * 66 + (1 - appear) * 11 - prune * 10;
+    const y = (i + (finalIndex - i) * close) * rowStep + (1 - appear) * 11 - prune * 10;
     row.style.opacity = String(appear * (1 - prune)); row.style.transform = `translateY(${y.toFixed(2)}px)`;
     const emphasis = i === 0 ? ease((t - 9.45) / .55) : i === 2 ? .48 * ease((t - 9.7) / .55) : i === 4 ? .32 * ease((t - 9.85) / .55) : 0;
     row.style.setProperty('--mark', emphasis.toFixed(3));
@@ -1047,7 +1121,7 @@ function renderWriting() {
     writingResults[i].style.background = mix('#FFFFFF', '#F1F8F5', focus * .9);
   });
 }
-const taskSpecs = {
+const allTaskSpecs = {
   colour: { state: scene, focus: colourFocus, end: SCENE_END, returnStart: RETURN_START, render: renderScene,
     pointPose: t => ({ point: pointyAt(t), pose: pointyPoseAt(t) }), human: mo, humanAt: moAt, resultAt: () => palettePoint(2) },
   robot: { state: robot, focus: robotFocus, end: ROBOT_END, returnStart: ROBOT_RETURN, render: renderRobot,
@@ -1056,6 +1130,7 @@ const taskSpecs = {
     pointPose: writingPointPose, human: wen, humanAt: writingAt,
     resultAt: () => { const r = writingResults[2].getBoundingClientRect(); return { x: r.left - 10, y: r.top + 24 }; } }
 };
+const taskSpecs = Object.fromEntries(enabledScenes.map(s => [s.id, allTaskSpecs[s.id]]));
 function leaveAttention(now) {
   if (!attention || attention.kind === 'exit') return;
   if (attention.kind === 'start') taskSpecs[attention.key].state.pendingStart = true;
@@ -1121,7 +1196,7 @@ function drawAttention(now, dt) {
   if (p >= 1) attention = null;
 }
 function focusCandidate(now) {
-  if (owner || attention || guideCamera || document.hidden || !card.classList.contains('away') || calm) return null;
+  if (owner || attention || guideCamera || document.hidden || !card.classList.contains('away') || calm || (isPhone() && phoneFreeWander)) return null;
   const eligible = markerOrder.filter(key => {
     const s = taskSpecs[key].state;
     return (s.mode === 'paused' || (s.mode === 'waiting' && (!s.entryNudged || s.pendingStart)) ||
@@ -1152,8 +1227,15 @@ function updateSceneFrames(now) {
     spec.focus.style.setProperty('--frame-colour', mix('#0F8F80', '#C4552F', scene.pointPose.colour ?? 0));
   }
 }
+function updateSpotlight() {
+  const key = !spotlightSuppressed && card.classList.contains('away') && !document.hidden &&
+    owner && (taskSpecs[owner].state.mode === 'entering' || taskSpecs[owner].state.mode === 'playing') ? owner : null;
+  document.body.classList.toggle('scene-spotlight', !!key);
+  for (const [id, spec] of Object.entries(taskSpecs)) spec.focus.closest('.garden').classList.toggle('scene-active', id === key);
+}
 function settledAt(s, now) { return now - s.navAt >= 350 && !drag && !pinch && Math.abs(vx) < .05 && Math.abs(vy) < .05; }
 function beginTask(key, now) {
+  spotlightSuppressed = false;
   const s = taskSpecs[key].state;
   const localEntry = isPhone() && (s.mode === 'paused' || s.pendingStart);
   const target = localEntry ? taskSpecs[key].pointPose(s.clock).point : null;
@@ -1172,12 +1254,13 @@ function drawTask(key, now, dt) {
   }
   if (s.mode === 'playing') {
     if (visibility < .5 || document.hidden || !card.classList.contains('away')) pauseTask(s, now, t => spec.pointPose(t).point);
-    else { s.clock = Math.min(spec.end, s.clock + dt * ease((now - s.playAt) / 180));
+    else { s.playElapsed = (s.playElapsed || 0) + dt * ease((now - s.playAt) / 180);
+      s.clock = Math.min(spec.end, timelineClock(key, s.playElapsed));
       if (!isPhone() && s.clock >= spec.returnStart) s.returnGoal = chasePoint(s.returnGoal, visitorPoint(), dt, .18);
       if (s.clock >= spec.end) { s.mode = 'finished'; s.finished = true; s.finishAt = now; s.revisitReady = false;
         document.body.classList.remove('phone-scene-busy'); } }
   }
-  if (s.mode === 'paused' && !guideCamera && card.classList.contains('away') && !document.hidden && visibility > .6 && settledAt(s, now)) beginTask(key, now);
+  if (s.mode === 'paused' && !(isPhone() && phoneFreeWander) && !guideCamera && card.classList.contains('away') && !document.hidden && visibility > .6 && settledAt(s, now)) beginTask(key, now);
   spec.render();
   if (s.mode === 'arrival') { if (isPhone()) actor(pointy, null, false);
     else actor(pointy, s.from || scene.point || visitorPoint(), true, s.fromPose); }
@@ -1251,6 +1334,9 @@ function sceneFrame(now) {
       if (visibility < .5) {
         if (!phoneVisitOutsideAt[key]) phoneVisitOutsideAt[key] = now;
         if (now - phoneVisitOutsideAt[key] >= 600) phoneVisitCentered[key] = false;
+        if (phoneFreeWander && phoneFreeWanderKey === key && now - phoneVisitOutsideAt[key] >= 600) {
+          phoneFreeWander = false; phoneFreeWanderKey = null;
+        }
       } else phoneVisitOutsideAt[key] = 0;
     }
     if (s.finished && visibility < .5) {
@@ -1279,23 +1365,25 @@ function sceneFrame(now) {
     actor(lena, calm ? robotHome() : null, calm && visibleArea(robotFocus) >= .5 && card.classList.contains('away'));
     actor(wen, calm ? writingParaPoint(2) : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
   updateSceneFrames(now);
+  updateSpotlight();
   updateSceneMarkers(now);
   updatePhoneNext();
 }
 document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') scene.mouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
 document.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') scene.touchSeen = true; }, { passive: true });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { guideCamera = null; leaveAttention(performance.now()); scenePause(performance.now()); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { guideCamera = null; leaveAttention(performance.now()); scenePause(performance.now()); document.body.classList.remove('scene-spotlight'); } });
 renderScene(); renderRobot(); renderWriting(); sceneReady = true;
 wander.onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false;
   if (!scene.visited) beginSceneArrival(performance.now()); else scene.navAt = performance.now(); };
-pill.onclick = () => { guideCamera = null; framedScene = null; leaveAttention(performance.now()); card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now());
+pill.onclick = () => { guideCamera = null; framedScene = null; leaveAttention(performance.now()); card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now()); document.body.classList.remove('scene-spotlight');
   document.body.classList.remove('phone-scene-busy');
   for (const el of Object.values(sceneMarkers)) { el.classList.remove('show'); el.inert = true; el.tabIndex = -1; el.setAttribute('aria-hidden', 'true'); } };
 function navigateToScene(key) {
   drifting = false; vx = vy = 0;
   const now = performance.now(), target = markerTarget[key]();
   leaveAttention(now); scenePause(now); scene.camera = null; framedScene = key;
-  phoneFreeWander = false; document.body.classList.remove('phone-scene-busy');
+  document.body.classList.remove('scene-spotlight'); spotlightSuppressed = false;
+  phoneFreeWander = false; phoneFreeWanderKey = null; document.body.classList.remove('phone-scene-busy');
   if (isPhone()) phoneVisitCentered[key] = true;
   if (taskSpecs[key].state.finished) taskSpecs[key].state.revisitReady = true;
   scene.navAt = robot.navAt = writing.navAt = now;
@@ -1312,7 +1400,8 @@ phoneNext.onclick = e => {
   e.stopPropagation(); if (!isPhone() || !phoneNext.classList.contains('show')) return;
   const key = phoneNextChoice();
   if (key) navigateToScene(key);
-  else { phoneFreeWander = true; framedScene = null; guideCamera = null; leaveAttention(performance.now()); document.body.classList.remove('phone-scene-busy'); }
+  else { const now = performance.now(); phoneFreeWanderKey = framedScene || owner; phoneFreeWander = true;
+    sceneNavigation(now); scenePause(now); document.body.classList.remove('phone-scene-busy'); }
 };
 document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); // prototype: nothing is sent or stored yet
   e.target.style.display = 'none'; document.getElementById('thanks').style.display = 'block'; });
