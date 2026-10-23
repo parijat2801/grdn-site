@@ -13,6 +13,6 @@
 
 Local preview: `python3 -m http.server 8787`, then open http://localhost:8787.
 
-Scene development: read `MOTION.md` for shared animation rules and the minimum review standard. Scripts: `scene-01-colour.md` (Mo's palette), `scene-02-read-next.md` (Lena's curated reading list), and `scene-03-writing.md` (Wen's saved reference). `AGENTS.md` directs future builders to these instructions.
+Scene development: read `MOTION.md` for shared animation rules and the minimum review standard. Scripts: `scene-01-colour.md` (Mo's palette), `scene-02-read-next.md` (Lena's curated reading list), and `scene-03-writing.md` (Wen's responsive Fred Rogers Stream). `AGENTS.md` directs future builders to these instructions.
 
 Upcoming concepts: `coming-soon-scenes.md` records two options each for automations, HTML tools/pages, and custom AI sidebar actions, grounded in Primer v2 GitHub issues. These are discussion options, not built features.

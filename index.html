@@ -106,29 +106,25 @@
   .robot-carry small { display: block; margin-top: 3px; font-size: 9px; color: var(--muted); white-space: nowrap; }
   .robot-love { position: fixed; z-index: 19; display: flex; align-items: center; gap: 5px; color: var(--coral); font-size: 11px; font-weight: 700; white-space: nowrap; text-shadow: 0 1px 3px #fff, 0 -1px 3px #fff; pointer-events: none; opacity: 0; }
   .robot-love .heart { position: static; animation: float 1.4s cubic-bezier(.2,.7,.2,1) both paused; font-size: 18px; line-height: 1; }
-  .scene-writing .writing-stage { height: 376px; display: grid; grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); overflow: hidden; padding: 0; }
+  .scene-writing .writing-stage { height: 376px; display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); overflow: hidden; padding: 0; }
   .scene-writing .writing-doc, .scene-writing .writing-panel { height: 100%; overflow: hidden; }
   .scene-writing .writing-doc { border-right: 1px solid var(--line); }
-  .scene-writing .writing-chrome { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-bottom: 1px solid var(--line); background: #F8F7F3; color: var(--muted); font-size: 10px; }
-  .scene-writing .writing-chrome i { width: 6px; height: 6px; border-radius: 50%; background: #D5D8D0; }
-  .scene-writing .writing-launch { margin-left: auto; padding: 3px 7px; border-radius: 5px; background: #E4F3EF; color: #0a7065; font-weight: 800; }
-  .scene-writing .writing-page { padding: 25px 25px 20px; }
-  .scene-writing .writing-page h3 { font: 500 24px/1.1 'Newsreader',Georgia,serif; margin-bottom: 18px; }
-  .scene-writing .writing-draft { min-height: 82px; font: 18px/1.35 'Newsreader',Georgia,serif; }
+  .scene-writing .writing-chrome { display: flex; align-items: center; gap: 7px; height: 33px; padding: 0 13px; border-bottom: 1px solid var(--line); background: #F8F7F3; color: var(--muted); font-size: 11px; }
+  .scene-writing .writing-chrome strong { color: #0a7065; font-size: 13px; }
+  .scene-writing .writing-page { padding: 22px 24px; }
+  .scene-writing .writing-page h3 { font: 500 24px/1.1 'Newsreader',Georgia,serif; margin-bottom: 13px; }
+  .scene-writing .writing-para { height: 64px; font: 18px/1.28 'Newsreader',Georgia,serif; }
   .scene-writing .writing-caret { display: inline-block; width: 1px; height: 16px; margin-left: 2px; background: var(--coral); vertical-align: -.1em; }
-  .scene-writing .writing-quote { margin-top: 17px; padding: 8px 0 7px 13px; border-left: 2px solid var(--teal); font: 18px/1.25 'Newsreader',Georgia,serif; }
-  .scene-writing .writing-quote small { display: block; margin-top: 7px; color: var(--muted); font: 12px/1.2 'Bricolage Grotesque',sans-serif; }
-  .scene-writing .writing-panel { background: #FBFCFA; padding: 14px 16px; }
-  .scene-writing .writing-panel-body { transform-origin: left center; }
-  .scene-writing .writing-panel-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 11px; border-bottom: 1px solid var(--line); }
+  .scene-writing .writing-panel { background: #FBFCFA; padding: 15px; }
+  .scene-writing .writing-panel-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 9px; border-bottom: 1px solid var(--line); }
   .scene-writing .writing-panel-head strong { font-size: 16px; }
   .scene-writing .writing-panel-head small { color: var(--muted); font-size: 11px; }
-  .scene-writing .writing-tab { margin: 13px 0 12px; display: inline-block; border-bottom: 2px solid var(--teal); padding-bottom: 4px; color: #0a7065; font-size: 12px; font-weight: 800; }
-  .scene-writing .writing-query { min-height: 48px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; font-size: 12px; line-height: 1.25; }
-  .scene-writing .writing-result { margin-top: 13px; padding: 11px; border-radius: 10px; border: 1px solid rgba(15,143,128,.19); background: #F1F8F5; }
-  .scene-writing .writing-result strong { display: block; font: 500 17px/1.12 'Newsreader',Georgia,serif; }
-  .scene-writing .writing-result small { display: block; margin: 5px 0 11px; color: var(--muted); font-size: 12px; }
-  .scene-writing .writing-excerpt { display: block; padding: 5px 4px; border-radius: 4px; font: 16px/1.2 'Newsreader',Georgia,serif; }
+  .scene-writing .writing-stream-note { padding-top: 9px; color: var(--muted); font-size: 11px; line-height: 1.2; }
+  .scene-writing .writing-result { min-height: 74px; margin-top: 9px; padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(15,143,128,.16); background: #fff; }
+  .scene-writing .writing-result .k { color: #0a7065; font-size: 9px; }
+  .scene-writing .writing-result strong { display: block; margin-top: 2px; font: 500 17px/1.06 'Newsreader',Georgia,serif; }
+  .scene-writing .writing-result small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+  .scene-writing .writing-result em { display: block; margin-top: 4px; color: #0a7065; font-size: 11px; font-style: normal; font-weight: 700; }
   .scene-writing .thing:hover { transform: none; }
   @media (max-width: 560px) {
     .scene-colour { width: 400px; }
@@ -151,12 +147,12 @@
     .scene-robotics .robot-stream { height: 406px; }
     .scene-writing { width: 400px; }
     .scene-writing .writing-stage { height: auto; grid-template-columns: 1fr; }
-    .scene-writing .writing-doc { height: 238px; border-right: 0; border-bottom: 1px solid var(--line); }
-    .scene-writing .writing-panel { height: 286px; }
+    .scene-writing .writing-doc { height: 285px; border-right: 0; border-bottom: 1px solid var(--line); }
+    .scene-writing .writing-panel { height: 366px; }
     .scene-writing .writing-page { padding: 15px 18px; }
     .scene-writing .writing-page h3 { margin-bottom: 10px; }
-    .scene-writing .writing-draft { min-height: 58px; }
-    .scene-writing .writing-quote { margin-top: 7px; }
+    .scene-writing .writing-para { height: 57px; font-size: 17px; }
+    .scene-writing .writing-result { min-height: 68px; }
   }
   .keys { display: flex; gap: 4px; margin-top: 10px; }
   .keys button { flex: 1; height: 64px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 12px 'Bricolage Grotesque'; color: var(--muted); }
@@ -387,7 +383,7 @@ const G = [
     { type: 'app', e: '🏃', bg: '#FFE3D6', k: 'Tool', t: 'Easy-pace calculator', kept: 283 },
     { type: 'note', text: 'If you can’t talk, you’re going too fast.', kept: 150 },
   ]},
-  { name: 'An old thought, found', by: 'Wen', things: [] },
+  { name: 'A story taking shape', by: 'Wen', things: [] },
   { name: 'Money basics', by: 'for my kids', things: [
     { type: 'app', e: '🪙', bg: '#FCEBC2', k: 'Game', t: 'Pocket money jar', kept: 470 },
     { type: 'app', e: '📈', bg: '#DDF3EF', k: 'Toy', t: 'What compounding looks like', kept: 812 },
@@ -450,9 +446,9 @@ G.forEach((g, i) => {
     const topics = ['Wheel odometry: where drift begins', 'Teaching a robot to fold laundry', 'Calibrating wheel radius and axle width', 'A gripper for delicate fruit', 'Correcting drift with visual landmarks'];
     const sources = ['From Karthik’s garden', 'From the web', 'From the web', 'From the web', 'From Ines’s garden'];
     d.innerHTML = `<div class="robot-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="robot-stage"><div class="thing robot-lab" role="group" aria-label="Lena’s lab. Lena wonders: Why does my robot drift?"><div class="k">Lena’s lab</div><div class="robot-shelf"><div class="lab-tile"><div class="k">Note</div><strong>Check wheel radius again</strong></div><div class="lab-tile sketch"><div class="k">Sketch</div><img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Autonomous_mobile_robot.svg" alt="Top view of a small two-wheeled mobile robot" title="Autonomous mobile robot by Arne Nordmann (norro), public domain, via Wikimedia Commons"></div><div class="lab-tile"><div class="k">Reference</div><strong>Sensor placement notes</strong></div><div class="lab-tile slot"><div class="robot-kept-card" data-robot-kept><div class="k">Reference</div><strong aria-label="${esc(topics[0])}">Wheel odometry</strong><small>Kept from Karthik’s garden</small><small class="kept robot-kept-status">Kept in Lena’s lab</small></div></div></div></div><div class="thing robot-stream"><div class="robot-context">Reading stream</div><div class="robot-heading" data-robot-heading></div><div class="robot-list">${topics.map((title, i) => `<div class="robot-row" data-robot-row="${i}"><strong>${esc(title)}</strong><div class="robot-row-meta"><small>${esc(sources[i])}</small><small data-robot-reason></small></div></div>`).join('')}</div></div></div></div>`;
-  } else if (g.name === 'An old thought, found') {
+  } else if (g.name === 'A story taking shape') {
     d.classList.add('scene-writing');
-    d.innerHTML = `<div class="writing-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="thing writing-stage" role="group" aria-label="Wen writes in a browser document and explicitly asks Grdn for a saved note"><div class="writing-doc"><div class="writing-chrome"><i></i><i></i><i></i><span>Writing in your browser</span><span class="writing-launch" data-writing-launch>Grdn</span></div><div class="writing-page"><h3>A place to think</h3><p class="writing-draft"><span data-writing-draft></span><i class="writing-caret" data-writing-caret></i></p><blockquote class="writing-quote" data-writing-quote>“Leave room for an idea to change.”<small>From “Notes on digital gardens” · your Writing garden</small></blockquote></div></div><div class="writing-panel"><div class="writing-panel-head"><strong>Grdn</strong><small>side panel</small></div><div class="writing-panel-body" data-writing-panel-body><span class="writing-tab">Ask</span><div class="writing-query" data-writing-query></div><div class="writing-result" data-writing-result><div class="k">Saved note</div><strong>Notes on digital gardens</strong><small>From your Writing garden · kept in March</small><span class="writing-excerpt" data-writing-excerpt>“Leave room for an idea to change.”</span></div></div></div></div></div>`;
+    d.innerHTML = `<div class="writing-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="thing writing-stage" role="group" aria-label="Wen writes a Fred Rogers profile in Grdn while the reading stream becomes more relevant"><div class="writing-doc"><div class="writing-chrome"><strong>Grdn</strong><span>Wen’s Writing garden · Note</span></div><div class="writing-page"><h3>Fred Rogers, for children</h3><p class="writing-para"><span data-writing-para="0"></span><i class="writing-caret" data-writing-caret="0"></i></p><p class="writing-para"><span data-writing-para="1"></span><i class="writing-caret" data-writing-caret="1"></i></p><p class="writing-para"><span data-writing-para="2"></span><i class="writing-caret" data-writing-caret="2"></i></p></div></div><div class="writing-panel"><div class="writing-panel-head"><strong>Stream</strong><small>for this note</small></div><div class="writing-stream-note">Reading that follows the story</div><div class="writing-result" data-writing-result="0"><div class="k">Background</div><strong>About Fred</strong><small>fredrogersinstitute.org</small><em>Life and work</em></div><div class="writing-result" data-writing-result="1"><div class="k">Music</div><strong>The Music</strong><small>misterrogers.org</small><em>Songs helped children name feelings</em></div><div class="writing-result" data-writing-result="2"><div class="k">Public television</div><strong>About Fred Rogers</strong><small>misterrogers.org</small><em>1969 Senate testimony</em></div></div></div></div>`;
   } else d.innerHTML = `<header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="cols"><div class="col"></div><div class="col"></div></div>`;
   world.appendChild(d);
   const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
@@ -629,12 +625,10 @@ const robotHeading = robotTile.el.querySelector('[data-robot-heading]');
 const robotKept = robotTile.el.querySelector('[data-robot-kept]');
 const robotShelf = robotTile.el.querySelector('.robot-shelf');
 const robotSlot = robotShelf.querySelector('.slot');
-const writingDoc = writingTile.el.querySelector('.writing-doc'), writingPanel = writingTile.el.querySelector('.writing-panel');
-const writingDraft = writingTile.el.querySelector('[data-writing-draft]'), writingQuote = writingTile.el.querySelector('[data-writing-quote]');
-const writingQuery = writingTile.el.querySelector('[data-writing-query]'), writingResult = writingTile.el.querySelector('[data-writing-result]');
-const writingExcerpt = writingTile.el.querySelector('[data-writing-excerpt]');
-const writingLaunch = writingTile.el.querySelector('[data-writing-launch]'), writingPanelBody = writingTile.el.querySelector('[data-writing-panel-body]');
-const writingCaret = writingTile.el.querySelector('[data-writing-caret]');
+const writingStage = writingTile.el.querySelector('.writing-stage'), writingDoc = writingTile.el.querySelector('.writing-doc');
+const writingParas = [...writingTile.el.querySelectorAll('[data-writing-para]')];
+const writingCarets = [...writingTile.el.querySelectorAll('[data-writing-caret]')];
+const writingResults = [...writingTile.el.querySelectorAll('[data-writing-result]')];
 const sceneNote = colourTile.el.querySelector('.scene-note'), scenePalette = colourTile.el.querySelector('.scene-palette');
 const sceneCopy = colourTile.el.querySelector('[data-scene-copy]'), sceneCaret = colourTile.el.querySelector('[data-scene-caret]');
 const swatches = [...colourTile.el.querySelectorAll('[data-scene-palette] span')];
@@ -686,7 +680,7 @@ function visitorFollowPose(target, dt) { const from = scene.point || target, dis
   const desired = distance > 3 ? angleTo(0, heading(from, target), .58 * ease(distance / 42)) : 0;
   return { colour: 0, angle: angleTo(scene.pointPose.angle || 0, desired, 1 - Math.exp(-dt / .12)) }; }
 const SWATCH_START = 5.6, SWEEP_START = 5.85, SWEEP_END = 7.85, SWATCH_END = 8.1, RETURN_START = 9.3, SCENE_END = 10.25;
-const ROBOT_END = 17.5, ROBOT_RETURN = 16.45, WRITING_RETURN = 17.1, WRITING_END = 18.15;
+const ROBOT_END = 17.5, ROBOT_RETURN = 16.45, WRITING_RETURN = 18.4, WRITING_END = 19.45;
 function inverseEase(v) { let a = 0, b = 1; for (let i = 0; i < 16; i++) { const m = (a + b) / 2; if (ease(m) < v) a = m; else b = m; } return (a + b) / 2; }
 const swatchCrossings = swatches.map((_, i) => SWEEP_START + (SWEEP_END - SWEEP_START) * inverseEase(i / 4));
 function pointyAt(t) {
@@ -807,8 +801,8 @@ function updateNextCue() {
   nextCue.classList.toggle('show', show);
   nextCue.inert = !show; nextCue.tabIndex = show ? 0 : -1; nextCue.setAttribute('aria-hidden', String(!show));
   nextCue.dataset.target = key;
-  nextLabel.textContent = key === 'robot' ? 'A better read next' : 'Find an old thought';
-  nextCue.setAttribute('aria-label', key === 'robot' ? 'A better read next in Lena’s Robotics garden' : 'Find an old thought in Wen’s Writing garden');
+  nextLabel.textContent = key === 'robot' ? 'A better read next' : 'Follow the story';
+  nextCue.setAttribute('aria-label', key === 'robot' ? 'A better read next in Lena’s Robotics garden' : 'Follow the story in Wen’s Writing garden');
   if (!show) return;
   if (!cueIntroduced[key]) { cueIntroduced[key] = true; nextCue.classList.remove('accent'); void nextCue.offsetWidth; nextCue.classList.add('accent'); }
   const target = key === 'robot' ? nearestRobotFrame() : nearestWritingFrame(); let dx = target.x - innerWidth / 2, dy = target.y - innerHeight / 2;
@@ -883,32 +877,49 @@ function renderRobot() {
   robotLove.style.transform = `translate(${(slot.right - 108).toFixed(2)}px,${(slot.top - 29).toFixed(2)}px)`;
   robotLoveHeart.style.animationDelay = `${(-clamp(t - 14.35, 0, 1.4)).toFixed(3)}s`;
 }
-const writingSentence = 'A collection should help ideas grow, not just keep them.';
-const writingQuestion = 'What did I keep about growing ideas?';
-function writingDraftPoint() { const r = writingDraft.parentElement.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 11 }; }
-function writingLaunchPoint() { const r = writingLaunch.getBoundingClientRect(); return { x: r.left + 5, y: r.top + 7 }; }
-function writingAskPoint() { const r = writingQuery.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 10 }; }
-function writingExcerptPoint() { const r = writingExcerpt.getBoundingClientRect(); return { x: r.left - 10, y: r.top + 15 }; }
-function writingQuotePoint() { const r = writingQuote.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 10 }; }
-function writingHome() { const r = writingDoc.getBoundingClientRect(); return { x: r.left + 34, y: r.top + 66 }; }
+const writingSentences = [
+  'Fred Rogers made television for children.',
+  'Music was part of how he helped children understand their feelings.',
+  'In 1969, he took that same care to a Senate hearing on public television.'
+];
+const writingStarts = [1, 4.8, 11.7], writingEnds = [3.5, 7.8, 14.5];
+function writingParaPoint(i) { const r = writingParas[i].parentElement.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 10 }; }
+function writingStreamPoint(i) { const r = writingResults[i].getBoundingClientRect(); return { x: r.left - 9, y: r.top + 21 }; }
 function writingAt(t) {
-  const draft = writingDraftPoint(), launch = writingLaunchPoint(), ask = writingAskPoint(), excerpt = writingExcerptPoint(), quote = writingQuotePoint();
-  if (t < 4.5) return draft;
-  if (t < 5.45) return arcPoint(draft, launch, ease((t - 4.5) / .95), 13);
-  if (t < 6.05) return arcPoint(launch, ask, ease((t - 5.45) / .6), 8);
-  if (t < 13.6) return ask;
-  if (t < 14.35) return arcPoint(ask, excerpt, ease((t - 13.6) / .75), 9);
-  if (t < 15.55) return arcPoint(excerpt, quote, ease((t - 14.35) / 1.2), 19);
-  return quote;
+  const first = writingParaPoint(0), second = writingParaPoint(1), third = writingParaPoint(2);
+  if (t < 4.2) return first;
+  if (t < 4.8) return arcPoint(first, second, ease((t - 4.2) / .6), 7);
+  if (t < 11.2) return second;
+  if (t < 11.7) return arcPoint(second, third, ease((t - 11.2) / .5), 7);
+  return third;
 }
 function writingHostPoint(t) { return companionPoint(writingAt(Math.max(0, t - .10))); }
+function writingHandoff(from, fromPose, to, toPose, raw) {
+  const motion = handoff(from, fromPose, to, toPose, raw, 14);
+  const phase = clamp(raw, 0, 1);
+  if (phase <= .32) return motion;
+  const u = ease((phase - .32) / .68), v = 1 - u, bounds = writingStage.getBoundingClientRect();
+  const left = bounds.left - 20, edge = writingDoc.getBoundingClientRect().right + 7, high = bounds.top - 45;
+  const outward = to.x > from.x;
+  const a = innerWidth <= 560 ? { x: left, y: from.y } : { x: outward ? left : edge, y: high };
+  const b = innerWidth <= 560 ? { x: left, y: to.y } : { x: outward ? edge : left, y: high };
+  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+  const start = { x: from.x - (to.x - from.x) / length * 3.5, y: from.y - (to.y - from.y) / length * 3.5 };
+  motion.point = { x: v*v*v*start.x + 3*v*v*u*a.x + 3*v*u*u*b.x + u*u*u*to.x,
+    y: v*v*v*start.y + 3*v*v*u*a.y + 3*v*u*u*b.y + u*u*u*to.y };
+  return motion;
+}
 function writingPointPose(t) {
-  const host = { colour: 1, angle: 0 }, start = writingHostPoint(10.2), target = writingExcerptPoint();
-  const inspect = { colour: 1, angle: heading(target, { x: target.x + 35, y: target.y + 7 }) };
-  if (t < 10.2) return { point: writingHostPoint(t), pose: host };
-  if (t < 11.4) return handoff(start, host, target, inspect, (t - 10.2) / 1.2, 13);
-  if (t < 12.3) return { point: target, pose: inspect };
-  if (t < 13.5) return handoff(target, inspect, writingHostPoint(13.5), host, (t - 12.3) / 1.2, 13);
+  const host = { colour: 1, angle: 0 }, music = writingStreamPoint(1), testimony = writingStreamPoint(2);
+  const inspect = { colour: 1, angle: 90 };
+  if (t < 8.7) return { point: writingHostPoint(t), pose: host };
+  if (t < 9.8) return writingHandoff(writingHostPoint(8.7), host, music, inspect, (t - 8.7) / 1.1);
+  if (t < 10.1) return { point: music, pose: inspect };
+  if (t < 11.2) return writingHandoff(music, inspect, writingHostPoint(11.2), host, (t - 10.1) / 1.1);
+  if (t < 15.35) return { point: writingHostPoint(t), pose: host };
+  if (t < 16.4) return writingHandoff(writingHostPoint(15.35), host, testimony, inspect, (t - 15.35) / 1.05);
+  if (t < 16.7) return { point: testimony, pose: inspect };
+  if (t < 17.8) return writingHandoff(testimony, inspect, writingHostPoint(17.8), host, (t - 16.7) / 1.1);
   if (t < WRITING_RETURN) return { point: writingHostPoint(t), pose: host };
   if (t < WRITING_END) return handoff(writingHostPoint(WRITING_RETURN), host, writing.returnGoal || visitorPoint(), visitorPose(),
     (t - WRITING_RETURN) / (WRITING_END - WRITING_RETURN), 18);
@@ -916,16 +927,16 @@ function writingPointPose(t) {
 }
 function renderWriting() {
   const t = writing.clock;
-  writingDraft.textContent = writingSentence.slice(0, Math.floor(writingSentence.length * ease((t - 1) / 3)));
-  writingCaret.style.opacity = String(t >= 1 && t < 4.3 ? 1 : 0);
-  const opened = ease((t - 5.35) / .45);
-  writingPanelBody.style.opacity = String(opened); writingPanelBody.style.transform = `translateX(${((1 - opened) * 11).toFixed(2)}px)`;
-  writingLaunch.style.background = mix('#E4F3EF', '#BFE4D8', opened);
-  writingQuery.textContent = writingQuestion.slice(0, Math.floor(writingQuestion.length * ease((t - 6.05) / 2.1)));
-  const result = ease((t - 8.15) / .45), quote = ease((t - 15.05) / .5);
-  writingResult.style.opacity = String(result); writingResult.style.transform = `translateY(${((1 - result) * 8).toFixed(2)}px)`;
-  writingExcerpt.style.background = mix('#F1F8F5', '#D7EEE5', ease((t - 11.3) / .4) * (1 - .45 * ease((t - 13.4) / .4)));
-  writingQuote.style.opacity = String(quote); writingQuote.style.transform = `translateY(${((1 - quote) * 8).toFixed(2)}px)`;
+  writingParas.forEach((el, i) => {
+    el.textContent = writingSentences[i].slice(0, Math.floor(writingSentences[i].length * ease((t - writingStarts[i]) / (writingEnds[i] - writingStarts[i]))));
+    writingCarets[i].style.opacity = String(t >= writingStarts[i] && t < writingEnds[i] + .15 ? 1 : 0);
+  });
+  [3.65, 8.05, 14.65].forEach((start, i) => {
+    const appear = ease((t - start) / .55), focus = i === 0 ? 0 : i === 1 ? ease((t - 8.05) / .55) : ease((t - 14.65) / .55);
+    writingResults[i].style.opacity = String(appear);
+    writingResults[i].style.transform = `translateY(${((1 - appear) * 9).toFixed(2)}px)`;
+    writingResults[i].style.background = mix('#FFFFFF', '#F1F8F5', focus * .9);
+  });
 }
 const taskSpecs = {
   colour: { state: scene, focus: colourFocus, end: SCENE_END, returnStart: RETURN_START, render: renderScene,
@@ -1028,7 +1039,7 @@ function sceneFrame(now) {
     actor(pointy, calm ? target : chasePoint(scene.point, target, dt), true, calm ? visitorPose() : visitorFollowPose(target, dt));
     actor(mo, null, false);
     actor(lena, calm ? robotHome() : null, calm && visibleArea(robotFocus) >= .5 && card.classList.contains('away'));
-    actor(wen, calm ? writingQuotePoint() : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
+    actor(wen, calm ? writingParaPoint(2) : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
   updateSceneFrames(now);
   updateNextCue();
 }
