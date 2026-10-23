@@ -40,6 +40,8 @@ Times reflect the current implementation, not reusable durations for every futur
 | 9.3–10.25 | Shared handoff returns Pointy to the visitor, smoothly tracking the visitor's current position. |
 | after 10.25 | Final note and palette persist. Pointy accompanies the visitor. No automatic replay. |
 
+On phones, the current mobile rule in `MOTION.md` supersedes the visitor-return part of this desktop timeline: Pointy materialises beside Mo on entry and fades within the scene after the result, rather than travelling to an invisible visitor cursor.
+
 Final palette: paper `#F3EBDD`, sand `#D8C3A5`, terracotta `#C46B4E`, sage `#8C9B82`, ink `#263B42`.
 
 ## Interruption and completion

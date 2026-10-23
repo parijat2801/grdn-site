@@ -148,7 +148,7 @@
     .scene-writing { width: 400px; }
     .scene-writing .writing-stage { height: auto; grid-template-columns: 1fr; }
     .scene-writing .writing-doc { height: 285px; border-right: 0; border-bottom: 1px solid var(--line); }
-    .scene-writing .writing-panel { height: 366px; }
+    .scene-writing .writing-panel { height: 320px; }
     .scene-writing .writing-page { padding: 15px 18px; }
     .scene-writing .writing-page h3 { margin-bottom: 10px; }
     .scene-writing .writing-para { height: 57px; font-size: 17px; }
@@ -203,6 +203,7 @@
   #pill { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
     transition: all .35s ease; }
   #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #phone-next { display: none; }
   #scene-nav { position: fixed; inset: 0; z-index: 18; pointer-events: none; }
   .scene-marker { position: absolute; left: 0; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px;
     min-height: 44px; min-width: 88px; padding: 6px 13px 6px 7px; border: 1px solid var(--ink); border-radius: 999px;
@@ -216,7 +217,24 @@
   .scene-marker.recommended .next-icon { background: #fff; color: #0a7065; }
   .scene-marker.accent .next-icon { animation: nextAccent .75s ease-out 1; }
   @keyframes nextAccent { 45% { box-shadow: 0 0 0 5px rgba(15,143,128,.12); } }
-  @media (max-width: 560px) { .scene-marker { padding-right: 10px; font-size: 12px; gap: 6px; } .scene-marker .next-icon { width: 29px; height: 29px; } }
+  @media (max-width: 560px) {
+    #pill { bottom: max(10px, env(safe-area-inset-bottom)); min-height: 44px; padding: 11px 20px; }
+    #phone-next { position: fixed; left: 50%; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 46px);
+      z-index: 19; display: block; min-height: 44px; max-width: calc(100vw - 32px); padding: 10px 17px;
+      border: 1px solid #0a7065; border-radius: 999px; background: #0a7065; color: #fff;
+      box-shadow: 0 5px 18px rgba(16,36,58,.15); font: 700 14px 'Bricolage Grotesque', sans-serif;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; opacity: 0;
+      transform: translate(-50%,12px); pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+    #phone-next.show { opacity: 1; transform: translate(-50%,0); pointer-events: auto; }
+    #phone-next:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    body.phone-scene-busy #phone-next.show, body.phone-scene-busy #pill.show { opacity: .62; }
+    .scene-marker { min-width: 44px; width: 44px; height: 44px; padding: 6px; justify-content: center;
+      border: 0; background: transparent; box-shadow: none; }
+    .scene-marker > span:last-child { display: none; }
+    .scene-marker .next-icon { width: 29px; height: 29px; }
+    .scene-marker.recommended { background: transparent; }
+    .scene-marker.recommended .next-icon { background: #0a7065; color: #fff; }
+  }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
 </style>
 </head>
@@ -236,6 +254,7 @@
   <div class="fine"><button class="wander" id="wander">Wander</button></div>
 </section>
 <button class="btn" id="pill">Reserve yours</button>
+<button type="button" id="phone-next" aria-hidden="true" tabindex="-1" inert>Next</button>
 <nav id="scene-nav" aria-label="Explore gardens">
   <button type="button" class="scene-marker" data-scene-marker="colour" aria-label="Shape an idea" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span>Shape an idea</span></button>
   <button type="button" class="scene-marker" data-scene-marker="robot" aria-label="Find what matters" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span>Find what matters</span></button>
@@ -492,13 +511,15 @@ function sceneFrameTarget(tile, focus) {
   const baseY = tile.y0 + focus.offsetTop + focus.offsetHeight / 2;
   const x = baseX + Math.round((worldX - baseX) / PW) * PW;
   const periodY = colP[tile.c], y = baseY + Math.round((worldY - baseY) / periodY) * periodY;
-  const top = innerWidth <= 560 ? 64 : 32, bottom = innerWidth <= 560 ? 104 : 76;
+  const phoneInset = innerWidth <= 560 ? Math.max(0, parseFloat(getComputedStyle(document.getElementById('pill')).bottom) - 10) : 0;
+  const top = innerWidth <= 560 ? 64 : 32, bottom = innerWidth <= 560 ? 154 + 2 * phoneInset : 76;
   return { x: px + x * z, y: py + y * z, toX: innerWidth / 2 - x * z,
     toY: (innerHeight + top - bottom) / 2 - y * z };
 }
 const nearestRobotFrame = () => sceneFrameTarget(robotTile, robotFocus);
 const nearestWritingFrame = () => sceneFrameTarget(writingTile, writingFocus);
 const nearestColourFrame = () => sceneFrameTarget(colourTile, colourFocus);
+const isPhone = () => innerWidth <= 560;
 colourTile.el.querySelectorAll('a').forEach(a => { a.tabIndex = -1; a.setAttribute('aria-disabled', 'true'); });
 document.addEventListener('click', e => { if (e.target.closest('.scene-colour a')) e.preventDefault(); }, true);
 
@@ -543,7 +564,7 @@ const wrap = () => { // place each garden in the copy of the loop nearest the vi
 const apply = () => { z = Math.min(ZMAX, Math.max(ZMIN, z)); world.style.transform = `translate(${px}px,${py}px) scale(${z})`; wrap(); };
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (calm) drifting = false;
-let vx = 0, vy = 0, guideCamera = null, drag = null, framedScene = null;
+let vx = 0, vy = 0, guideCamera = null, drag = null, framedScene = null, phoneFreeWander = false;
 let sceneReady = false;
 (function drift(now) {
   if (guideCamera) { const c = guideCamera, p = ease((now - c.at) / c.duration);
@@ -557,7 +578,7 @@ let sceneReady = false;
 })(t0);
 const pts = new Map(); let pinch = false;
 view.addEventListener('pointerdown', e => {
-  if (e.target.closest('.live, #card, #pill, .scene-marker')) return; e.preventDefault(); drifting = false; vx = vy = 0;
+  if (e.target.closest('.live, #card, #pill, #phone-next, .scene-marker')) return; e.preventDefault(); drifting = false; vx = vy = 0;
   sceneNavigation(performance.now());
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); view.setPointerCapture(e.pointerId);
   if (pts.size === 2 && e.pointerType === 'touch') { pinch = true; drag = null; }
@@ -623,6 +644,7 @@ if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 +
 const card = document.getElementById('card'), pill = document.getElementById('pill');
 const scrim = document.getElementById('scrim');
 const wander = document.getElementById('wander');
+const phoneNext = document.getElementById('phone-next');
 const sceneMarkers = Object.fromEntries([...document.querySelectorAll('[data-scene-marker]')].map(el => [el.dataset.sceneMarker, el]));
 const pointy = document.getElementById('pointy'), mo = document.getElementById('mo'), lena = document.getElementById('lena'), wen = document.getElementById('wen');
 const robotCarry = document.getElementById('robot-carry');
@@ -729,6 +751,7 @@ function sceneVisibility() {
 }
 function pauseTask(s, now, pointAt) {
   if (s.finished) return;
+  if (isPhone()) document.body.classList.remove('phone-scene-busy');
   s.navAt = now;
   if (s === scene) s.camera = null;
   if (s.mode === 'playing' || s.mode === 'entering' || s.mode === 'arrival') {
@@ -743,6 +766,7 @@ function scenePause(now) {
 function sceneNavigation(now) {
   if (!sceneReady || !scene.visited) return;
   leaveAttention(now);
+  document.body.classList.remove('phone-scene-busy');
   framedScene = null;
   scene.navAt = now; robot.navAt = now; writing.navAt = now;
   guideCamera = null;
@@ -803,7 +827,25 @@ const markerOrder = ['colour', 'robot', 'writing'];
 const markerIntroduced = { colour: false, robot: false, writing: false };
 const markerInView = { colour: false, robot: false, writing: false };
 const markerBelowAt = { colour: 0, robot: 0, writing: 0 };
+const phoneVisitCentered = { colour: false, robot: false, writing: false };
+const phoneVisitOutsideAt = { colour: 0, robot: 0, writing: 0 };
 const markerTarget = { colour: nearestColourFrame, robot: nearestRobotFrame, writing: nearestWritingFrame };
+const markerBenefits = { colour: 'Shape an idea', robot: 'Find what matters', writing: 'Connect the dots' };
+function phoneNextChoice() {
+  const start = Math.max(-1, markerOrder.indexOf(framedScene));
+  const order = [...markerOrder.slice(start + 1), ...markerOrder.slice(0, start + 1)];
+  return order.find(key => taskSpecs[key].state.mode === 'waiting') ||
+    order.find(key => !taskSpecs[key].state.finished && key !== framedScene) ||
+    (markerOrder.every(key => taskSpecs[key].state.finished) ? null : order.find(key => key !== framedScene));
+}
+function updatePhoneNext() {
+  const show = isPhone() && scene.visited && card.classList.contains('away') && !document.hidden;
+  const key = phoneNextChoice();
+  phoneNext.textContent = key ? `Next · ${markerBenefits[key]}` : 'Keep wandering';
+  phoneNext.setAttribute('aria-label', key ? `Next: ${markerBenefits[key]}` : 'Keep wandering freely');
+  phoneNext.classList.toggle('show', show); phoneNext.inert = !show;
+  phoneNext.tabIndex = show ? 0 : -1; phoneNext.setAttribute('aria-hidden', String(!show));
+}
 function updateSceneMarkers(now) {
   const available = [];
   for (const key of markerOrder) {
@@ -825,13 +867,29 @@ function updateSceneMarkers(now) {
   }
   if (!available.length) return;
   if (innerWidth <= 560) {
-    let x = 12, y = 32;
-    for (const key of markerOrder) {
-      const el = sceneMarkers[key], width = el.offsetWidth;
-      if (x + width > innerWidth - 12 && x > 12) { x = 12; y += 52; }
-      el.style.left = `${x + width / 2}px`; el.style.top = `${y}px`; x += width + 8;
-      const target = markerTarget[key]();
-      el.querySelector('.next-arrow').style.transform = `rotate(${Math.atan2(target.y - innerHeight / 2, target.x - innerWidth / 2) * 180 / Math.PI}deg)`;
+    const edges = { top: [], bottom: [], left: [], right: [] };
+    for (const key of available) {
+      const el = sceneMarkers[key], target = markerTarget[key]();
+      const dx = target.x - innerWidth / 2, dy = target.y - innerHeight / 2;
+      const side = Math.abs(dx) > Math.abs(dy) * .8 ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'top' : 'bottom');
+      edges[side].push({ el, dx, dy });
+      el.querySelector('.next-arrow').style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+    }
+    for (const [side, items] of Object.entries(edges)) {
+      items.sort((a, b) => side === 'top' || side === 'bottom' ? a.dx - b.dx : a.dy - b.dy);
+      const horizontal = side === 'top' || side === 'bottom';
+      const min = horizontal ? 22 : 82, max = horizontal ? innerWidth - 22 : innerHeight - 205;
+      let edge = min - 22;
+      for (const item of items) {
+        const preferred = horizontal ? (item.dx < 0 ? min : max) : clamp(innerHeight / 2 + item.dy, min, max);
+        item.start = Math.max(edge, preferred - 22); edge = item.start + 52;
+      }
+      const overflow = Math.max(0, edge - 8 - (max + 22));
+      for (const item of items) {
+        const center = item.start - overflow + 22;
+        item.el.style.left = `${horizontal ? center : side === 'left' ? 22 : innerWidth - 22}px`;
+        item.el.style.top = `${horizontal ? side === 'top' ? 22 : innerHeight - 145 : center}px`;
+      }
     }
     return;
   }
@@ -1007,12 +1065,35 @@ function startAttention(key, kind, now) {
   const s = taskSpecs[key].state;
   if (kind === 'start') { s.entryNudged = true; s.pendingStart = false; }
   else s.revisitReady = false;
-  attention = { key, kind, at: now, from: scene.point || visitorPoint(), fromPose: scene.pointPose, goal: visitorPoint() };
+  const local = kind === 'revisit' ? taskSpecs[key].resultAt() : taskSpecs[key].pointPose(s.clock).point;
+  attention = { key, kind, at: now,
+    from: isPhone() ? { x: local.x - 15, y: local.y - 12 } : scene.point || visitorPoint(),
+    fromPose: isPhone() ? { colour: 1, opacity: 0, sx: .25, sy: .4 } : scene.pointPose, goal: visitorPoint() };
 }
 function drawAttention(now, dt) {
   const a = attention, elapsed = (now - a.at) / 1000;
   if (a.kind !== 'exit' && (document.hidden || !card.classList.contains('away') || visibleArea(taskSpecs[a.key].focus) < .5)) {
     leaveAttention(now); return drawAttention(now, dt);
+  }
+  if (isPhone()) {
+    if (a.kind === 'exit') {
+      const p = ease(elapsed / .45);
+      actor(pointy, { x: a.from.x, y: a.from.y - 8 * p }, true,
+        { ...a.fromPose, opacity: (a.fromPose.opacity ?? 1) * (1 - p), sx: 1 - .18 * p, sy: 1 - .18 * p });
+      if (p >= 1) attention = null;
+      return;
+    }
+    const target = a.kind === 'revisit' ? taskSpecs[a.key].resultAt() :
+      taskSpecs[a.key].pointPose(taskSpecs[a.key].state.clock).point;
+    const arrive = ease(elapsed / .46), fade = a.kind === 'revisit' ? 1 - ease((elapsed - 1.17) / .45) : 1;
+    actor(pointy, lerpPoint(a.from, target, arrive), true,
+      { colour: 1, angle: heading(a.from, target), opacity: arrive * fade,
+        sx: .25 + .82 * arrive - .07 * ease((elapsed - .4) / .22),
+        sy: .4 + .72 * arrive - .12 * ease((elapsed - .4) / .22),
+        glow: .25 * Math.sin(Math.PI * clamp(elapsed / .46, 0, 1)) });
+    if (a.kind === 'start' && elapsed >= .62) { attention = null; beginTask(a.key, now); }
+    if (a.kind === 'revisit' && elapsed >= 1.62) attention = null;
+    return;
   }
   if (a.kind === 'start') {
     const target = taskSpecs[a.key].pointPose(taskSpecs[a.key].state.clock).point;
@@ -1043,7 +1124,8 @@ function focusCandidate(now) {
   if (owner || attention || guideCamera || document.hidden || !card.classList.contains('away') || calm) return null;
   const eligible = markerOrder.filter(key => {
     const s = taskSpecs[key].state;
-    return (s.mode === 'paused' || (s.mode === 'waiting' && (!s.entryNudged || s.pendingStart)) || (s.finished && s.revisitReady)) &&
+    return (s.mode === 'paused' || (s.mode === 'waiting' && (!s.entryNudged || s.pendingStart)) ||
+      (s.finished && s.revisitReady && !(isPhone() && phoneFreeWander))) &&
       visibleArea(taskSpecs[key].focus) >= .6 && settledAt(s, now);
   });
   if (framedScene && eligible.includes(framedScene)) return framedScene;
@@ -1073,8 +1155,14 @@ function updateSceneFrames(now) {
 function settledAt(s, now) { return now - s.navAt >= 350 && !drag && !pinch && Math.abs(vx) < .05 && Math.abs(vy) < .05; }
 function beginTask(key, now) {
   const s = taskSpecs[key].state;
+  const localEntry = isPhone() && (s.mode === 'paused' || s.pendingStart);
+  const target = localEntry ? taskSpecs[key].pointPose(s.clock).point : null;
   s.entryNudged = true; s.pendingStart = false; s.revisitReady = false;
-  owner = key; s.mode = 'entering'; s.moveAt = now; s.from = scene.point || visitorPoint(); s.fromPose = scene.pointPose;
+  owner = key; s.mode = 'entering'; s.moveAt = now;
+  s.localEntry = localEntry;
+  s.from = localEntry ? { x: target.x - 15, y: target.y - 12 } : scene.point || visitorPoint();
+  s.fromPose = localEntry ? { colour: 1, opacity: 0, sx: .25, sy: .4 } : scene.pointPose;
+  if (isPhone()) document.body.classList.add('phone-scene-busy');
 }
 function drawTask(key, now, dt) {
   const spec = taskSpecs[key], s = spec.state, visibility = visibleArea(spec.focus);
@@ -1085,21 +1173,36 @@ function drawTask(key, now, dt) {
   if (s.mode === 'playing') {
     if (visibility < .5 || document.hidden || !card.classList.contains('away')) pauseTask(s, now, t => spec.pointPose(t).point);
     else { s.clock = Math.min(spec.end, s.clock + dt * ease((now - s.playAt) / 180));
-      if (s.clock >= spec.returnStart) s.returnGoal = chasePoint(s.returnGoal, visitorPoint(), dt, .18);
-      if (s.clock >= spec.end) { s.mode = 'finished'; s.finished = true; s.finishAt = now; s.revisitReady = false; } }
+      if (!isPhone() && s.clock >= spec.returnStart) s.returnGoal = chasePoint(s.returnGoal, visitorPoint(), dt, .18);
+      if (s.clock >= spec.end) { s.mode = 'finished'; s.finished = true; s.finishAt = now; s.revisitReady = false;
+        document.body.classList.remove('phone-scene-busy'); } }
   }
   if (s.mode === 'paused' && !guideCamera && card.classList.contains('away') && !document.hidden && visibility > .6 && settledAt(s, now)) beginTask(key, now);
   spec.render();
-  if (s.mode === 'arrival') actor(pointy, s.from || scene.point || visitorPoint(), true, s.fromPose);
+  if (s.mode === 'arrival') { if (isPhone()) actor(pointy, null, false);
+    else actor(pointy, s.from || scene.point || visitorPoint(), true, s.fromPose); }
   else if (s.mode === 'entering') { const target = spec.pointPose(s.clock), motion = handoff(s.from, s.fromPose, target.point, target.pose, (now - s.moveAt) / 800, 15);
+    if (isPhone() && s.localEntry) motion.pose.opacity = ease((now - s.moveAt) / 330);
     actor(pointy, motion.point, true, motion.pose); }
   else if (s.mode === 'paused') { const elapsed = (now - s.returnAt) / 750;
+    if (isPhone()) {
+      const p = ease(elapsed / .7), from = s.returnFrom || spec.pointPose(s.clock).point;
+      actor(pointy, { x: from.x, y: from.y - 10 * p }, true,
+        { ...s.returnPose, opacity: 1 - p, sx: 1 - .15 * p, sy: 1 - .15 * p });
+      if (p >= 1) owner = null;
+    } else {
     s.pauseGoal = chasePoint(s.pauseGoal, visitorPoint(), dt, .16);
     if (elapsed < 1) { const motion = handoff(s.returnFrom || visitorPoint(), s.returnPose, s.pauseGoal, visitorPose(), elapsed, 12);
       actor(pointy, motion.point, true, motion.pose); }
     else { const target = visitorPoint(); actor(pointy, chasePoint(scene.point, target, dt), true, visitorFollowPose(target, dt)); }
-    if (elapsed >= 1) owner = null;
-  } else { const target = spec.pointPose(s.clock); actor(pointy, target.point, true, target.pose);
+    if (elapsed >= 1) owner = null; }
+  } else { const target = spec.pointPose(s.clock);
+    if (isPhone() && s.clock >= spec.returnStart) {
+      const p = ease((s.clock - spec.returnStart) / (spec.end - spec.returnStart));
+      const anchor = spec.pointPose(spec.returnStart - .01);
+      actor(pointy, { x: anchor.point.x, y: anchor.point.y - 11 * p }, true,
+        { ...anchor.pose, opacity: 1 - p, sx: 1 - .16 * p, sy: 1 - .16 * p });
+    } else actor(pointy, target.point, true, target.pose);
     if (s.mode === 'finished') owner = null; }
   actor(spec.human, spec.humanAt(s.clock), (s.mode === 'entering' || s.mode === 'playing' || s.mode === 'finished') && visibility >= .5 && !document.hidden);
   for (const other of Object.values(taskSpecs)) if (other !== spec) actor(other.human, null, false);
@@ -1109,6 +1212,7 @@ function sceneFrame(now) {
   if (!scene.visited) {
     actor(mo, null, false); actor(lena, null, false); actor(wen, null, false);
     const elapsed = (now - scene.introAt) / 1000;
+    if (isPhone()) { if (elapsed >= 1.2) wander.classList.add('pointy-cue'); actor(pointy, null, false); return; }
     if (calm) { wander.classList.add('pointy-cue'); const r = wander.getBoundingClientRect(); actor(pointy, { x: r.left + r.width / 2, y: r.bottom + 6 }); return; }
     if (!scene.introCueAt && elapsed >= 1.2 && (scene.mouse || scene.touchSeen || matchMedia('(pointer: coarse)').matches)) scene.introCueAt = now;
     if (!scene.introCueAt) { actor(pointy, null, false); return; }
@@ -1143,6 +1247,12 @@ function sceneFrame(now) {
   for (const [key, spec] of Object.entries(taskSpecs)) {
     const s = spec.state;
     const visibility = visibleArea(spec.focus);
+    if (isPhone()) {
+      if (visibility < .5) {
+        if (!phoneVisitOutsideAt[key]) phoneVisitOutsideAt[key] = now;
+        if (now - phoneVisitOutsideAt[key] >= 600) phoneVisitCentered[key] = false;
+      } else phoneVisitOutsideAt[key] = 0;
+    }
     if (s.finished && visibility < .5) {
       if (!s.revisitOutsideAt) s.revisitOutsideAt = now;
       if (now - s.revisitOutsideAt >= 600 && now - s.finishAt > 1200) s.revisitReady = true;
@@ -1152,18 +1262,25 @@ function sceneFrame(now) {
   const candidate = focusCandidate(now);
   if (candidate) {
     const s = taskSpecs[candidate].state;
-    if (s.mode === 'paused' || s.pendingStart) beginTask(candidate, now);
+    if (isPhone() && !framedScene && !phoneVisitCentered[candidate]) {
+      const target = markerTarget[candidate](), distance = Math.hypot(target.toX - px, target.toY - py);
+      phoneVisitCentered[candidate] = true; s.navAt = now;
+      guideCamera = { key: candidate, natural: true, at: now,
+        duration: clamp(520 + distance * .09, 520, 820), fromX: px, fromY: py, toX: target.toX, toY: target.toY };
+    } else if (s.mode === 'paused' || s.pendingStart) beginTask(candidate, now);
     else startAttention(candidate, s.finished ? 'revisit' : 'start', now);
   }
   if (owner) drawTask(owner, now, dt);
   else { renderScene(); renderRobot(); renderWriting(); const target = visitorPoint();
     if (attention) drawAttention(now, dt);
+    else if (isPhone()) actor(pointy, null, false);
     else actor(pointy, calm ? target : chasePoint(scene.point, target, dt), true, calm ? visitorPose() : visitorFollowPose(target, dt));
     actor(mo, null, false);
     actor(lena, calm ? robotHome() : null, calm && visibleArea(robotFocus) >= .5 && card.classList.contains('away'));
     actor(wen, calm ? writingParaPoint(2) : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
   updateSceneFrames(now);
   updateSceneMarkers(now);
+  updatePhoneNext();
 }
 document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') scene.mouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
 document.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') scene.touchSeen = true; }, { passive: true });
@@ -1172,25 +1289,37 @@ renderScene(); renderRobot(); renderWriting(); sceneReady = true;
 wander.onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false;
   if (!scene.visited) beginSceneArrival(performance.now()); else scene.navAt = performance.now(); };
 pill.onclick = () => { guideCamera = null; framedScene = null; leaveAttention(performance.now()); card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now());
+  document.body.classList.remove('phone-scene-busy');
   for (const el of Object.values(sceneMarkers)) { el.classList.remove('show'); el.inert = true; el.tabIndex = -1; el.setAttribute('aria-hidden', 'true'); } };
-for (const [key, el] of Object.entries(sceneMarkers)) el.onclick = e => {
-  e.stopPropagation(); if (!el.classList.contains('show')) return;
+function navigateToScene(key) {
   drifting = false; vx = vy = 0;
   const now = performance.now(), target = markerTarget[key]();
   leaveAttention(now); scenePause(now); scene.camera = null; framedScene = key;
+  phoneFreeWander = false; document.body.classList.remove('phone-scene-busy');
+  if (isPhone()) phoneVisitCentered[key] = true;
   if (taskSpecs[key].state.finished) taskSpecs[key].state.revisitReady = true;
   scene.navAt = robot.navAt = writing.navAt = now;
   if (calm) { px = target.toX; py = target.toY; apply(); }
   else { const distance = Math.hypot(target.toX - px, target.toY - py);
     guideCamera = { key, at: now, duration: clamp(840 + distance * .13, 840, 1450), fromX: px, fromY: py,
       toX: target.toX, toY: target.toY }; }
+}
+for (const [key, el] of Object.entries(sceneMarkers)) el.onclick = e => {
+  e.stopPropagation(); if (!el.classList.contains('show')) return;
+  navigateToScene(key);
+};
+phoneNext.onclick = e => {
+  e.stopPropagation(); if (!isPhone() || !phoneNext.classList.contains('show')) return;
+  const key = phoneNextChoice();
+  if (key) navigateToScene(key);
+  else { phoneFreeWander = true; framedScene = null; guideCamera = null; leaveAttention(performance.now()); document.body.classList.remove('phone-scene-busy'); }
 };
 document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); // prototype: nothing is sent or stored yet
   e.target.style.display = 'none'; document.getElementById('thanks').style.display = 'block'; });
 const reserveButton = card.querySelector('form .btn');
 let reserveNudgeAt = -Infinity;
 document.addEventListener('click', e => {
-  if (e.target.closest('.scene-marker')) return;
+  if (e.target.closest('.scene-marker, #phone-next')) return;
   if (e.target.closest('input[type="email"]')) return;
   const clickedCard = e.target.closest('.thing');
   if (clickedCard && (clickedCard.classList.contains('live') || clickedCard.querySelector('a[href]:not([aria-disabled="true"]):not([tabindex="-1"]), button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), audio[controls], video[controls], summary'))) return;
