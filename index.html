@@ -805,7 +805,7 @@ function updateSceneMarkers() {
   const available = [];
   for (const key of markerOrder) {
     const el = sceneMarkers[key];
-    const show = scene.visited && card.classList.contains('away') && !document.hidden;
+    const show = scene.visited && card.classList.contains('away') && !document.hidden && !taskSpecs[key].state.highlighted;
     el.classList.toggle('show', show); el.inert = !show; el.tabIndex = show ? 0 : -1;
     el.setAttribute('aria-hidden', String(!show));
     if (show) available.push(key);
@@ -998,6 +998,7 @@ function updateSceneFrames(now) {
       else if (s.mode === 'playing') opacity = 1 - ease((s.clock - spec.returnStart) / .75);
       else if (s.mode === 'paused') opacity = 1 - ease((now - s.returnAt) / 650);
     }
+    s.highlighted = opacity > .01;
     spec.focus.style.setProperty('--frame-opacity', String(opacity));
     spec.focus.style.setProperty('--frame-colour', mix('#0F8F80', '#C4552F', scene.pointPose.colour ?? 0));
   }
