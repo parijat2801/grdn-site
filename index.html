@@ -492,7 +492,7 @@ function sceneFrameTarget(tile, focus) {
   const baseY = tile.y0 + focus.offsetTop + focus.offsetHeight / 2;
   const x = baseX + Math.round((worldX - baseX) / PW) * PW;
   const periodY = colP[tile.c], y = baseY + Math.round((worldY - baseY) / periodY) * periodY;
-  const top = innerWidth <= 560 ? 24 : 32, bottom = innerWidth <= 560 ? 104 : 76;
+  const top = innerWidth <= 560 ? 64 : 32, bottom = innerWidth <= 560 ? 104 : 76;
   return { x: px + x * z, y: py + y * z, toX: innerWidth / 2 - x * z,
     toY: (innerHeight + top - bottom) / 2 - y * z };
 }
@@ -654,7 +654,7 @@ const robot = { mode: 'waiting', clock: 0, navAt: 0, finished: false, from: null
   returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, finishAt: 0 };
 const writing = { mode: 'waiting', clock: 0, navAt: 0, finished: false, from: null, fromPose: {}, moveAt: 0, playAt: 0,
   returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, finishAt: 0 };
-let owner = null;
+let owner = null, attention = null;
 const typeWeights = [...request].map(c => c === ',' || c === '.' ? 2.3 : c === ' ' ? .65 : 1);
 const typeTotal = typeWeights.reduce((a, b) => a + b, 0);
 function actor(el, p, visible = true, pose = {}) {
@@ -742,6 +742,7 @@ function scenePause(now) {
 }
 function sceneNavigation(now) {
   if (!sceneReady || !scene.visited) return;
+  leaveAttention(now);
   framedScene = null;
   scene.navAt = now; robot.navAt = now; writing.navAt = now;
   guideCamera = null;
@@ -800,17 +801,24 @@ function visibleArea(el) {
 }
 const markerOrder = ['colour', 'robot', 'writing'];
 const markerIntroduced = { colour: false, robot: false, writing: false };
+const markerInView = { colour: false, robot: false, writing: false };
+const markerBelowAt = { colour: 0, robot: 0, writing: 0 };
 const markerTarget = { colour: nearestColourFrame, robot: nearestRobotFrame, writing: nearestWritingFrame };
-function updateSceneMarkers() {
+function updateSceneMarkers(now) {
   const available = [];
   for (const key of markerOrder) {
-    const el = sceneMarkers[key];
-    const show = scene.visited && card.classList.contains('away') && !document.hidden && !taskSpecs[key].state.highlighted;
+    const el = sceneMarkers[key], visibility = visibleArea(taskSpecs[key].focus);
+    if (visibility >= .6) { markerInView[key] = true; markerBelowAt[key] = 0; }
+    else if (visibility < .5) {
+      if (!markerBelowAt[key]) markerBelowAt[key] = now;
+      if (now - markerBelowAt[key] >= 150) markerInView[key] = false;
+    } else markerBelowAt[key] = 0;
+    const show = scene.visited && card.classList.contains('away') && !document.hidden && !markerInView[key];
     el.classList.toggle('show', show); el.inert = !show; el.tabIndex = show ? 0 : -1;
     el.setAttribute('aria-hidden', String(!show));
     if (show) available.push(key);
   }
-  const recommended = available.find(key => !taskSpecs[key].state.finished) || available[0];
+  const recommended = available.find(key => taskSpecs[key].state.mode === 'waiting');
   for (const key of markerOrder) {
     const el = sceneMarkers[key]; el.classList.toggle('recommended', key === recommended);
     if (available.includes(key) && !markerIntroduced[key]) { markerIntroduced[key] = true; el.classList.add('accent'); }
@@ -818,7 +826,7 @@ function updateSceneMarkers() {
   if (!available.length) return;
   if (innerWidth <= 560) {
     let x = 12, y = 32;
-    for (const key of available) {
+    for (const key of markerOrder) {
       const el = sceneMarkers[key], width = el.offsetWidth;
       if (x + width > innerWidth - 12 && x > 12) { x = 12; y += 52; }
       el.style.left = `${x + width / 2}px`; el.style.top = `${y}px`; x += width + 8;
@@ -828,7 +836,7 @@ function updateSceneMarkers() {
     return;
   }
   const groups = { top: [], bottom: [], left: [], right: [] };
-  for (const key of available) {
+  for (const key of markerOrder) {
     const el = sceneMarkers[key], target = markerTarget[key](), w = el.offsetWidth, h = el.offsetHeight;
     let dx = target.x - innerWidth / 2, dy = target.y - innerHeight / 2;
     if (Math.abs(dx) + Math.abs(dy) < 1) dx = 1;
@@ -983,12 +991,71 @@ function renderWriting() {
 }
 const taskSpecs = {
   colour: { state: scene, focus: colourFocus, end: SCENE_END, returnStart: RETURN_START, render: renderScene,
-    pointPose: t => ({ point: pointyAt(t), pose: pointyPoseAt(t) }), human: mo, humanAt: moAt },
+    pointPose: t => ({ point: pointyAt(t), pose: pointyPoseAt(t) }), human: mo, humanAt: moAt, resultAt: () => palettePoint(2) },
   robot: { state: robot, focus: robotFocus, end: ROBOT_END, returnStart: ROBOT_RETURN, render: renderRobot,
-    pointPose: robotPointPose, human: lena, humanAt: lenaAt },
+    pointPose: robotPointPose, human: lena, humanAt: lenaAt, resultAt: robotShelfPoint },
   writing: { state: writing, focus: writingFocus, end: WRITING_END, returnStart: WRITING_RETURN, render: renderWriting,
-    pointPose: writingPointPose, human: wen, humanAt: writingAt }
+    pointPose: writingPointPose, human: wen, humanAt: writingAt,
+    resultAt: () => { const r = writingResults[2].getBoundingClientRect(); return { x: r.left - 10, y: r.top + 24 }; } }
 };
+function leaveAttention(now) {
+  if (!attention || attention.kind === 'exit') return;
+  if (attention.kind === 'start') taskSpecs[attention.key].state.pendingStart = true;
+  attention = { kind: 'exit', at: now, from: scene.point || visitorPoint(), fromPose: scene.pointPose, goal: visitorPoint() };
+}
+function startAttention(key, kind, now) {
+  const s = taskSpecs[key].state;
+  if (kind === 'start') { s.entryNudged = true; s.pendingStart = false; }
+  else s.revisitReady = false;
+  attention = { key, kind, at: now, from: scene.point || visitorPoint(), fromPose: scene.pointPose, goal: visitorPoint() };
+}
+function drawAttention(now, dt) {
+  const a = attention, elapsed = (now - a.at) / 1000;
+  if (a.kind !== 'exit' && (document.hidden || !card.classList.contains('away') || visibleArea(taskSpecs[a.key].focus) < .5)) {
+    leaveAttention(now); return drawAttention(now, dt);
+  }
+  if (a.kind === 'start') {
+    const target = taskSpecs[a.key].pointPose(taskSpecs[a.key].state.clock).point;
+    const distance = Math.hypot(target.x - a.from.x, target.y - a.from.y) || 1;
+    const reach = 9 * ease(elapsed / .62), gather = Math.sin(Math.PI * clamp(elapsed / .62, 0, 1)) ** 2;
+    actor(pointy, { x: a.from.x + (target.x - a.from.x) / distance * reach,
+      y: a.from.y + (target.y - a.from.y) / distance * reach }, true,
+      { ...blendPose(a.fromPose, { colour: 0, angle: heading(a.from, target) }, ease(elapsed / .38)),
+        sy: 1 - .055 * gather, glow: .18 * gather });
+    if (elapsed >= .62) { attention = null; beginTask(a.key, now); }
+    return;
+  }
+  if (a.kind === 'revisit' && elapsed < 1.18) {
+    const goal = taskSpecs[a.key].resultAt();
+    const motion = handoff(a.from, a.fromPose, goal, { colour: 1, angle: heading(a.from, goal) }, elapsed / .82, 15);
+    actor(pointy, motion.point, true, motion.pose);
+    if (elapsed >= .82 && !a.returnFrom) { a.returnFrom = motion.point; a.returnPose = motion.pose; }
+    return;
+  }
+  if (a.kind === 'revisit' && !a.returnFrom) { a.returnFrom = scene.point || taskSpecs[a.key].resultAt(); a.returnPose = scene.pointPose; }
+  a.goal = chasePoint(a.goal, visitorPoint(), dt, .17);
+  const p = a.kind === 'revisit' ? (elapsed - 1.18) / .82 : elapsed / .75;
+  const motion = handoff(a.returnFrom || a.from, a.returnPose || a.fromPose, a.goal, visitorPose(), p, 15);
+  actor(pointy, motion.point, true, motion.pose);
+  if (p >= 1) attention = null;
+}
+function focusCandidate(now) {
+  if (owner || attention || guideCamera || document.hidden || !card.classList.contains('away') || calm) return null;
+  const eligible = markerOrder.filter(key => {
+    const s = taskSpecs[key].state;
+    return (s.mode === 'paused' || (s.mode === 'waiting' && (!s.entryNudged || s.pendingStart)) || (s.finished && s.revisitReady)) &&
+      visibleArea(taskSpecs[key].focus) >= .6 && settledAt(s, now);
+  });
+  if (framedScene && eligible.includes(framedScene)) return framedScene;
+  const central = eligible.map(key => {
+    const r = taskSpecs[key].focus.getBoundingClientRect();
+    const dx = Math.abs((r.left + r.right) / 2 - innerWidth / 2) / innerWidth;
+    const dy = Math.abs((r.top + r.bottom) / 2 - innerHeight / 2) / innerHeight;
+    return { key, dx, dy, score: visibleArea(taskSpecs[key].focus) - .22 * (dx + dy) };
+  }).filter(item => item.dx < .38 && item.dy < .38);
+  central.sort((a, b) => b.score - a.score);
+  return central[0]?.key || null;
+}
 function updateSceneFrames(now) {
   for (const [key, spec] of Object.entries(taskSpecs)) {
     const s = spec.state;
@@ -1006,6 +1073,7 @@ function updateSceneFrames(now) {
 function settledAt(s, now) { return now - s.navAt >= 350 && !drag && !pinch && Math.abs(vx) < .05 && Math.abs(vy) < .05; }
 function beginTask(key, now) {
   const s = taskSpecs[key].state;
+  s.entryNudged = true; s.pendingStart = false; s.revisitReady = false;
   owner = key; s.mode = 'entering'; s.moveAt = now; s.from = scene.point || visitorPoint(); s.fromPose = scene.pointPose;
 }
 function drawTask(key, now, dt) {
@@ -1018,7 +1086,7 @@ function drawTask(key, now, dt) {
     if (visibility < .5 || document.hidden || !card.classList.contains('away')) pauseTask(s, now, t => spec.pointPose(t).point);
     else { s.clock = Math.min(spec.end, s.clock + dt * ease((now - s.playAt) / 180));
       if (s.clock >= spec.returnStart) s.returnGoal = chasePoint(s.returnGoal, visitorPoint(), dt, .18);
-      if (s.clock >= spec.end) { s.mode = 'finished'; s.finished = true; s.finishAt = now; } }
+      if (s.clock >= spec.end) { s.mode = 'finished'; s.finished = true; s.finishAt = now; s.revisitReady = false; } }
   }
   if (s.mode === 'paused' && !guideCamera && card.classList.contains('away') && !document.hidden && visibility > .6 && settledAt(s, now)) beginTask(key, now);
   spec.render();
@@ -1066,40 +1134,51 @@ function sceneFrame(now) {
   if (card.classList.contains('away') && !document.hidden && scene.mode === 'arrival' && scene.camera) {
     const c = scene.camera, p = ease((now - c.at) / 900);
     px = c.fromX + (c.toX - c.fromX) * p; py = c.fromY + (c.toY - c.fromY) * p; apply();
-    if (p >= 1) { scene.camera = null; beginTask('colour', now); }
+    if (p >= 1) { scene.camera = null; scene.mode = 'waiting'; owner = null; scene.navAt = now; }
   }
   if (owner === 'colour' && scene.mode === 'arrival' && !scene.camera) {
     if (sceneVisibility() < .5) scenePause(now);
-    else if (sceneVisibility() > .6 && settledAt(scene, now)) beginTask('colour', now);
+    else if (sceneVisibility() > .6 && settledAt(scene, now)) { scene.mode = 'waiting'; owner = null; }
   }
-  if (!owner && card.classList.contains('away') && !document.hidden && !calm) {
-    const choices = Object.entries(taskSpecs).map(([key, spec]) => [key, spec.state]).filter(([key, s]) =>
-      !s.finished && (s.mode === 'paused' || s.mode === 'waiting') && visibleArea(taskSpecs[key].focus) > .6 && settledAt(s, now));
-    choices.sort((a, b) => visibleArea(taskSpecs[b[0]].focus) - visibleArea(taskSpecs[a[0]].focus));
-    if (choices.length && !guideCamera) beginTask(choices[0][0], now);
+  for (const [key, spec] of Object.entries(taskSpecs)) {
+    const s = spec.state;
+    const visibility = visibleArea(spec.focus);
+    if (s.finished && visibility < .5) {
+      if (!s.revisitOutsideAt) s.revisitOutsideAt = now;
+      if (now - s.revisitOutsideAt >= 600 && now - s.finishAt > 1200) s.revisitReady = true;
+    } else s.revisitOutsideAt = 0;
+    if (s.mode === 'waiting' && visibility < .5) { s.entryNudged = false; s.pendingStart = false; }
+  }
+  const candidate = focusCandidate(now);
+  if (candidate) {
+    const s = taskSpecs[candidate].state;
+    if (s.mode === 'paused' || s.pendingStart) beginTask(candidate, now);
+    else startAttention(candidate, s.finished ? 'revisit' : 'start', now);
   }
   if (owner) drawTask(owner, now, dt);
   else { renderScene(); renderRobot(); renderWriting(); const target = visitorPoint();
-    actor(pointy, calm ? target : chasePoint(scene.point, target, dt), true, calm ? visitorPose() : visitorFollowPose(target, dt));
+    if (attention) drawAttention(now, dt);
+    else actor(pointy, calm ? target : chasePoint(scene.point, target, dt), true, calm ? visitorPose() : visitorFollowPose(target, dt));
     actor(mo, null, false);
     actor(lena, calm ? robotHome() : null, calm && visibleArea(robotFocus) >= .5 && card.classList.contains('away'));
     actor(wen, calm ? writingParaPoint(2) : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
   updateSceneFrames(now);
-  updateSceneMarkers();
+  updateSceneMarkers(now);
 }
 document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') scene.mouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
 document.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') scene.touchSeen = true; }, { passive: true });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { guideCamera = null; scenePause(performance.now()); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { guideCamera = null; leaveAttention(performance.now()); scenePause(performance.now()); } });
 renderScene(); renderRobot(); renderWriting(); sceneReady = true;
 wander.onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false;
   if (!scene.visited) beginSceneArrival(performance.now()); else scene.navAt = performance.now(); };
-pill.onclick = () => { guideCamera = null; framedScene = null; card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now());
+pill.onclick = () => { guideCamera = null; framedScene = null; leaveAttention(performance.now()); card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now());
   for (const el of Object.values(sceneMarkers)) { el.classList.remove('show'); el.inert = true; el.tabIndex = -1; el.setAttribute('aria-hidden', 'true'); } };
 for (const [key, el] of Object.entries(sceneMarkers)) el.onclick = e => {
   e.stopPropagation(); if (!el.classList.contains('show')) return;
   drifting = false; vx = vy = 0;
   const now = performance.now(), target = markerTarget[key]();
-  scenePause(now); scene.camera = null; framedScene = key;
+  leaveAttention(now); scenePause(now); scene.camera = null; framedScene = key;
+  if (taskSpecs[key].state.finished) taskSpecs[key].state.revisitReady = true;
   scene.navAt = robot.navAt = writing.navAt = now;
   if (calm) { px = target.toX; py = target.toY; apply(); }
   else { const distance = Math.hypot(target.toX - px, target.toY - py);

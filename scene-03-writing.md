@@ -22,7 +22,7 @@ The scene replaces Type & letters with a 580px desktop / 400px narrow stage. Poi
 | 14.65–17.8 s | Testimony card arrives; Pointy guides to it, pauses, rejoins Wen. |
 | 17.8–19.45 s | Hold the developed note and Stream, then Pointy returns to the visitor. |
 
-After Wander, Colour, Robotics (“Read next”), and Writing have directional edge markers available together. Writing can be chosen before either other scene finishes. Clicking its marker pans there at the fixed device scale; manual navigation cancels the pan. Hide only the marker belonging to a scene with an active highlight border. When no scene is highlighted, show all three. Completed scenes remain linkable without replay. Pointy's name stays out of visitor-facing copy and accessibility labels.
+After Wander, all three scenes have directional edge markers available together. Writing can be chosen before either other scene finishes. Clicking its marker pans there at the fixed device scale; manual navigation cancels the pan. Hide its marker at 60% stage visibility and re-show it below 50%, regardless of playback state. Once settled, Pointy gives one gentle attention nudge before joining Wen. A deliberate finished revisit gets a brief acknowledgment of the result, without replaying the note or Stream. Completed scenes remain linkable from offscreen. Pointy's name stays out of visitor-facing copy and accessibility labels.
 
 ## Source evidence and product scope
 
