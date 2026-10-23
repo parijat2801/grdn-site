@@ -60,8 +60,104 @@
 
   /* live widgets */
   .pizza svg path { cursor: pointer; transition: fill .15s; }
-  .palette { display: flex; height: 64px; border-radius: 10px; overflow: hidden; margin-top: 10px; cursor: pointer; }
-  .palette div { flex: 1; transition: background .3s; }
+  .scene-colour .scene-focus, .scene-robotics .robot-focus, .scene-writing .writing-focus { position: relative; --frame-opacity: 0; --frame-colour: var(--teal); }
+  .scene-colour .scene-focus::after, .scene-robotics .robot-focus::after, .scene-writing .writing-focus::after { content: ''; position: absolute; inset: -9px; border: 2px solid var(--frame-colour); border-radius: 24px; opacity: var(--frame-opacity); pointer-events: none; }
+  .scene-colour .scene-stage { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .scene-colour .scene-note, .scene-colour .scene-palette { min-height: 156px; }
+  .scene-colour .scene-note .t { margin-bottom: 22px; }
+  .scene-colour .scene-copy { min-height: 76px; font: 20px/1.3 'Newsreader', Georgia, serif; }
+  .scene-colour .scene-caret { display: inline-block; height: 1em; width: 1px; margin-left: 2px; background: var(--coral); vertical-align: -.13em; }
+  .scene-colour .scene-caret[hidden] { display: none; }
+  .scene-colour .scene-swatches { display: flex; height: 74px; margin-top: 14px; overflow: hidden; border-radius: 10px; }
+  .scene-colour .scene-swatches span { flex: 1; }
+  .scene-colour .scene-refs { margin-top: 14px; }
+  .scene-colour .scene-refs a { pointer-events: none; }
+  .scene-colour .thing:hover { transform: none; }
+  .scene-robotics .robot-stage { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.38fr); gap: 14px; }
+  .scene-robotics .robot-stream, .scene-robotics .robot-lab { height: 424px; }
+  .scene-robotics .robot-context { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .scene-robotics .robot-heading { height: 28px; margin-top: 6px; font: 600 19px 'Newsreader', Georgia, serif; color: var(--ink); }
+  .scene-robotics .robot-list { position: relative; height: 330px; border-top: 1px solid var(--line); }
+  .scene-robotics .robot-row { position: absolute; left: 0; right: 0; top: 0; height: 66px; padding: 7px 9px 6px 13px; border-bottom: 1px solid var(--line); border-radius: 7px; background: #fff; }
+  .scene-robotics .robot-row::before { content: ''; position: absolute; left: 1px; top: 11px; bottom: 11px; width: 3px; border-radius: 3px; background: var(--teal); opacity: var(--mark, 0); }
+  .scene-robotics .robot-row strong { display: block; font-size: 15px; line-height: 1.15; font-weight: 600; }
+  .scene-robotics .robot-row-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 3px; }
+  .scene-robotics .robot-row small { color: var(--muted); font-size: 12px; line-height: 1.1; white-space: nowrap; }
+  .scene-robotics .robot-row [data-robot-reason] { color: #0a7065; font-weight: 700; }
+  .scene-robotics .robot-lab { overflow: hidden; }
+  .scene-robotics .robot-shelf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, 1fr); gap: 8px; height: 340px; margin-top: 14px; }
+  .scene-robotics .lab-tile { position: relative; min-width: 0; border-radius: 10px; border: 1px solid rgba(16,36,58,.08); background: #F8F6F0; padding: 10px; overflow: hidden; }
+  .scene-robotics .lab-tile .k { font-size: 9px; letter-spacing: .08em; }
+  .scene-robotics .lab-tile strong { display: block; margin-top: 7px; font: 500 15px/1.13 'Newsreader', Georgia, serif; }
+  .scene-robotics .lab-tile.sketch { background: #EEF4F1; }
+  .scene-robotics .lab-tile.sketch img { display: block; width: 72px; height: 72px; margin: 1px auto 0; object-fit: contain; }
+  .scene-robotics .lab-tile.slot { border-style: dashed; background: #FAF9F5; }
+  .scene-robotics .lab-tile.slot::before { content: '+'; display: block; margin-top: 24px; text-align: center; color: #9aaea9; font-size: 22px; }
+  .scene-robotics .robot-kept-card { position: absolute; inset: 0; padding: 10px; border-radius: 9px; background: #EAF4EF; }
+  .scene-robotics .robot-kept-card strong { display: block; margin-top: 8px; font: 500 14px/1.12 'Newsreader', Georgia, serif; }
+  .scene-robotics .robot-kept-card small { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.12; }
+  .scene-robotics .robot-kept-card .robot-kept-status { margin-top: 5px; color: #0a7065; font-weight: 700; }
+  .robot-thought { position: fixed; z-index: 19; width: 210px; padding: 10px 12px; border-radius: 13px; background: #fffaf3; border: 1px solid rgba(196,85,47,.2); box-shadow: 0 7px 20px rgba(16,36,58,.1); font: 500 16px/1.15 'Newsreader', Georgia, serif; pointer-events: none; opacity: 0; }
+  .robot-thought::after { content: ''; position: absolute; right: -6px; bottom: 12px; width: 10px; height: 10px; background: #fffaf3; border-right: 1px solid rgba(196,85,47,.2); border-top: 1px solid rgba(196,85,47,.2); transform: rotate(45deg); }
+  .scene-robotics .thing:hover { transform: none; }
+  .robot-carry { position: fixed; z-index: 19; width: 132px; padding: 7px 9px; border: 1px solid rgba(16,36,58,.12); border-radius: 8px; background: #fff; box-shadow: 0 7px 16px rgba(16,36,58,.13); pointer-events: none; opacity: 0; }
+  .robot-carry .k { font-size: 8px; }
+  .robot-carry strong { display: block; margin-top: 2px; font: 500 14px/1.05 'Newsreader', Georgia, serif; white-space: nowrap; }
+  .robot-carry small { display: block; margin-top: 3px; font-size: 9px; color: var(--muted); white-space: nowrap; }
+  .robot-love { position: fixed; z-index: 19; display: flex; align-items: center; gap: 5px; color: var(--coral); font-size: 11px; font-weight: 700; white-space: nowrap; text-shadow: 0 1px 3px #fff, 0 -1px 3px #fff; pointer-events: none; opacity: 0; }
+  .robot-love .heart { position: static; animation: float 1.4s cubic-bezier(.2,.7,.2,1) both paused; font-size: 18px; line-height: 1; }
+  .scene-writing .writing-stage { height: 376px; display: grid; grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); overflow: hidden; padding: 0; }
+  .scene-writing .writing-doc, .scene-writing .writing-panel { height: 100%; overflow: hidden; }
+  .scene-writing .writing-doc { border-right: 1px solid var(--line); }
+  .scene-writing .writing-chrome { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-bottom: 1px solid var(--line); background: #F8F7F3; color: var(--muted); font-size: 10px; }
+  .scene-writing .writing-chrome i { width: 6px; height: 6px; border-radius: 50%; background: #D5D8D0; }
+  .scene-writing .writing-launch { margin-left: auto; padding: 3px 7px; border-radius: 5px; background: #E4F3EF; color: #0a7065; font-weight: 800; }
+  .scene-writing .writing-page { padding: 25px 25px 20px; }
+  .scene-writing .writing-page h3 { font: 500 24px/1.1 'Newsreader',Georgia,serif; margin-bottom: 18px; }
+  .scene-writing .writing-draft { min-height: 82px; font: 18px/1.35 'Newsreader',Georgia,serif; }
+  .scene-writing .writing-caret { display: inline-block; width: 1px; height: 16px; margin-left: 2px; background: var(--coral); vertical-align: -.1em; }
+  .scene-writing .writing-quote { margin-top: 17px; padding: 8px 0 7px 13px; border-left: 2px solid var(--teal); font: 18px/1.25 'Newsreader',Georgia,serif; }
+  .scene-writing .writing-quote small { display: block; margin-top: 7px; color: var(--muted); font: 12px/1.2 'Bricolage Grotesque',sans-serif; }
+  .scene-writing .writing-panel { background: #FBFCFA; padding: 14px 16px; }
+  .scene-writing .writing-panel-body { transform-origin: left center; }
+  .scene-writing .writing-panel-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 11px; border-bottom: 1px solid var(--line); }
+  .scene-writing .writing-panel-head strong { font-size: 16px; }
+  .scene-writing .writing-panel-head small { color: var(--muted); font-size: 11px; }
+  .scene-writing .writing-tab { margin: 13px 0 12px; display: inline-block; border-bottom: 2px solid var(--teal); padding-bottom: 4px; color: #0a7065; font-size: 12px; font-weight: 800; }
+  .scene-writing .writing-query { min-height: 48px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; font-size: 12px; line-height: 1.25; }
+  .scene-writing .writing-result { margin-top: 13px; padding: 11px; border-radius: 10px; border: 1px solid rgba(15,143,128,.19); background: #F1F8F5; }
+  .scene-writing .writing-result strong { display: block; font: 500 17px/1.12 'Newsreader',Georgia,serif; }
+  .scene-writing .writing-result small { display: block; margin: 5px 0 11px; color: var(--muted); font-size: 12px; }
+  .scene-writing .writing-excerpt { display: block; padding: 5px 4px; border-radius: 4px; font: 16px/1.2 'Newsreader',Georgia,serif; }
+  .scene-writing .thing:hover { transform: none; }
+  @media (max-width: 560px) {
+    .scene-colour { width: 400px; }
+    .scene-colour .scene-stage { grid-template-columns: 1fr; gap: 10px; }
+    .scene-colour .scene-note, .scene-colour .scene-palette { min-height: 112px; }
+    .scene-colour .scene-copy { min-height: 52px; }
+    .scene-colour .scene-swatches { height: 42px; margin-top: 8px; }
+    .scene-robotics { width: 400px; }
+    .scene-robotics .robot-stage { grid-template-columns: 1fr; gap: 10px; }
+    .scene-robotics .robot-lab { height: 220px; }
+    .scene-robotics .robot-shelf { height: 166px; margin-top: 14px; }
+    .scene-robotics .lab-tile { padding: 7px 10px; }
+    .scene-robotics .lab-tile strong { margin-top: 3px; font-size: 14px; }
+    .scene-robotics .lab-tile.sketch img { width: 54px; height: 54px; margin-top: -2px; }
+    .scene-robotics .lab-tile.slot::before { margin-top: 13px; }
+    .scene-robotics .robot-kept-card { padding: 7px 10px; }
+    .scene-robotics .robot-kept-card strong { margin-top: 3px; font-size: 14px; }
+    .robot-thought { width: 178px; font-size: 17px; }
+    .scene-robotics .robot-kept-card small { margin-top: 2px; }
+    .scene-robotics .robot-stream { height: 406px; }
+    .scene-writing { width: 400px; }
+    .scene-writing .writing-stage { height: auto; grid-template-columns: 1fr; }
+    .scene-writing .writing-doc { height: 238px; border-right: 0; border-bottom: 1px solid var(--line); }
+    .scene-writing .writing-panel { height: 286px; }
+    .scene-writing .writing-page { padding: 15px 18px; }
+    .scene-writing .writing-page h3 { margin-bottom: 10px; }
+    .scene-writing .writing-draft { min-height: 58px; }
+    .scene-writing .writing-quote { margin-top: 7px; }
+  }
   .keys { display: flex; gap: 4px; margin-top: 10px; }
   .keys button { flex: 1; height: 64px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 12px 'Bricolage Grotesque'; color: var(--muted); }
   .keys button:active, .keys button.on { background: #DDF3EF; }
@@ -91,13 +187,36 @@
     border: 1px solid rgba(16,36,58,.18); background: #fff; color: var(--ink); outline: none; }
   input[type=email]:focus { border-color: var(--teal); }
   .btn { font: 600 16px 'Bricolage Grotesque'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
+  .btn.reserve-nudge { background: #0a7065; box-shadow: 0 0 0 4px rgba(15,143,128,.15); animation: reserveNudge .56s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes reserveNudge {
+    0%, 100% { scale: 1; background: var(--ink); box-shadow: 0 0 0 0 rgba(15,143,128,0); }
+    26% { scale: .965; background: var(--ink); box-shadow: 0 0 0 0 rgba(15,143,128,0); }
+    62% { scale: 1.025; background: #0a7065; box-shadow: 0 0 0 6px rgba(15,143,128,.13); }
+  }
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
-  .wander { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .wander { background: transparent; border: 0; border-radius: 999px; padding: 14px 22px; font: 600 16px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; transition: background-color .28s ease, color .28s ease; }
+  .wander.pointy-cue { background: #0a7065; color: var(--paper); text-decoration: none; }
+  .actor { --actor-color: var(--teal); position: fixed; left: 0; top: 0; z-index: 20; pointer-events: none; opacity: 0; will-change: transform; }
+  .actor svg { display: block; width: 20px; height: 26px; filter: drop-shadow(0 2px 2px rgba(16,36,58,.14)); }
+  .pointy svg { position: relative; left: -10px; top: -1px; transform-origin: 10px 1px; filter: drop-shadow(0 3px 3px rgba(16,36,58,.17)); }
+  .pointy .seed-glow { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--actor-color); filter: blur(6px); opacity: 0; }
+  .mo svg { transform-origin: 2px 2px; }
+  .actor.mo { --actor-color: var(--coral); }
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   #pill { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
     transition: all .35s ease; }
   #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #next-cue { position: fixed; left: 0; top: 0; z-index: 18; display: flex; align-items: center; gap: 9px; max-width: calc(100vw - 32px);
+    padding: 9px 14px 9px 9px; border: 1px solid rgba(15,143,128,.22); border-radius: 999px; background: #FAF8F2;
+    box-shadow: 0 5px 18px rgba(16,36,58,.09); color: var(--ink); font: 600 13px 'Bricolage Grotesque', sans-serif;
+    white-space: nowrap; cursor: pointer; opacity: 0; pointer-events: none; transform: translate(-50%,-50%); transition: opacity .28s ease, box-shadow .28s ease; }
+  #next-cue.show { opacity: 1; pointer-events: auto; }
+  #next-cue:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  #next-cue .next-icon { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: #E4F3EF; color: #0a7065; font-size: 19px; line-height: 1; }
+  #next-cue.accent .next-icon { animation: nextAccent .75s ease-out 1; }
+  @keyframes nextAccent { 45% { box-shadow: 0 0 0 5px rgba(15,143,128,.12); } }
+  @media (max-width: 560px) { #next-cue { padding: 7px 11px 7px 7px; font-size: 12px; gap: 7px; } #next-cue .next-icon { width: 26px; height: 26px; } }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
 </style>
 </head>
@@ -117,6 +236,14 @@
   <div class="fine"><button class="wander" id="wander">Wander</button></div>
 </section>
 <button class="btn" id="pill">Reserve yours</button>
+<button type="button" id="next-cue" aria-label="A better read next in Lena’s Robotics garden" aria-hidden="true" tabindex="-1" inert><span class="next-icon" aria-hidden="true"><span class="next-arrow">→</span></span><span data-next-label>A better read next</span></button>
+<div class="actor pointy" id="pointy" aria-hidden="true"><b class="seed-glow"></b><svg viewBox="0 0 20 26"><path d="M10 1 C12 5 17 8 18 13 C20 19 15 24 10 24 C4 24 1 20 2 14 C3 9 8 5 10 1Z" fill="var(--actor-color)" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 11 C5.5 14 5.5 17 7 19" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+<div class="actor mo" id="mo" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+<div class="actor mo" id="lena" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+<div class="actor mo" id="wen" aria-hidden="true"><svg viewBox="0 0 20 26"><path d="M2 1v20l5-5 3.6 8 3.5-1.5-3.7-8H18Z" fill="#c4552f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+<div class="robot-carry" id="robot-carry" aria-hidden="true"><span class="k">Reference</span><strong>Wheel odometry</strong><small>From Karthik’s garden</small></div>
+<div class="robot-thought" id="robot-thought" aria-hidden="true">Why does my robot drift?</div>
+<div class="robot-love" id="robot-love" aria-hidden="true"><span class="heart">♥</span><span>Roma loved it</span></div>
 
 <script>
 // ---------- content ----------
@@ -147,8 +274,6 @@ const G = [
     { type: 'link', img: 'web/patatap-com-12.png', href: 'https://patatap.com', dom: 'patatap.com', t: 'Patatap', kept: 512 },
   ]},
   { name: 'Colour', by: 'a garden by Mo', things: [
-    { live: 'palette' },
-    { type: 'note', text: 'Warm paper, one ink, one accent. Everything else is noise.', kept: 19 },
     { type: 'link', img: 'web/oklch-com-23.png', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
     { type: 'link', img: 'web/weavesilk-com-13.png', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
   ]},
@@ -235,10 +360,7 @@ const G = [
     { type: 'note', text: 'House rule: robber goes home after a seven.', kept: 4 },
   ]},
   { name: 'Robotics, new this week', by: 'Lena’s lab', things: [
-    { type: 'flow', k: 'Node · Veo', t: 'Explain anything new', steps: ['arXiv stream', 'Veo', 'video'], kept: 48 },
-    { type: 'video', t: 'Tactile SLAM, in 40 seconds', dom: 'made by a node', kept: 71 },
-    { type: 'link', dom: 'arxiv.org', t: 'New in cs.RO', kept: 35 },
-    { type: 'note', text: 'Why does my robot drift? Start with the wheel odometry.', kept: 11 },
+    { type: 'note', text: 'Why does my robot drift?', kept: 11 },
   ]},
   { name: 'Kitchen', by: 'Priya & Sam', things: [
     { type: 'app', e: '🍳', bg: '#FFE3D6', k: 'App', t: 'Meal roulette', kept: 377 },
@@ -265,11 +387,7 @@ const G = [
     { type: 'app', e: '🏃', bg: '#FFE3D6', k: 'Tool', t: 'Easy-pace calculator', kept: 283 },
     { type: 'note', text: 'If you can’t talk, you’re going too fast.', kept: 150 },
   ]},
-  { name: 'Type & letters', by: 'a garden by Wen', things: [
-    { type: 'app', e: '🔤', bg: '#F1ECE0', k: 'Toy', t: 'Kerning game', kept: 1120 },
-    { type: 'link', dom: 'fonts.google.com', t: 'Newsreader, by Production Type', kept: 45 },
-    { type: 'note', text: 'Set it big, then take away weight until it breathes.', kept: 33 },
-  ]},
+  { name: 'An old thought, found', by: 'Wen', things: [] },
   { name: 'Money basics', by: 'for my kids', things: [
     { type: 'app', e: '🪙', bg: '#FCEBC2', k: 'Game', t: 'Pocket money jar', kept: 470 },
     { type: 'app', e: '📈', bg: '#DDF3EF', k: 'Toy', t: 'What compounding looks like', kept: 812 },
@@ -315,7 +433,6 @@ function liveHTML(kind) {
       paths += `<path data-i="${i}" d="M0 0 L${70 * Math.cos(a0)} ${70 * Math.sin(a0)} A70 70 0 0 1 ${70 * Math.cos(a1)} ${70 * Math.sin(a1)} Z" fill="#FBE3C4" stroke="#fff" stroke-width="3"/>`; }
     return `<div class="thing live pizza">${head('Game', 'Fraction Pizza')}<div class="row" style="margin-top:10px"><svg width="150" height="150" viewBox="-75 -75 150 150"><circle r="73" fill="#e5b87a"/>${paths}</svg><div class="serif" style="font-size:36px" data-out>0/8</div></div><div class="meta"><span>tap the slices</span><span class="kept">kept by 1,204</span></div></div>`;
   }
-  if (kind === 'palette') return `<div class="thing live">${head('Tool', 'Palette maker')}<div class="palette" data-pal>${'<div></div>'.repeat(5)}</div><div class="meta"><span>tap for another</span><span class="kept">kept by 522</span></div></div>`;
   if (kind === 'synth') return `<div class="thing live">${head('Toy', 'Tiny synth')}<div class="keys">${['C', 'D', 'E', 'G', 'A', 'C'].map((n, i) => `<button data-f="${[261.6, 293.7, 329.6, 392, 440, 523.3][i]}">${n}</button>`).join('')}</div><div class="meta"><span>play a tune</span><span class="kept">kept by 318</span></div></div>`;
   if (kind === 'dice') return `<div class="thing live">${head('Tool', 'Two dice')}<div class="dice" data-dice>⚂⚄</div><div class="meta"><span>tap to roll</span><span class="kept">kept by 141</span></div></div>`;
   if (kind === 'moon') return `<div class="thing live">${head('App', 'Moon tonight')}<div class="row"><div class="moon" data-moon></div><div class="serif" style="font-size:20px" data-moontxt></div></div><div class="meta"><span>live</span><span class="kept">kept by 87</span></div></div>`;
@@ -325,10 +442,21 @@ const heights = Array(COLS).fill(60);
 const order = [2, 3, 1, 4, 0, 5]; // fill the middle first
 G.forEach((g, i) => {
   const d = document.createElement('div'); d.className = 'garden';
-  d.innerHTML = `<header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="cols"><div class="col"></div><div class="col"></div></div>`;
+  if (g.name === 'Colour') {
+    d.classList.add('scene-colour');
+    d.innerHTML = `<div class="scene-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="scene-stage"><div class="thing scene-note" aria-label="For the café. Warm paper, dark ink, a little terracotta."><div class="k">Note</div><div class="t">For the café</div><p class="scene-copy" aria-hidden="true"><span data-scene-copy></span><i class="scene-caret" data-scene-caret hidden></i></p></div><div class="thing scene-palette" aria-label="Palette: paper, sand, terracotta, sage, ink"><div class="k">Palette</div><div class="scene-swatches" data-scene-palette>${'<span></span>'.repeat(5)}</div></div></div></div><div class="cols scene-refs"><div class="col"></div><div class="col"></div></div>`;
+  } else if (g.name === 'Robotics, new this week') {
+    d.classList.add('scene-robotics');
+    const topics = ['Wheel odometry: where drift begins', 'Teaching a robot to fold laundry', 'Calibrating wheel radius and axle width', 'A gripper for delicate fruit', 'Correcting drift with visual landmarks'];
+    const sources = ['From Karthik’s garden', 'From the web', 'From the web', 'From the web', 'From Ines’s garden'];
+    d.innerHTML = `<div class="robot-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="robot-stage"><div class="thing robot-lab" role="group" aria-label="Lena’s lab. Lena wonders: Why does my robot drift?"><div class="k">Lena’s lab</div><div class="robot-shelf"><div class="lab-tile"><div class="k">Note</div><strong>Check wheel radius again</strong></div><div class="lab-tile sketch"><div class="k">Sketch</div><img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Autonomous_mobile_robot.svg" alt="Top view of a small two-wheeled mobile robot" title="Autonomous mobile robot by Arne Nordmann (norro), public domain, via Wikimedia Commons"></div><div class="lab-tile"><div class="k">Reference</div><strong>Sensor placement notes</strong></div><div class="lab-tile slot"><div class="robot-kept-card" data-robot-kept><div class="k">Reference</div><strong aria-label="${esc(topics[0])}">Wheel odometry</strong><small>Kept from Karthik’s garden</small><small class="kept robot-kept-status">Kept in Lena’s lab</small></div></div></div></div><div class="thing robot-stream"><div class="robot-context">Reading stream</div><div class="robot-heading" data-robot-heading></div><div class="robot-list">${topics.map((title, i) => `<div class="robot-row" data-robot-row="${i}"><strong>${esc(title)}</strong><div class="robot-row-meta"><small>${esc(sources[i])}</small><small data-robot-reason></small></div></div>`).join('')}</div></div></div></div>`;
+  } else if (g.name === 'An old thought, found') {
+    d.classList.add('scene-writing');
+    d.innerHTML = `<div class="writing-focus"><header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="thing writing-stage" role="group" aria-label="Wen writes in a browser document and explicitly asks Grdn for a saved note"><div class="writing-doc"><div class="writing-chrome"><i></i><i></i><i></i><span>Writing in your browser</span><span class="writing-launch" data-writing-launch>Grdn</span></div><div class="writing-page"><h3>A place to think</h3><p class="writing-draft"><span data-writing-draft></span><i class="writing-caret" data-writing-caret></i></p><blockquote class="writing-quote" data-writing-quote>“Leave room for an idea to change.”<small>From “Notes on digital gardens” · your Writing garden</small></blockquote></div></div><div class="writing-panel"><div class="writing-panel-head"><strong>Grdn</strong><small>side panel</small></div><div class="writing-panel-body" data-writing-panel-body><span class="writing-tab">Ask</span><div class="writing-query" data-writing-query></div><div class="writing-result" data-writing-result><div class="k">Saved note</div><strong>Notes on digital gardens</strong><small>From your Writing garden · kept in March</small><span class="writing-excerpt" data-writing-excerpt>“Leave room for an idea to change.”</span></div></div></div></div></div>`;
+  } else d.innerHTML = `<header><h2>${esc(g.name)}</h2><span class="by">${esc(g.by)}</span></header><div class="cols"><div class="col"></div><div class="col"></div></div>`;
   world.appendChild(d);
   const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
-  g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
+  if (!d.classList.contains('scene-robotics')) g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
     (cols[0].offsetHeight <= cols[1].offsetHeight ? cols[0] : cols[1]).appendChild(el); });
   let c = order[0]; for (const k of order) if (heights[k] < heights[c] - 40) c = k;
   d.style.left = (60 + c * COLW) + 'px'; d.style.top = heights[c] + 'px';
@@ -338,7 +466,36 @@ const WW = 60 * 2 + COLS * COLW - 60, WH = Math.max(...heights) + 60;
 // ---------- endless garden: every column loops vertically, the columns loop sideways ----------
 const PW = COLS * COLW, colP = heights.map(h => h - 60);
 const tiles = [...world.querySelectorAll('.garden')].map(el => ({ el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top), h: el.offsetHeight, c: Math.round((parseFloat(el.style.left) - 60) / COLW), x: null, y: null }));
-const maxGH = Math.max(...tiles.map(t => t.h));
+let maxGH = Math.max(...tiles.map(t => t.h));
+function reflowTileHeights() {
+  const nextY = Array(COLS).fill(60);
+  for (const t of tiles) {
+    t.h = t.el.offsetHeight; t.y0 = nextY[t.c]; nextY[t.c] += t.h + GAP;
+    t.y = null;
+  }
+  nextY.forEach((height, c) => { colP[c] = height - 60; });
+  maxGH = Math.max(...tiles.map(t => t.h));
+}
+const colourTile = tiles.find(t => t.el.classList.contains('scene-colour'));
+const colourFocus = colourTile.el.querySelector('.scene-focus');
+const robotTile = tiles.find(t => t.el.classList.contains('scene-robotics'));
+const robotFocus = robotTile.el.querySelector('.robot-focus');
+const writingTile = tiles.find(t => t.el.classList.contains('scene-writing'));
+const writingFocus = writingTile.el.querySelector('.writing-focus');
+function sceneFrameTarget(tile, focus) {
+  const worldX = (innerWidth / 2 - px) / z, worldY = (innerHeight / 2 - py) / z;
+  const baseX = tile.x0 + focus.offsetLeft + focus.offsetWidth / 2;
+  const baseY = tile.y0 + focus.offsetTop + focus.offsetHeight / 2;
+  const x = baseX + Math.round((worldX - baseX) / PW) * PW;
+  const periodY = colP[tile.c], y = baseY + Math.round((worldY - baseY) / periodY) * periodY;
+  const top = innerWidth <= 560 ? 24 : 32, bottom = innerWidth <= 560 ? 104 : 76;
+  return { x: px + x * z, y: py + y * z, toX: innerWidth / 2 - x * z,
+    toY: (innerHeight + top - bottom) / 2 - y * z };
+}
+const nearestRobotFrame = () => sceneFrameTarget(robotTile, robotFocus);
+const nearestWritingFrame = () => sceneFrameTarget(writingTile, writingFocus);
+colourTile.el.querySelectorAll('a').forEach(a => { a.tabIndex = -1; a.setAttribute('aria-disabled', 'true'); });
+document.addEventListener('click', e => { if (e.target.closest('.scene-colour a')) e.preventDefault(); }, true);
 
 // ---------- live widgets ----------
 document.querySelectorAll('.pizza').forEach(p => {
@@ -346,8 +503,6 @@ document.querySelectorAll('.pizza').forEach(p => {
   p.querySelectorAll('path').forEach(s => s.addEventListener('click', () => { const i = s.dataset.i; on.has(i) ? on.delete(i) : on.add(i);
     s.setAttribute('fill', on.has(i) ? '#FF9E7A' : '#FBE3C4'); const n = on.size; out.textContent = n === 8 ? '1 whole' : n === 4 ? '4/8 = ½' : n === 2 ? '2/8 = ¼' : n === 6 ? '6/8 = ¾' : `${n}/8`; }));
 });
-const hsl = (h, s, l) => `hsl(${h} ${s}% ${l}%)`;
-document.querySelectorAll('[data-pal]').forEach(p => { const roll = () => { const h = Math.random() * 360; [...p.children].forEach((c, i) => c.style.background = hsl((h + i * 28) % 360, 45 + i * 6, 88 - i * 14)); }; roll(); p.addEventListener('click', roll); });
 let actx; document.querySelectorAll('.keys button').forEach(b => b.addEventListener('pointerdown', () => {
   actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain();
   o.type = 'triangle'; o.frequency.value = +b.dataset.f; g.gain.setValueAtTime(.18, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + .6);
@@ -360,13 +515,19 @@ const faces = '⚀⚁⚂⚃⚄⚅'; document.querySelectorAll('[data-dice]').for
   document.querySelectorAll('[data-moon]').forEach(m => m.textContent = [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx]);
   document.querySelectorAll('[data-moontxt]').forEach(m => m.innerHTML = `${names[idx]}<br><span style="font-size:15px;color:var(--muted)">${lit}% lit</span>`); })();
 
-// ---------- pan everywhere, pinch zoom on touch screens only, gentle drift until touched ----------
+// ---------- pan everywhere at one device-width scale, gentle drift until touched ----------
 const view = document.getElementById('view');
 const ZMAX = 1.5; let ZMIN = .35;
-const setZmin = () => { ZMIN = Math.max(.35, innerHeight / (Math.min(...colP) - maxGH - 80), innerWidth / (PW - COLW - 80)); };
+const setZmin = () => { const wrapFloor = Math.max(.35, innerHeight / (Math.min(...colP) - maxGH - 80), innerWidth / (PW - COLW - 80));
+  ZMIN = Math.min(wrapFloor, (innerWidth - 48) / (colourFocus.offsetWidth + 18)); };
 setZmin();
-let z = innerWidth < 700 ? .72 : .82;
+const deviceSceneZoom = () => Math.max(ZMIN, Math.min(innerWidth < 700 ? 1.08 : .82,
+  (innerWidth - 48) / (colourFocus.offsetWidth + 18)));
+let z = deviceSceneZoom();
 let px = innerWidth / 2 - WW * z / 2, py = innerHeight / 2 - WH * z / 2, drifting = true, t0 = performance.now();
+// Place Colour behind the opening card so Wander reveals a nearby garden.
+px = innerWidth / 2 - (colourTile.x0 + colourFocus.offsetWidth / 2) * z;
+py = innerHeight / 2 - (colourTile.y0 + colourFocus.offsetHeight / 2) * z;
 const wrap = () => { // place each garden in the copy of the loop nearest the view; no clones
   const L = -px / z, T = -py / z;
   for (const t of tiles) {
@@ -375,28 +536,31 @@ const wrap = () => { // place each garden in the copy of the loop nearest the vi
   }
 };
 const apply = () => { z = Math.min(ZMAX, Math.max(ZMIN, z)); world.style.transform = `translate(${px}px,${py}px) scale(${z})`; wrap(); };
-function zoomAt(nz, cx, cy) { nz = Math.min(ZMAX, Math.max(ZMIN, nz)); px = cx - (cx - px) * nz / z; py = cy - (cy - py) * nz / z; z = nz; apply(); }
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (calm) drifting = false;
-let vx = 0, vy = 0, zoomAnim = null;
+let vx = 0, vy = 0, guideCamera = null, drag = null, framedScene = null;
+let sceneReady = false;
 (function drift(now) {
-  if (zoomAnim) { const p = Math.min(1, (now - zoomAnim.t) / 260), e = 1 - Math.pow(1 - p, 3); zoomAt(zoomAnim.from * Math.pow(zoomAnim.to / zoomAnim.from, e), innerWidth / 2, innerHeight / 2); if (p >= 1) zoomAnim = null; }
+  if (guideCamera) { const c = guideCamera, p = ease((now - c.at) / c.duration);
+    px = c.fromX + (c.toX - c.fromX) * p; py = c.fromY + (c.toY - c.fromY) * p; apply();
+    if (p >= 1) { guideCamera = null; framedScene = c.key; taskSpecs[c.key].state.navAt = now; scene.navAt = now; }
+  }
   else if (drifting) { const s = (now - t0) / 1000; px += Math.cos(s * .12) * .35; py += Math.sin(s * .09) * .22; apply(); }
   else if (!drag && (Math.abs(vx) > .05 || Math.abs(vy) > .05)) { px += vx; py += vy; vx *= .94; vy *= .94; apply(); }
+  if (sceneReady) sceneFrame(now);
   requestAnimationFrame(drift);
 })(t0);
-let drag = null; const pts = new Map(); let pinch = null;
-const mid = () => { const [a, b] = [...pts.values()]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) }; };
+const pts = new Map(); let pinch = false;
 view.addEventListener('pointerdown', e => {
-  if (e.target.closest('.live, #card, #pill')) return; e.preventDefault(); drifting = false; vx = vy = 0; zoomAnim = null;
+  if (e.target.closest('.live, #card, #pill, #next-cue')) return; e.preventDefault(); drifting = false; vx = vy = 0;
+  sceneNavigation(performance.now());
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); view.setPointerCapture(e.pointerId);
-  if (pts.size === 2 && e.pointerType === 'touch') { const m = mid(); pinch = { ...m, z, px, py }; drag = null; }
+  if (pts.size === 2 && e.pointerType === 'touch') { pinch = true; drag = null; }
   else if (pts.size === 1) { drag = { x: e.clientX, y: e.clientY, px, py }; view.classList.add('dragging'); }
 });
 view.addEventListener('pointermove', e => {
   if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pinch && pts.size >= 2) { const m = mid(), nz = Math.min(ZMAX, Math.max(ZMIN, pinch.z * m.d / pinch.d));
-    px = m.x - (pinch.x - pinch.px) * nz / pinch.z; py = m.y - (pinch.y - pinch.py) * nz / pinch.z; z = nz; apply(); justDragged = true; return; }
+  if (pinch && pts.size >= 2) { justDragged = true; return; }
   if (!drag) return; const now = performance.now(), dt = Math.max(1, now - (drag.t || now - 16));
   vx = (e.clientX - (drag.lx ?? e.clientX)) / dt * 16; vy = (e.clientY - (drag.ly ?? e.clientY)) / dt * 16; drag.lx = e.clientX; drag.ly = e.clientY; drag.t = now;
   if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 6) drag.moved = true;
@@ -405,13 +569,26 @@ view.addEventListener('pointermove', e => {
 let justDragged = false;
 view.addEventListener('click', e => { if (justDragged) { e.preventDefault(); e.stopPropagation(); justDragged = false; } }, true);
 const lift = e => { pts.delete(e.pointerId);
-  if (pinch) { if (pts.size < 2) { pinch = null; vx = vy = 0; const [r] = [...pts.values()]; drag = r ? { x: r.x, y: r.y, px, py, moved: true } : null; } return; }
+  if (pinch) { if (pts.size < 2) { pinch = false; vx = vy = 0; const [r] = [...pts.values()]; drag = r ? { x: r.x, y: r.y, px, py, moved: true } : null; } return; }
   if (drag && performance.now() - (drag.t || 0) > 80) vx = vy = 0; justDragged = justDragged || !!(drag && drag.moved); drag = null; view.classList.remove('dragging'); };
 view.addEventListener('pointerup', lift); view.addEventListener('pointercancel', lift);
-view.addEventListener('wheel', e => { e.preventDefault(); drifting = false; vx = vy = 0; zoomAnim = null;
+view.addEventListener('wheel', e => { e.preventDefault(); drifting = false; vx = vy = 0;
+  sceneNavigation(performance.now());
   if (e.ctrlKey || e.metaKey) return; // no zoom on desktop; this also stops trackpad pinch from zooming the page
   px -= e.deltaX; py -= e.deltaY; apply(); }, { passive: false });
-addEventListener('resize', () => { setZmin(); apply(); }); apply();
+let viewportSize = { width: innerWidth, height: innerHeight };
+addEventListener('resize', () => {
+  const worldX = (viewportSize.width / 2 - px) / z, worldY = (viewportSize.height / 2 - py) / z;
+  viewportSize = { width: innerWidth, height: innerHeight };
+  reflowTileHeights();
+  setZmin(); z = deviceSceneZoom(); px = innerWidth / 2 - worldX * z; py = innerHeight / 2 - worldY * z; apply();
+  guideCamera = null; scene.camera = null;
+  if (framedScene && card.classList.contains('away')) {
+    const target = framedScene === 'colour' ? sceneFrameTarget(colourTile, colourFocus) : framedScene === 'robot' ? nearestRobotFrame() : nearestWritingFrame();
+    px = target.toX; py = target.toY; apply();
+  }
+  scene.navAt = robot.navAt = writing.navAt = performance.now();
+}); apply();
 
 // ---------- motion: ripple in from the centre ----------
 if (!calm) {
@@ -425,7 +602,7 @@ if (!calm) {
 // ---------- life: now and then, someone keeps a thing you can see ----------
 function keepSomething() {
   const card = document.getElementById('card'), cr = card.classList.contains('away') ? null : card.getBoundingClientRect();
-  const seen = [...document.querySelectorAll('.kept')].filter(k => { const r = k.getBoundingClientRect();
+  const seen = [...document.querySelectorAll('.kept')].filter(k => { if (k.closest('.scene-robotics, .scene-writing')) return false; const r = k.getBoundingClientRect();
     if (r.top < 40 || r.bottom > innerHeight - 90 || r.left < 20 || r.right > innerWidth - 20) return false;
     return !cr || r.right < cr.left - 10 || r.left > cr.right + 10 || r.bottom < cr.top - 10 || r.top > cr.bottom + 10; });
   if (!seen.length) return;
@@ -440,10 +617,455 @@ if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 +
 // ---------- card ----------
 const card = document.getElementById('card'), pill = document.getElementById('pill');
 const scrim = document.getElementById('scrim');
-document.getElementById('wander').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false; };
-pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); };
+const wander = document.getElementById('wander');
+const nextCue = document.getElementById('next-cue'), nextArrow = nextCue.querySelector('.next-arrow'), nextLabel = nextCue.querySelector('[data-next-label]');
+const pointy = document.getElementById('pointy'), mo = document.getElementById('mo'), lena = document.getElementById('lena'), wen = document.getElementById('wen');
+const robotCarry = document.getElementById('robot-carry');
+const robotThought = document.getElementById('robot-thought');
+const robotLove = document.getElementById('robot-love'), robotLoveHeart = robotLove.querySelector('.heart');
+const robotLab = robotTile.el.querySelector('.robot-lab'), robotStream = robotTile.el.querySelector('.robot-stream');
+const robotRows = [...robotTile.el.querySelectorAll('[data-robot-row]')];
+const robotHeading = robotTile.el.querySelector('[data-robot-heading]');
+const robotKept = robotTile.el.querySelector('[data-robot-kept]');
+const robotShelf = robotTile.el.querySelector('.robot-shelf');
+const robotSlot = robotShelf.querySelector('.slot');
+const writingDoc = writingTile.el.querySelector('.writing-doc'), writingPanel = writingTile.el.querySelector('.writing-panel');
+const writingDraft = writingTile.el.querySelector('[data-writing-draft]'), writingQuote = writingTile.el.querySelector('[data-writing-quote]');
+const writingQuery = writingTile.el.querySelector('[data-writing-query]'), writingResult = writingTile.el.querySelector('[data-writing-result]');
+const writingExcerpt = writingTile.el.querySelector('[data-writing-excerpt]');
+const writingLaunch = writingTile.el.querySelector('[data-writing-launch]'), writingPanelBody = writingTile.el.querySelector('[data-writing-panel-body]');
+const writingCaret = writingTile.el.querySelector('[data-writing-caret]');
+const sceneNote = colourTile.el.querySelector('.scene-note'), scenePalette = colourTile.el.querySelector('.scene-palette');
+const sceneCopy = colourTile.el.querySelector('[data-scene-copy]'), sceneCaret = colourTile.el.querySelector('[data-scene-caret]');
+const swatches = [...colourTile.el.querySelectorAll('[data-scene-palette] span')];
+const request = 'Warm paper, dark ink, a little terracotta.';
+const initialColours = ['#BAC9CC', '#C7CFCC', '#AABCC0', '#9EADB5', '#708995'];
+const finalColours = ['#F3EBDD', '#D8C3A5', '#C46B4E', '#8C9B82', '#263B42'];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = p => { p = clamp(p, 0, 1); return p * p * (3 - 2 * p); };
+const mix = (a, b, p) => { const n = [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - p) + parseInt(b.slice(i, i + 2), 16) * p)); return `rgb(${n.join(',')})`; };
+const scene = { mode: 'intro', clock: 0, last: performance.now(), introAt: performance.now(), navAt: 0, visited: false, finished: false,
+  point: null, pointPose: {}, from: null, fromPose: {}, moveAt: 0, playAt: 0, finishAt: 0, camera: null, mouse: null,
+  returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, introCueAt: 0, touchSeen: false };
+const robot = { mode: 'waiting', clock: 0, navAt: 0, finished: false, from: null, fromPose: {}, moveAt: 0, playAt: 0,
+  returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, finishAt: 0 };
+const writing = { mode: 'waiting', clock: 0, navAt: 0, finished: false, from: null, fromPose: {}, moveAt: 0, playAt: 0,
+  returnAt: 0, returnFrom: null, returnPose: {}, pauseGoal: null, returnGoal: null, finishAt: 0 };
+let owner = null;
+const typeWeights = [...request].map(c => c === ',' || c === '.' ? 2.3 : c === ' ' ? .65 : 1);
+const typeTotal = typeWeights.reduce((a, b) => a + b, 0);
+function actor(el, p, visible = true, pose = {}) {
+  if (!visible || !p) { el.style.opacity = '0'; return; }
+  el.style.opacity = String(pose.opacity ?? 1); el.style.transform = `translate(${p.x.toFixed(2)}px,${p.y.toFixed(2)}px)`;
+  if (el === pointy) el.style.setProperty('--actor-color', mix('#0F8F80', '#C4552F', pose.colour ?? 0));
+  el.querySelector('svg').style.transform = `rotate(${pose.angle || 0}deg) scale(${pose.sx ?? 1},${pose.sy ?? 1})`;
+  if (el === pointy) { const glow = el.querySelector('.seed-glow'); glow.style.opacity = String(pose.glow ?? 0); glow.style.transform = `scale(${pose.glowScale ?? 1})`; }
+  if (el === pointy) { scene.point = p; scene.pointPose = pose; }
+}
+function companionPoint(p) { return { x: clamp(p.x + 24, 12, innerWidth - 14), y: clamp(p.y + 24, 12, innerHeight - 26) }; }
+function visitorPoint() {
+  if (scene.mouse) return companionPoint(scene.mouse);
+  if (card.classList.contains('away')) return { x: innerWidth - 82, y: innerHeight - 68 };
+  const r = card.getBoundingClientRect();
+  return { x: clamp(r.right - 72, 12, innerWidth - 14), y: clamp(r.bottom + 12, 12, innerHeight - 26) };
+}
+const visitorPose = () => ({ colour: 0, angle: 0 });
+function moStartPoint() { const r = sceneNote.getBoundingClientRect(), copy = sceneNote.querySelector('.scene-copy').getBoundingClientRect(); return { x: r.left - 30, y: copy.top + 28 }; }
+function moNotePoint() { const r = sceneNote.getBoundingClientRect(), copy = sceneNote.querySelector('.scene-copy').getBoundingClientRect(); return { x: r.left - 8, y: copy.top - 3 }; }
+function hostPoint(t) { return companionPoint(moAt(Math.max(0, t - .10))); }
+function palettePoint(i, contact = false) { const r = swatches[clamp(i, 0, 4)].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + (contact ? 10 : -9) }; }
+function moPalettePoint() { const r = scenePalette.getBoundingClientRect(), s = swatches[4].getBoundingClientRect(); return { x: r.right - 10, y: s.top - 8 }; }
+function lerpPoint(a, b, p) { return { x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p }; }
+function arcPoint(a, b, p, height = 18) { const q = lerpPoint(a, b, p); q.y -= Math.sin(Math.PI * clamp(p, 0, 1)) ** 2 * height; return q; }
+function landPoint(a, b, raw, height = 18) { const p = ease(raw), q = arcPoint(a, b, p, height), settle = Math.sin(Math.PI * clamp((raw - .72) / .28, 0, 1)) ** 2 * 3.5;
+  const d = Math.hypot(b.x - a.x, b.y - a.y) || 1; q.x += (b.x - a.x) / d * settle; q.y += (b.y - a.y) / d * settle; return q; }
+function chasePoint(from, to, dt, tau = .17) { return lerpPoint(from || to, to, 1 - Math.exp(-dt / tau)); }
+const heading = (a, b) => Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI + 90;
+const angleTo = (a, b, p) => a + ((((b - a + 540) % 360) + 360) % 360 - 180) * p;
+function visitorFollowPose(target, dt) { const from = scene.point || target, distance = Math.hypot(target.x - from.x, target.y - from.y);
+  const desired = distance > 3 ? angleTo(0, heading(from, target), .58 * ease(distance / 42)) : 0;
+  return { colour: 0, angle: angleTo(scene.pointPose.angle || 0, desired, 1 - Math.exp(-dt / .12)) }; }
+const SWATCH_START = 5.6, SWEEP_START = 5.85, SWEEP_END = 7.85, SWATCH_END = 8.1, RETURN_START = 9.3, SCENE_END = 10.25;
+const ROBOT_END = 17.5, ROBOT_RETURN = 16.45, WRITING_RETURN = 17.1, WRITING_END = 18.15;
+function inverseEase(v) { let a = 0, b = 1; for (let i = 0; i < 16; i++) { const m = (a + b) / 2; if (ease(m) < v) a = m; else b = m; } return (a + b) / 2; }
+const swatchCrossings = swatches.map((_, i) => SWEEP_START + (SWEEP_END - SWEEP_START) * inverseEase(i / 4));
+function pointyAt(t) {
+  const note = hostPoint(Math.min(t, 4.35));
+  if (t < 4.35) return note;
+  if (t < SWATCH_START) return handoff(note, { colour: 1, angle: 0 }, palettePoint(0),
+    { colour: 1, angle: heading(note, palettePoint(0)) }, (t - 4.35) / (SWATCH_START - 4.35), 22).point;
+  if (t < SWATCH_END) {
+    if (t < SWEEP_START) return lerpPoint(palettePoint(0), palettePoint(0, true), ease((t - SWATCH_START) / (SWEEP_START - SWATCH_START)));
+    if (t < SWEEP_END) return lerpPoint(palettePoint(0, true), palettePoint(4, true), ease((t - SWEEP_START) / (SWEEP_END - SWEEP_START)));
+    return lerpPoint(palettePoint(4, true), palettePoint(4), ease((t - SWEEP_END) / (SWATCH_END - SWEEP_END)));
+  }
+  if (t < RETURN_START) return palettePoint(4);
+  if (t < SCENE_END) return handoff(palettePoint(4), { colour: 1, angle: 0 }, scene.returnGoal || visitorPoint(), visitorPose(),
+    (t - RETURN_START) / (SCENE_END - RETURN_START), 18).point;
+  return scene.returnGoal || visitorPoint();
+}
+function moAt(t) {
+  if (t < .6) return arcPoint(moStartPoint(), moNotePoint(), ease(t / .6), 10);
+  if (t < SWATCH_END) return moNotePoint();
+  if (t < SWATCH_END + .6) return arcPoint(moNotePoint(), moPalettePoint(), ease((t - SWATCH_END) / .6), 16);
+  return moPalettePoint();
+}
+function renderScene() {
+  let w = 0, count = 0;
+  const target = typeTotal * clamp((scene.clock - .6) / 3.2, 0, 1);
+  for (const weight of typeWeights) { if (w + weight > target) break; w += weight; count++; }
+  sceneCopy.textContent = request.slice(0, count);
+  sceneCaret.hidden = false;
+  sceneCaret.style.visibility = scene.clock >= .6 && scene.clock < 3.8 ? 'visible' : 'hidden';
+  swatches.forEach((s, i) => {
+    s.style.background = mix(initialColours[i], finalColours[i], ease((scene.clock - swatchCrossings[i]) / .14));
+  });
+}
+function sceneVisibility() {
+  return visibleArea(colourFocus);
+}
+function pauseTask(s, now, pointAt) {
+  if (s.finished) return;
+  s.navAt = now;
+  if (s === scene) s.camera = null;
+  if (s.mode === 'playing' || s.mode === 'entering' || s.mode === 'arrival') {
+    s.mode = 'paused'; s.returnAt = now; s.returnFrom = scene.point || pointAt(s.clock);
+    s.returnPose = scene.pointPose; s.pauseGoal = visitorPoint();
+  }
+}
+function scenePause(now) {
+  if (!sceneReady || !scene.visited || !owner) return;
+  const spec = taskSpecs[owner]; pauseTask(spec.state, now, t => spec.pointPose(t).point);
+}
+function sceneNavigation(now) {
+  if (!sceneReady || !scene.visited) return;
+  framedScene = null;
+  scene.navAt = now; robot.navAt = now; writing.navAt = now;
+  guideCamera = null;
+  if (scene.camera) { scene.camera = null; scene.mode = 'arrival'; }
+}
+function beginSceneArrival(now) {
+  scene.visited = true; scene.mode = calm ? 'finished' : 'arrival'; scene.navAt = now;
+  framedScene = 'colour';
+  if (calm) {
+    scene.clock = SCENE_END; scene.finished = true; renderScene();
+    robot.clock = ROBOT_END; robot.mode = 'finished'; robot.finished = true; renderRobot();
+    writing.clock = WRITING_END; writing.mode = 'finished'; writing.finished = true; renderWriting();
+    const target = sceneFrameTarget(colourTile, colourFocus);
+    px = target.toX; py = target.toY; apply(); return;
+  }
+  const target = sceneFrameTarget(colourTile, colourFocus);
+  scene.camera = { at: now, fromX: px, fromY: py, toX: target.toX, toY: target.toY };
+  scene.from = scene.point || visitorPoint(); scene.fromPose = scene.pointPose;
+  owner = 'colour';
+}
+function blendPose(a, b, p) { return { colour: (a.colour || 0) + ((b.colour || 0) - (a.colour || 0)) * p,
+  angle: angleTo(a.angle || 0, b.angle || 0, p), sx: (a.sx ?? 1) + ((b.sx ?? 1) - (a.sx ?? 1)) * p,
+  sy: (a.sy ?? 1) + ((b.sy ?? 1) - (a.sy ?? 1)) * p }; }
+function handoff(from, fromPose, to, toPose, raw, height = 18, anticipate = .32) {
+  const phase = clamp(raw, 0, 1), gather = ease(phase / anticipate), travel = (phase - anticipate) / (1 - anticipate);
+  const dx = to.x - from.x, dy = to.y - from.y, length = Math.hypot(dx, dy) || 1;
+  const pulled = { x: from.x - dx / length * 3.5, y: from.y - dy / length * 3.5 };
+  const point = phase < anticipate ? lerpPoint(from, pulled, gather) : landPoint(pulled, to, travel, height);
+  const flight = ease(travel), settle = ease((travel - .76) / .24), intent = heading(from, to);
+  const pose = blendPose(fromPose, toPose, flight);
+  pose.angle = angleTo(angleTo(fromPose.angle || 0, intent, gather), toPose.angle || 0, settle);
+  const compression = .075 * Math.sin(Math.PI * clamp(phase / (anticipate + .1), 0, 1));
+  pose.sx -= compression; pose.sy += .095 * Math.sin(Math.PI * flight) - compression;
+  pose.glow = (fromPose.glow || 0) * (1 - ease(phase / .16)) + .13 * Math.sin(Math.PI * clamp((travel - .76) / .24, 0, 1));
+  return { point, pose };
+}
+function pointyPoseAt(t) {
+  const host = { colour: 1, angle: 0 }, paletteHeading = heading(hostPoint(4.35), palettePoint(0));
+  if (t < 4.35) return host;
+  if (t < SWATCH_START) return handoff(hostPoint(4.35), host, palettePoint(0),
+    { colour: 1, angle: paletteHeading }, (t - 4.35) / (SWATCH_START - 4.35), 22).pose;
+  if (t < SWATCH_END) {
+    if (t < SWEEP_START) { const q = ease((t - SWATCH_START) / (SWEEP_START - SWATCH_START)); return { colour: 1, angle: angleTo(paletteHeading, 180, q), sx: 1 - .05 * q }; }
+    if (t < SWEEP_END) return { colour: 1, angle: 180, sx: .95 };
+    const q = ease((t - SWEEP_END) / (SWATCH_END - SWEEP_END)); return { colour: 1, angle: angleTo(180, 0, q), sx: .95 + .05 * q };
+  }
+  if (t < RETURN_START) return { colour: 1, angle: 0 };
+  if (t < SCENE_END) return handoff(palettePoint(4), { colour: 1, angle: 0 }, scene.returnGoal || visitorPoint(), visitorPose(),
+    (t - RETURN_START) / (SCENE_END - RETURN_START), 18).pose;
+  return visitorPose();
+}
+function visibleArea(el) {
+  const r = el.getBoundingClientRect();
+  return Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) *
+    Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / Math.max(1, r.width * r.height);
+}
+let cueIntroduced = { robot: false, writing: false }, cueHiddenForView = { robot: false, writing: false }, robotSeen = false, writingSeen = false;
+function updateNextCue() {
+  const key = (!robot.finished || (calm && !robotSeen)) ? 'robot' : 'writing';
+  const visibility = visibleArea(taskSpecs[key].focus);
+  if (visibility >= .6) { cueHiddenForView[key] = true; if (calm) { if (key === 'robot') robotSeen = true; else writingSeen = true; } }
+  else if (visibility < .5) cueHiddenForView[key] = false;
+  const show = card.classList.contains('away') && scene.finished &&
+    (key === 'robot' ? (!robot.finished || (calm && !robotSeen)) : (!writing.finished || (calm && !writingSeen))) &&
+    !cueHiddenForView[key] && !guideCamera && !document.hidden;
+  nextCue.classList.toggle('show', show);
+  nextCue.inert = !show; nextCue.tabIndex = show ? 0 : -1; nextCue.setAttribute('aria-hidden', String(!show));
+  nextCue.dataset.target = key;
+  nextLabel.textContent = key === 'robot' ? 'A better read next' : 'Find an old thought';
+  nextCue.setAttribute('aria-label', key === 'robot' ? 'A better read next in Lena’s Robotics garden' : 'Find an old thought in Wen’s Writing garden');
+  if (!show) return;
+  if (!cueIntroduced[key]) { cueIntroduced[key] = true; nextCue.classList.remove('accent'); void nextCue.offsetWidth; nextCue.classList.add('accent'); }
+  const target = key === 'robot' ? nearestRobotFrame() : nearestWritingFrame(); let dx = target.x - innerWidth / 2, dy = target.y - innerHeight / 2;
+  if (Math.abs(dx) + Math.abs(dy) < 1) dx = 1;
+  const halfW = nextCue.offsetWidth / 2, halfH = nextCue.offsetHeight / 2;
+  const left = halfW + 16, right = innerWidth - halfW - 16, top = halfH + 18, bottom = innerHeight - halfH - 94;
+  const cx = innerWidth / 2, cy = (top + bottom) / 2;
+  const reachX = dx ? (dx > 0 ? right - cx : cx - left) / Math.abs(dx) : Infinity;
+  const reachY = dy ? (dy > 0 ? bottom - cy : cy - top) / Math.abs(dy) : Infinity;
+  const reach = Math.min(reachX, reachY);
+  nextCue.style.left = `${clamp(cx + dx * reach, left, right)}px`;
+  nextCue.style.top = `${clamp(cy + dy * reach, top, bottom)}px`;
+  nextArrow.style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+}
+function robotHome() { const r = robotLab.getBoundingClientRect(); return { x: r.right - 24, y: r.top + (innerWidth <= 560 ? 93 : 166) }; }
+function robotRowPoint(i) { const r = robotRows[i].getBoundingClientRect(); return { x: r.left - 9, y: r.top + 17 }; }
+function robotChoicePoint() { const r = robotRows[0].getBoundingClientRect(); return { x: r.right - 148, y: r.top + 17 }; }
+function robotShelfPoint() { const r = robotSlot.getBoundingClientRect(); return { x: r.left - 7, y: r.top + 20 }; }
+function robotHostPoint(t) { return companionPoint(lenaAt(Math.max(0, t - .10))); }
+function lenaAt(t) {
+  const home = robotHome(), first = robotChoicePoint(), shelf = robotShelfPoint();
+  if (t < 10.85) return home;
+  if (t < 11.7) return arcPoint(home, first, ease((t - 10.85) / .85), 12);
+  if (t < 12.05) return { x: first.x + 3 * ease((t - 11.7) / .35), y: first.y + 5 * ease((t - 11.7) / .35) };
+  if (t < 13.35) return arcPoint({ x: first.x + 3, y: first.y + 5 }, shelf, ease((t - 12.05) / 1.3), 25);
+  return shelf;
+}
+function robotPointPose(t) {
+  const host = { colour: 1, angle: 0 }, from = robotHostPoint(3.25), scan = robotRowPoint(0);
+  if (t < 3.25) return { point: robotHostPoint(t), pose: host };
+  if (t < 4.35) return handoff(from, host, scan, { colour: 1, angle: 180 }, (t - 3.25) / 1.1, 17);
+  if (t < 6.6) { const q = ease((t - 4.35) / 2.25), a = robotRowPoint(0), b = robotRowPoint(4);
+    return { point: { x: a.x + 3 * Math.sin(Math.PI * q), y: a.y + (b.y - a.y) * q }, pose: { colour: 1, angle: 180, sx: .97 } }; }
+  const bottom = robotRowPoint(4);
+  if (t < 8.4) return { point: bottom, pose: { colour: 1, angle: 180 } };
+  const companion = robotHostPoint(t);
+  if (t < 9.55) return handoff(bottom, { colour: 1, angle: 180 }, robotHostPoint(9.55), host, (t - 8.4) / 1.15, 12);
+  if (t < ROBOT_RETURN) return { point: companion, pose: host };
+  if (t < ROBOT_END) return handoff(robotHostPoint(ROBOT_RETURN), host, robot.returnGoal || visitorPoint(), visitorPose(),
+    (t - ROBOT_RETURN) / (ROBOT_END - ROBOT_RETURN), 18);
+  return { point: robot.returnGoal || visitorPoint(), pose: visitorPose() };
+}
+function renderRobot() {
+  const t = robot.clock;
+  robotRows.forEach((row, i) => {
+    const appear = ease((t - 1 - i * .16) / .46), relevant = i === 0 || i === 2 || i === 4;
+    const prune = relevant ? 0 : ease((t - 7.05 - (i === 3 ? .14 : 0)) / .62);
+    const close = ease((t - 7.5) / .85), finalIndex = i === 2 ? 1 : i === 4 ? 2 : i;
+    const y = (i + (finalIndex - i) * close) * 66 + (1 - appear) * 11 - prune * 10;
+    row.style.opacity = String(appear * (1 - prune)); row.style.transform = `translateY(${y.toFixed(2)}px)`;
+    const emphasis = i === 0 ? ease((t - 9.45) / .55) : i === 2 ? .48 * ease((t - 9.7) / .55) : i === 4 ? .32 * ease((t - 9.85) / .55) : 0;
+    row.style.setProperty('--mark', emphasis.toFixed(3));
+    const scanY = 4 * ease((t - 4.35) / 2.25), scanning = t >= 4.35 && t <= 6.6 ? Math.max(0, 1 - Math.abs(i - scanY) / .85) : 0;
+    row.style.background = mix('#FFFFFF', '#F1F8F5', Math.max(scanning * .5, emphasis * .65));
+    const reason = row.querySelector('[data-robot-reason]');
+    reason.textContent = relevant ? ['Start here', '', 'Then calibrate', '', 'Use landmarks'][i] : '';
+    reason.style.opacity = String(ease((t - 9.25) / .6));
+  });
+  const curated = ease((t - 9.15) / .65);
+  robotHeading.textContent = t >= 9.15 ? 'Read next' : '';
+  robotHeading.style.opacity = String(curated);
+  const kept = ease((t - 13.25) / .65), carry = ease((t - 12.02) / .24) * (1 - ease((t - 13.2) / .25));
+  robotKept.style.opacity = String(kept); robotKept.style.transform = `translateY(${(1 - kept) * 9}px) scale(${.975 + .025 * kept})`;
+  const home = robotHome();
+  robotThought.style.opacity = String((calm ? 1 : ease((t - .35) / .32) * (1 - ease((t - 2.8) / .5))) *
+    (visibleArea(robotFocus) >= .5 && card.classList.contains('away') && robot.mode !== 'waiting' ? 1 : 0));
+  robotThought.style.transform = `translate(${(home.x - (innerWidth <= 560 ? 157 : 229)).toFixed(2)}px,${(home.y - 39).toFixed(2)}px)`;
+  const hand = lenaAt(t); robotCarry.style.opacity = String(carry * (visibleArea(robotFocus) >= .5 && card.classList.contains('away') ? 1 : 0));
+  robotCarry.style.transform = `translate(${(hand.x + 16).toFixed(2)}px,${(hand.y - 65).toFixed(2)}px) rotate(${(-3 + 3 * ease((t - 12.05) / 1.3)).toFixed(2)}deg)`;
+  const slot = robotSlot.getBoundingClientRect(), love = ease((t - 14.35) / .24) * (1 - ease((t - 15.75) / .45));
+  robotLove.style.opacity = String(love * (visibleArea(robotFocus) >= .5 && card.classList.contains('away') ? 1 : 0));
+  robotLove.style.transform = `translate(${(slot.right - 108).toFixed(2)}px,${(slot.top - 29).toFixed(2)}px)`;
+  robotLoveHeart.style.animationDelay = `${(-clamp(t - 14.35, 0, 1.4)).toFixed(3)}s`;
+}
+const writingSentence = 'A collection should help ideas grow, not just keep them.';
+const writingQuestion = 'What did I keep about growing ideas?';
+function writingDraftPoint() { const r = writingDraft.parentElement.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 11 }; }
+function writingLaunchPoint() { const r = writingLaunch.getBoundingClientRect(); return { x: r.left + 5, y: r.top + 7 }; }
+function writingAskPoint() { const r = writingQuery.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 10 }; }
+function writingExcerptPoint() { const r = writingExcerpt.getBoundingClientRect(); return { x: r.left - 10, y: r.top + 15 }; }
+function writingQuotePoint() { const r = writingQuote.getBoundingClientRect(); return { x: r.left - 8, y: r.top + 10 }; }
+function writingHome() { const r = writingDoc.getBoundingClientRect(); return { x: r.left + 34, y: r.top + 66 }; }
+function writingAt(t) {
+  const draft = writingDraftPoint(), launch = writingLaunchPoint(), ask = writingAskPoint(), excerpt = writingExcerptPoint(), quote = writingQuotePoint();
+  if (t < 4.5) return draft;
+  if (t < 5.45) return arcPoint(draft, launch, ease((t - 4.5) / .95), 13);
+  if (t < 6.05) return arcPoint(launch, ask, ease((t - 5.45) / .6), 8);
+  if (t < 13.6) return ask;
+  if (t < 14.35) return arcPoint(ask, excerpt, ease((t - 13.6) / .75), 9);
+  if (t < 15.55) return arcPoint(excerpt, quote, ease((t - 14.35) / 1.2), 19);
+  return quote;
+}
+function writingHostPoint(t) { return companionPoint(writingAt(Math.max(0, t - .10))); }
+function writingPointPose(t) {
+  const host = { colour: 1, angle: 0 }, start = writingHostPoint(10.2), target = writingExcerptPoint();
+  const inspect = { colour: 1, angle: heading(target, { x: target.x + 35, y: target.y + 7 }) };
+  if (t < 10.2) return { point: writingHostPoint(t), pose: host };
+  if (t < 11.4) return handoff(start, host, target, inspect, (t - 10.2) / 1.2, 13);
+  if (t < 12.3) return { point: target, pose: inspect };
+  if (t < 13.5) return handoff(target, inspect, writingHostPoint(13.5), host, (t - 12.3) / 1.2, 13);
+  if (t < WRITING_RETURN) return { point: writingHostPoint(t), pose: host };
+  if (t < WRITING_END) return handoff(writingHostPoint(WRITING_RETURN), host, writing.returnGoal || visitorPoint(), visitorPose(),
+    (t - WRITING_RETURN) / (WRITING_END - WRITING_RETURN), 18);
+  return { point: writing.returnGoal || visitorPoint(), pose: visitorPose() };
+}
+function renderWriting() {
+  const t = writing.clock;
+  writingDraft.textContent = writingSentence.slice(0, Math.floor(writingSentence.length * ease((t - 1) / 3)));
+  writingCaret.style.opacity = String(t >= 1 && t < 4.3 ? 1 : 0);
+  const opened = ease((t - 5.35) / .45);
+  writingPanelBody.style.opacity = String(opened); writingPanelBody.style.transform = `translateX(${((1 - opened) * 11).toFixed(2)}px)`;
+  writingLaunch.style.background = mix('#E4F3EF', '#BFE4D8', opened);
+  writingQuery.textContent = writingQuestion.slice(0, Math.floor(writingQuestion.length * ease((t - 6.05) / 2.1)));
+  const result = ease((t - 8.15) / .45), quote = ease((t - 15.05) / .5);
+  writingResult.style.opacity = String(result); writingResult.style.transform = `translateY(${((1 - result) * 8).toFixed(2)}px)`;
+  writingExcerpt.style.background = mix('#F1F8F5', '#D7EEE5', ease((t - 11.3) / .4) * (1 - .45 * ease((t - 13.4) / .4)));
+  writingQuote.style.opacity = String(quote); writingQuote.style.transform = `translateY(${((1 - quote) * 8).toFixed(2)}px)`;
+}
+const taskSpecs = {
+  colour: { state: scene, focus: colourFocus, end: SCENE_END, returnStart: RETURN_START, render: renderScene,
+    pointPose: t => ({ point: pointyAt(t), pose: pointyPoseAt(t) }), human: mo, humanAt: moAt },
+  robot: { state: robot, focus: robotFocus, end: ROBOT_END, returnStart: ROBOT_RETURN, render: renderRobot,
+    pointPose: robotPointPose, human: lena, humanAt: lenaAt },
+  writing: { state: writing, focus: writingFocus, end: WRITING_END, returnStart: WRITING_RETURN, render: renderWriting,
+    pointPose: writingPointPose, human: wen, humanAt: writingAt }
+};
+function updateSceneFrames(now) {
+  for (const [key, spec] of Object.entries(taskSpecs)) {
+    const s = spec.state;
+    let opacity = 0;
+    if (owner === key && !calm && !document.hidden && card.classList.contains('away')) {
+      if (s.mode === 'entering') opacity = ease((now - s.moveAt - 260) / 540);
+      else if (s.mode === 'playing') opacity = 1 - ease((s.clock - spec.returnStart) / .75);
+      else if (s.mode === 'paused') opacity = 1 - ease((now - s.returnAt) / 650);
+    }
+    spec.focus.style.setProperty('--frame-opacity', String(opacity));
+    spec.focus.style.setProperty('--frame-colour', mix('#0F8F80', '#C4552F', scene.pointPose.colour ?? 0));
+  }
+}
+function settledAt(s, now) { return now - s.navAt >= 350 && !drag && !pinch && Math.abs(vx) < .05 && Math.abs(vy) < .05; }
+function beginTask(key, now) {
+  const s = taskSpecs[key].state;
+  owner = key; s.mode = 'entering'; s.moveAt = now; s.from = scene.point || visitorPoint(); s.fromPose = scene.pointPose;
+}
+function drawTask(key, now, dt) {
+  const spec = taskSpecs[key], s = spec.state, visibility = visibleArea(spec.focus);
+  if (s.mode === 'entering') {
+    if (visibility < .5 || document.hidden || !card.classList.contains('away')) pauseTask(s, now, t => spec.pointPose(t).point);
+    else if (now - s.moveAt >= 800) { s.mode = 'playing'; s.playAt = now; }
+  }
+  if (s.mode === 'playing') {
+    if (visibility < .5 || document.hidden || !card.classList.contains('away')) pauseTask(s, now, t => spec.pointPose(t).point);
+    else { s.clock = Math.min(spec.end, s.clock + dt * ease((now - s.playAt) / 180));
+      if (s.clock >= spec.returnStart) s.returnGoal = chasePoint(s.returnGoal, visitorPoint(), dt, .18);
+      if (s.clock >= spec.end) { s.mode = 'finished'; s.finished = true; s.finishAt = now; } }
+  }
+  if (s.mode === 'paused' && !guideCamera && card.classList.contains('away') && !document.hidden && visibility > .6 && settledAt(s, now)) beginTask(key, now);
+  spec.render();
+  if (s.mode === 'arrival') actor(pointy, s.from || scene.point || visitorPoint(), true, s.fromPose);
+  else if (s.mode === 'entering') { const target = spec.pointPose(s.clock), motion = handoff(s.from, s.fromPose, target.point, target.pose, (now - s.moveAt) / 800, 15);
+    actor(pointy, motion.point, true, motion.pose); }
+  else if (s.mode === 'paused') { const elapsed = (now - s.returnAt) / 750;
+    s.pauseGoal = chasePoint(s.pauseGoal, visitorPoint(), dt, .16);
+    if (elapsed < 1) { const motion = handoff(s.returnFrom || visitorPoint(), s.returnPose, s.pauseGoal, visitorPose(), elapsed, 12);
+      actor(pointy, motion.point, true, motion.pose); }
+    else { const target = visitorPoint(); actor(pointy, chasePoint(scene.point, target, dt), true, visitorFollowPose(target, dt)); }
+    if (elapsed >= 1) owner = null;
+  } else { const target = spec.pointPose(s.clock); actor(pointy, target.point, true, target.pose);
+    if (s.mode === 'finished') owner = null; }
+  actor(spec.human, spec.humanAt(s.clock), (s.mode === 'entering' || s.mode === 'playing' || s.mode === 'finished') && visibility >= .5 && !document.hidden);
+  for (const other of Object.values(taskSpecs)) if (other !== spec) actor(other.human, null, false);
+}
+function sceneFrame(now) {
+  const dt = Math.min(.05, Math.max(0, (now - scene.last) / 1000)); scene.last = now;
+  if (!scene.visited) {
+    actor(mo, null, false); actor(lena, null, false); actor(wen, null, false);
+    const elapsed = (now - scene.introAt) / 1000;
+    if (calm) { wander.classList.add('pointy-cue'); const r = wander.getBoundingClientRect(); actor(pointy, { x: r.left + r.width / 2, y: r.bottom + 6 }); return; }
+    if (!scene.introCueAt && elapsed >= 1.2 && (scene.mouse || scene.touchSeen || matchMedia('(pointer: coarse)').matches)) scene.introCueAt = now;
+    if (!scene.introCueAt) { actor(pointy, null, false); return; }
+    const cue = (now - scene.introCueAt) / 1000;
+    if (cue >= .72) wander.classList.add('pointy-cue');
+    if (cue < .44) { const gather = ease(cue / .17), open = ease((cue - .13) / .22), settle = ease((cue - .34) / .10);
+      actor(pointy, chasePoint(scene.point, visitorPoint(), dt, .12), true,
+        { opacity: .24 + .76 * ease(cue / .34), sx: .16 + .9 * open - .06 * settle,
+          sy: .20 + 1.02 * open - .22 * settle, glow: .5 * gather * (1 - ease((cue - .18) / .25)),
+          glowScale: .5 + 1.3 * ease(cue / .35) }); return; }
+    if (cue < 1.06) { const target = visitorPoint(); actor(pointy, chasePoint(scene.point, target, dt, .15), true, visitorFollowPose(target, dt)); return; }
+    const r = wander.getBoundingClientRect(), aim = { x: r.left + r.width / 2, y: r.bottom + 6 };
+    const button = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    if (!scene.from) { scene.from = scene.point || visitorPoint(); scene.fromPose = scene.pointPose; }
+    if (cue < 2.03) { const motion = handoff(scene.from, scene.fromPose, aim, { colour: 0, angle: heading(aim, button) }, (cue - 1.06) / .97, 24);
+      actor(pointy, motion.point, true, motion.pose); }
+    else { const phase = (cue - 2.03) % 2.1, q = ease((phase - .52) / 1.1), theta = 2 * Math.PI * q;
+      const p = { x: aim.x + 5 * Math.sin(theta), y: aim.y - 5 * (1 - Math.cos(theta)) / 2 };
+      actor(pointy, p, true, { angle: heading(p, button), sy: 1 - .035 * (1 - Math.cos(theta)) / 2 }); }
+    return;
+  }
+  wander.classList.remove('pointy-cue');
+  if (card.classList.contains('away') && !document.hidden && scene.mode === 'arrival' && scene.camera) {
+    const c = scene.camera, p = ease((now - c.at) / 900);
+    px = c.fromX + (c.toX - c.fromX) * p; py = c.fromY + (c.toY - c.fromY) * p; apply();
+    if (p >= 1) { scene.camera = null; beginTask('colour', now); }
+  }
+  if (owner === 'colour' && scene.mode === 'arrival' && !scene.camera) {
+    if (sceneVisibility() < .5) scenePause(now);
+    else if (sceneVisibility() > .6 && settledAt(scene, now)) beginTask('colour', now);
+  }
+  if (!owner && card.classList.contains('away') && !document.hidden && !calm) {
+    const choices = Object.entries(taskSpecs).map(([key, spec]) => [key, spec.state]).filter(([key, s]) =>
+      !s.finished && (s.mode === 'paused' || s.mode === 'waiting') && visibleArea(taskSpecs[key].focus) > .6 && settledAt(s, now));
+    choices.sort((a, b) => visibleArea(taskSpecs[b[0]].focus) - visibleArea(taskSpecs[a[0]].focus));
+    if (choices.length && !guideCamera) beginTask(choices[0][0], now);
+  }
+  if (owner) drawTask(owner, now, dt);
+  else { renderScene(); renderRobot(); renderWriting(); const target = visitorPoint();
+    actor(pointy, calm ? target : chasePoint(scene.point, target, dt), true, calm ? visitorPose() : visitorFollowPose(target, dt));
+    actor(mo, null, false);
+    actor(lena, calm ? robotHome() : null, calm && visibleArea(robotFocus) >= .5 && card.classList.contains('away'));
+    actor(wen, calm ? writingQuotePoint() : null, calm && visibleArea(writingFocus) >= .5 && card.classList.contains('away')); }
+  updateSceneFrames(now);
+  updateNextCue();
+}
+document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') scene.mouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
+document.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') scene.touchSeen = true; }, { passive: true });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { guideCamera = null; scenePause(performance.now()); } });
+renderScene(); renderRobot(); renderWriting(); sceneReady = true;
+wander.onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false;
+  if (!scene.visited) beginSceneArrival(performance.now()); else scene.navAt = performance.now(); };
+pill.onclick = () => { guideCamera = null; framedScene = null; card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); scenePause(performance.now());
+  nextCue.classList.remove('show'); nextCue.inert = true; nextCue.tabIndex = -1; nextCue.setAttribute('aria-hidden', 'true'); };
+nextCue.onclick = e => { e.stopPropagation(); if (!nextCue.classList.contains('show')) return;
+  drifting = false; vx = vy = 0; const now = performance.now(), key = nextCue.dataset.target, target = key === 'robot' ? nearestRobotFrame() : nearestWritingFrame();
+  framedScene = key;
+  nextCue.classList.remove('show'); taskSpecs[key].state.navAt = now; scene.navAt = now;
+  if (calm) { px = target.toX; py = target.toY; apply(); if (key === 'robot') robotSeen = true; else writingSeen = true; }
+  else { const distance = Math.hypot(target.toX - px, target.toY - py);
+    guideCamera = { key, at: now, duration: clamp(840 + distance * .13, 840, 1450), fromX: px, fromY: py,
+      toX: target.toX, toY: target.toY }; }
+};
 document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); // prototype: nothing is sent or stored yet
   e.target.style.display = 'none'; document.getElementById('thanks').style.display = 'block'; });
+const reserveButton = card.querySelector('form .btn');
+let reserveNudgeAt = -Infinity;
+document.addEventListener('click', e => {
+  if (e.target.closest('#next-cue')) return;
+  if (e.target.closest('input[type="email"]')) return;
+  const clickedCard = e.target.closest('.thing');
+  if (clickedCard && (clickedCard.classList.contains('live') || clickedCard.querySelector('a[href]:not([aria-disabled="true"]):not([tabindex="-1"]), button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), audio[controls], video[controls], summary'))) return;
+  const now = performance.now();
+  if (now - reserveNudgeAt < 1200) return;
+  const target = card.classList.contains('away') ? pill : reserveButton;
+  if (target === reserveButton && reserveButton.closest('form').style.display === 'none') return;
+  reserveNudgeAt = now;
+  target.classList.add('reserve-nudge');
+  setTimeout(() => target.classList.remove('reserve-nudge'), calm ? 280 : 560);
+});
 </script>
 </body>
 </html>
