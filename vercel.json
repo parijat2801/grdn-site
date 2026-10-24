@@ -1,7 +1,14 @@
 {
   "headers": [
     {
-      "source": "/(index.html)?",
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Vary", "value": "Cookie" }
+      ]
+    },
+    {
+      "source": "/index.html",
       "headers": [
         { "key": "Cache-Control", "value": "private, no-store" },
         { "key": "Vary", "value": "Cookie" }
