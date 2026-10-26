@@ -27,7 +27,7 @@ async function newPage(browser, vpName, extra = {}) {
   await wait(300);
   return { ctx, page, errors };
 }
-const wander = async page => { await page.click('#wander'); await wait(700); };
+const explore = async page => { await page.click('#explore'); await wait(700); };
 const isOpen = page => page.evaluate(() => !document.getElementById('spec').hidden);
 const specInfo = page => page.evaluate(() => Object.fromEntries(Object.entries(SPECS).map(([k, s]) => [k, { title: s.title, owner: s.owner, garden: s.garden, from: s.from, next: s.next }])));
 const inView = (r, vw, vh) => r.left >= 0 && r.top >= 0 && r.right <= vw && r.bottom <= vh;
@@ -49,23 +49,31 @@ async function openingCard(page, vp) {
   const c = await page.evaluate(() => {
     const t = s => (document.querySelector(s)?.textContent || '').replace(/ /g, ' ').trim();
     const visible = s => { const el = document.querySelector(s); if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'; };
-    return { h1: t('#card h1'), lede: t('#card .lede'), btn: t('#f button'), email: !!document.querySelector('#f input[type=email][required]'), reassure: t('#reassure'), wander: t('#wander'), ledeVisible: visible('#card .lede') };
+    return { h1: t('#card h1'), lede: t('#card .lede'), btn: t('#f button'), email: !!document.querySelector('#f input[type=email][required]'), reassure: t('#reassure'), explore: t('#explore'), oldWander: !!document.getElementById('wander'),
+      ledeVisible: visible('#card .lede'), wait: t('#waitnote'), waitVisible: visible('#waitnote'), pill: t('#pill'), label: document.getElementById('card').getAttribute('aria-label'),
+      lowerName: (document.body.innerText.match(/\bgrdn\b/g) || []).length };
   });
   check(`${vp}: headline unchanged`, c.h1 === 'Everything worth a revisit.', c.h1);
   const words = c.lede.split(/\s+/).filter(Boolean).length;
-  check(`${vp}: definition line says keep, visit, makes (${words} words)`, c.ledeVisible && words <= 18 && /garden/i.test(c.lede) && /visit/i.test(c.lede) && /\bmakes?\b/i.test(c.lede) && /web/i.test(c.lede), c.lede);
-  check(`${vp}: form unchanged`, c.email && c.btn === 'Reserve your grdn', c.btn);
+  check(`${vp}: definition line says what a garden is: a page of what one person keeps (${words} words)`, c.ledeVisible && words <= 22 && /garden is/i.test(c.lede) && /\bpage\b/i.test(c.lede) && /\bkeep\b/i.test(c.lede) && /visit/i.test(c.lede) && /\bmakes?\b/i.test(c.lede) && /web/i.test(c.lede), c.lede);
+  check(`${vp}: form button says "Reserve your Grdn"`, c.email && c.btn === 'Reserve your Grdn', c.btn);
+  check(`${vp}: pill and card label say "Reserve your Grdn"`, c.pill === 'Reserve your Grdn' && c.label === 'Reserve your Grdn', `${c.pill} / ${c.label}`);
+  check(`${vp}: no lower-case "grdn" in visible text`, c.lowerName === 0, String(c.lowerName));
   check(`${vp}: reassure line unchanged`, c.reassure === 'We’ll email you once, when your garden is ready.', c.reassure);
-  check(`${vp}: Wander unchanged`, c.wander === 'Wander', c.wander);
+  check(`${vp}: a line says it is a waitlist and the gardens are real`, c.waitVisible && /waitlist/i.test(c.wait) && /\breal\b/i.test(c.wait) && /garden/i.test(c.wait) && c.wait.split(/\s+/).length <= 14, c.wait);
+  check(`${vp}: Wander is now "Explore the gardens"`, c.explore === 'Explore the gardens' && !c.oldWander, c.explore);
 }
 
+// The made line names Grdn as the maker and the owner as the keeper; possessives and plurals read right for every owner.
+const MADE = { titan: 'Grdn made this from 3 things Leo kept:', moon: 'Grdn made this from 3 things Grandpa Tom kept:', paper: 'Grdn made this from 4 gardens Amara follows:',
+  mood: 'Grdn made this from 4 things Mo kept:', kyoto: 'Grdn made this from 3 things Mei & Jo kept:', recipe: 'Grdn made this from 3 things Priya & Sam kept:', savings: 'Grdn made this from 2 things Dami kept:' };
 async function everyCardOpens(page, vp, specs) {
   for (const [id, s] of Object.entries(specs)) {
     const o = await openViaCard(page, id, s);
     if (!o.ok) { check(`${vp}: card ${id} opens on click`, false, o.why); continue; }
-    const v = await page.evaluate(() => ({ title: document.getElementById('spec-title').textContent, made: document.getElementById('spec-made').textContent, chips: document.querySelectorAll('#spec-made .chip').length }));
+    const v = await page.evaluate(() => ({ title: document.getElementById('spec-title').textContent, lead: document.querySelector('#spec-made > span:first-child')?.textContent.trim(), chips: document.querySelectorAll('#spec-made .chip').length }));
     check(`${vp}: card ${id} opens on click, title "${s.title}"`, v.title === s.title, v.title);
-    check(`${vp}: ${id} made line names ${s.owner} with ${s.from.length} chips`, v.made.includes(s.owner) && v.made.includes(`from ${s.from.length} things`) && v.chips === s.from.length, `${v.made} / ${v.chips}`);
+    check(`${vp}: ${id} made line reads "${MADE[id]}" with ${s.from.length} chips`, v.lead === MADE[id] && v.chips === s.from.length, `${v.lead} / ${v.chips}`);
     const shown = await page.evaluate(t => [...document.querySelectorAll('#spec .panel *')].filter(e => e.children.length === 0 && e.textContent.trim() === t && e.getClientRects().length && e.getBoundingClientRect().width > 2).length, s.title);
     check(`${vp}: ${id} title shows once`, shown === 1, String(shown));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-${id}.png` });
@@ -92,6 +100,57 @@ async function whereNext(page, vp, specs) {
       }
     }
   }
+}
+
+// Recipe sources are the things Priya & Sam kept (links with their sites, and their note), not the ingredients.
+async function recipeSources(page, vp) {
+  const r = await page.evaluate(() => { const g = G.find(g => g.name === SPECS.recipe.garden), low = s => s.toLowerCase().replace(/[“”".]/g, '').trim();
+    const ingredients = ['rice', 'eggs', 'spring onions', 'garlic', 'soy sauce', 'sesame oil', 'oil'];
+    return SPECS.recipe.from.map(c => ({ c, ok: !ingredients.includes(low(c)) && g.things.some(th => th.type === 'link' ? c.includes(th.t) && c.includes(th.dom) : th.type === 'note' ? /^Note:/.test(c) && low(th.text).includes(low(c.replace(/^Note:\s*/, ''))) : false) })); });
+  check(`${vp}: recipe sources are Priya & Sam's kept links and note`, r.length >= 2 && r.every(x => x.ok) && r.some(x => /^Note:/.test(x.c)), JSON.stringify(r));
+}
+
+// "kept by N" reads as people keeping the thing; the ambient keep still counts up.
+async function keptCounts(page, vp) {
+  const FORM = /^[\d,]+ (people keep|person keeps) this$/;
+  const read = () => page.evaluate(() => [...document.querySelectorAll('.kept')].map(k => k.textContent.trim()));
+  const sum = a => a.reduce((t, s) => t + (parseInt(s.replace(/\D/g, ''), 10) || 0), 0);
+  const a = await read();
+  check(`${vp}: every count reads "N people keep this" (${a.length})`, a.length > 50 && a.every(s => FORM.test(s)), a.filter(s => !FORM.test(s)).slice(0, 3).join(' | '));
+  await page.evaluate(() => keepSomething()); await wait(100);
+  const b = await read();
+  check(`${vp}: someone keeping a thing bumps a count and keeps the wording`, sum(b) > sum(a) && b.every(s => FORM.test(s)), `${sum(a)} -> ${sum(b)}; ${b.filter(s => !FORM.test(s)).slice(0, 3).join(' | ')}`);
+}
+
+// After the card closes, the floating pill never sits over card text that is still visible around it.
+async function pillClear(page, vp) {
+  const moves = [[0, 0], [0, -260], [-380, -120], [260, -540], [-640, -900], [150, -1300], [-90, -170]];
+  const bad = [];
+  let shown = true;
+  for (const [dx, dy] of moves) {
+    await page.evaluate(([dx, dy]) => { px += dx; py += dy; apply(); }, [dx, dy]); await wait(200);
+    const res = await page.evaluate(() => {
+      const pill = document.getElementById('pill'), P = pill.getBoundingClientRect(), out = [];
+      const sees = (x, y, host) => { if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) return false; const e = document.elementFromPoint(x, y); return !!e && e.closest('.thing, .garden header') === host; };
+      const walker = document.createTreeWalker(document.getElementById('world'), NodeFilter.SHOW_TEXT);
+      for (let n; (n = walker.nextNode());) {
+        if (!n.textContent.trim()) continue; const host = n.parentElement.closest('.thing, .garden header'); if (!host) continue;
+        const range = document.createRange(); range.selectNodeContents(n);
+        for (const r of range.getClientRects()) {
+          if (r.right <= P.left || r.left >= P.right || r.bottom <= P.top || r.top >= P.bottom) continue;
+          const y = (r.top + r.bottom) / 2, ix = (Math.max(r.left, P.left) + Math.min(r.right, P.right)) / 2;
+          const pts = [[r.left + 2, y], [r.right - 2, y], [P.left - 3, y], [P.right + 3, y], [ix, P.top - 3], [ix, P.bottom + 3]]
+            .filter(([x, yy]) => x >= r.left && x <= r.right && yy >= r.top && yy <= r.bottom && (x < P.left || x > P.right || yy < P.top || yy > P.bottom));
+          if (pts.some(([x, yy]) => sees(x, yy, host))) out.push(n.textContent.trim().slice(0, 28));
+        }
+      }
+      return { out, shown: pill.classList.contains('show') && getComputedStyle(pill).opacity === '1' };
+    });
+    shown = shown && res.shown;
+    bad.push(...res.out.map(t => `(${dx},${dy}) "${t}"`));
+  }
+  check(`${vp}: the pill shows after the card closes`, shown);
+  check(`${vp}: the pill never covers visible card text at ${moves.length} pan positions`, bad.length === 0, bad.slice(0, 6).join(' | '));
 }
 
 async function recipeAndSavings(page, vp) {
@@ -189,7 +248,7 @@ async function sheet(page, vp, specs) {
 
 async function motion(browser, vp, specs) {
   const { ctx, page, errors } = await newPage(browser, vp);
-  await wander(page);
+  await explore(page);
   await page.evaluate(g => goGarden(g), specs.titan.garden); await wait(900);
   const b = await page.locator('[data-spec="titan"]').boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
@@ -205,7 +264,7 @@ async function motion(browser, vp, specs) {
   await ctx.close();
 
   const rm = await newPage(browser, vp, { reducedMotion: 'reduce' });
-  await wander(rm.page);
+  await explore(rm.page);
   await rm.page.evaluate(g => goGarden(g), specs.titan.garden); await wait(900);
   const b2 = await rm.page.locator('[data-spec="titan"]').boundingBox();
   await rm.page.mouse.click(b2.x + b2.width / 2, b2.y + b2.height / 2);
@@ -219,7 +278,7 @@ async function motion(browser, vp, specs) {
 
 async function pulse(browser, vp, long) {
   const { ctx, page, errors } = await newPage(browser, vp);
-  await wander(page);
+  await explore(page);
   await wait(3300);
   const p1 = await page.evaluate(() => ({ n: +(document.body.dataset.pulses || 0), id: document.body.dataset.pulsed || '' }));
   const vis = p1.id && await page.evaluate(id => { const b = document.querySelector(`[data-spec="${id}"]`).getBoundingClientRect(); const w = Math.min(b.right, innerWidth) - Math.max(b.left, 0), h = Math.min(b.bottom, innerHeight) - Math.max(b.top, 0); return w > 0 && h > 0 && w * h >= .6 * b.width * b.height; }, p1.id);
@@ -242,8 +301,12 @@ async function fullPass(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-opening.png` });
   await openingCard(page, vp);
-  await wander(page);
+  await explore(page);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-canvas.png` });
+  await pillClear(page, vp);
+  await keptCounts(page, vp);
   const specs = await specInfo(page);
+  await recipeSources(page, vp);
   check(`${vp}: recipe and savings specimens exist with 3 Where next rows each`, ['recipe', 'savings'].every(k => specs[k] && specs[k].next.length === 3 && specs[k].next.some(n => n.open) && specs[k].next.some(n => n.garden)));
   await everyCardOpens(page, vp, specs);
   await whereNext(page, vp, specs);
@@ -264,7 +327,7 @@ async function fullPass(browser, vp) {
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
     // small phone: sheet behaviour only
-    { const { ctx, page, errors } = await newPage(browser, 'small'); await wander(page); await sheet(page, 'small', specs);
+    { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
     await motion(browser, 'desktop', specs);
     await motion(browser, 'phone', specs);
