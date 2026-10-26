@@ -610,7 +610,7 @@ const SPECS = {
         <div class="tile"><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
         <div class="tile"><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
         <div class="tile"><div class="k">Space station</div><div class="v">21:14</div><div class="s">4 minutes, west to east</div></div></div>`; } },
-  paper: { kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
+  paper: { kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
     next: [{ t: 'Café: warm, not cute', s: 'Mo’s moodboard', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico’s garden', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', garden: 'Robin Sloan' }],
     render: el => { el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><span>No. 42 · made every Sunday from the gardens Amara follows</span></div><div class="cols2">
         <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · kept by 5,120</small></article>
@@ -714,7 +714,9 @@ function openSpec(id, from) {
   current = id; everOpened = true; clearTimeout(pulseT);
   specEl.classList.toggle('masthead', !!s.mast);
   document.getElementById('spec-kind').textContent = `${s.kind} · made with Grdn`; document.getElementById('spec-title').textContent = s.title;
-  document.getElementById('spec-made').innerHTML = `<span>Made with Grdn from ${s.from.length} things in <b>${esc(s.owner)}’s garden</b>:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
+  // Grdn is the maker, the owner is the keeper: "Grdn made this from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
+  const n = s.from.length, what = s.fromWhat || (n === 1 ? 'thing' : 'things'), verb = s.fromVerb || 'kept';
+  document.getElementById('spec-made').innerHTML = `<span>Grdn made this from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
   document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}"><b>${esc(n.t)}</b><small>${esc(n.s)}</small></button>`).join('');
   document.querySelectorAll('#spec-next .nx').forEach(b => b.onclick = () => { const n = s.next[b.dataset.i]; if (n.open) openSpec(n.open); else { closeSpec({ toCard: false, focus: false }); goGarden(n.garden, true); } });
   specEl.hidden = false; specEl.querySelector('.main').scrollTop = 0; panel.scrollTop = 0;
