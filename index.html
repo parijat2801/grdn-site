@@ -7,7 +7,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
 <style>
-  :root { --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; --line:rgba(16,36,58,.10); --muted:rgba(16,36,58,.55); }
+  /* Design tokens (from the scene work on feature/grdn-page-deploy): colour, people colours, type, space, radius, shadow, motion. */
+  :root {
+    --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; --line:rgba(16,36,58,.10); --muted:rgba(16,36,58,.55);
+    --c-tom: #2f6db5; --t-tom: #e3ecf8; --c-leo: #e08a1e; --t-leo: #fbecd6; --c-amara: #8a4fc4; --t-amara: #efe4f8;
+    --c-lena: #d94f70; --t-lena: #fbe3e9; --c-arjun: #c4552f; --t-arjun: #f8e2d9; --c-mo: #5b6b8c; --t-mo: #e6e9f0; --c-grdn: var(--teal);
+    --seen: #eceae3; --seen-ink: rgba(16,36,58,.62); --seen-line: rgba(16,36,58,.22); --card: #fff; --bubble: #fffaf3; --art-bg: #F1ECE0;
+    --fs-k: 11px; --fs-meta: 13px; --fs-tag: 12px; --fs-body: 16px; --fs-title: 18px; --fs-garden: 22px;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 14px; --sp-4: 18px; --sp-5: 24px;
+    --r-small: 10px; --r-bubble: 13px; --r-card: 18px; --r-focus: 20px; --r-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
+    --shadow-lift: 0 6px 18px rgba(16,36,58,.10), 0 24px 60px rgba(16,36,58,.16);
+    --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; background: var(--paper); color: var(--ink);
     font-family: 'Bricolage Grotesque', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -93,6 +105,8 @@
   .btn { font: 600 16px 'Bricolage Grotesque'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
   .wander { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .form-error { font-size: 14px; margin-top: 10px; color: var(--muted); }
+  .reassure { margin-top: 12px; font-size: 14px; color: var(--muted); }
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   #pill { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
@@ -105,18 +119,20 @@
 <div id="view"><div id="world"></div></div>
 <div id="scrim"></div>
 
-<section id="card" aria-label="Reserve yours">
+<section id="card" aria-label="Reserve your grdn">
   <div class="mark">Grdn</div>
   <h1>Everything worth a&nbsp;revisit.</h1>
   <p class="lede">For the games you built on a Sunday, the essay that changed your mind, the song you keep going back to. A small garden of it all, with the gate left open.</p>
   <form id="f">
     <input type="email" required placeholder="you@example.com" aria-label="Email">
-    <button class="btn" type="submit">Reserve yours</button>
+    <button class="btn" type="submit">Reserve your grdn</button>
   </form>
+  <p class="reassure" id="reassure">We’ll email you once, when your garden is ready.</p>
+  <p class="form-error" id="form-error" role="alert" hidden></p>
   <p class="thanks" id="thanks">Thank you. We’ll write when your garden is ready.</p>
   <div class="fine"><button class="wander" id="wander">Wander</button></div>
 </section>
-<button class="btn" id="pill">Reserve yours</button>
+<button class="btn" id="pill">Reserve your grdn</button>
 
 <script>
 // ---------- content ----------
@@ -128,7 +144,7 @@ const G = [
     { type: 'link', dom: 'khanacademy.org', t: 'Fractions on a number line', kept: 31 },
   ]},
   { name: 'Octopus minds', by: 'a rabbit hole by Ines', things: [
-    { type: 'link', img: 'web/octopus.jpg', href: 'https://en.wikipedia.org/wiki/Cephalopod_intelligence', dom: 'wikipedia.org', t: 'Cephalopod intelligence', kept: 88 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/octopus.jpg', href: 'https://en.wikipedia.org/wiki/Cephalopod_intelligence', dom: 'wikipedia.org', t: 'Cephalopod intelligence', kept: 88 },
     { type: 'note', text: 'Two thirds of the neurons are in the arms. Do the arms think?', kept: 40 },
     { type: 'video', t: 'An octopus opens a jar', dom: 'youtube.com', kept: 302 },
     { type: 'app', e: '🐙', bg: '#FFE3D6', k: 'Toy', t: 'Eight-arm drawing', kept: 57 },
@@ -143,91 +159,91 @@ const G = [
   { name: 'Sound toys', by: 'Kenji', things: [
     { live: 'synth' },
     { type: 'app', e: '🥁', bg: '#FFE3D6', k: 'Toy', t: 'Sixteen-step drums', kept: 410 },
-    { type: 'link', img: 'web/musiclab-chromeexperiments-com-18.jpg', href: 'https://musiclab.chromeexperiments.com/Song-Maker/', dom: 'musiclab.chromeexperiments.com', t: 'Song Maker', kept: 76 },
-    { type: 'link', img: 'web/patatap-com-12.png', href: 'https://patatap.com', dom: 'patatap.com', t: 'Patatap', kept: 512 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/musiclab-chromeexperiments-com-18.jpg', href: 'https://musiclab.chromeexperiments.com/Song-Maker/', dom: 'musiclab.chromeexperiments.com', t: 'Song Maker', kept: 76 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/patatap-com-12.png', href: 'https://patatap.com', dom: 'patatap.com', t: 'Patatap', kept: 512 },
   ]},
   { name: 'Colour', by: 'a garden by Mo', things: [
     { live: 'palette' },
     { type: 'note', text: 'Warm paper, one ink, one accent. Everything else is noise.', kept: 19 },
-    { type: 'link', img: 'web/oklch-com-23.png', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
-    { type: 'link', img: 'web/weavesilk-com-13.png', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/oklch-com-23.png', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/weavesilk-com-13.png', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
   ]},
   { name: 'Moon & sky', by: 'Grandpa Tom', things: [
     { live: 'moon' },
     { type: 'app', e: '🔭', bg: '#E4E8F7', k: 'App', t: 'What’s up tonight', kept: 205 },
     { type: 'note', text: 'Saturn is low in the east after nine. Take the kids.', kept: 6 },
-    { type: 'link', img: 'web/pale-blue-dot.png', href: 'https://en.wikipedia.org/wiki/Pale_Blue_Dot', dom: 'wikipedia.org', t: 'Pale Blue Dot', kept: 3120 },
-    { type: 'link', img: 'web/nasa-gov-27.jpg', href: 'https://www.nasa.gov/image-of-the-day/', dom: 'nasa.gov', t: 'NASA image of the day', kept: 640 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/pale-blue-dot.png', href: 'https://en.wikipedia.org/wiki/Pale_Blue_Dot', dom: 'wikipedia.org', t: 'Pale Blue Dot', kept: 3120 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/nasa-gov-27.jpg', href: 'https://www.nasa.gov/image-of-the-day/', dom: 'nasa.gov', t: 'NASA image of the day', kept: 640 },
   ]},
   { name: 'Robin Sloan', by: 'love, not likes', things: [
-    { type: 'link', img: 'web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com', t: 'Fish: a tap essay', kept: 3420 },
-    { type: 'link', img: 'web/sloan-home-cooked.png', href: 'https://www.robinsloan.com/notes/home-cooked-app/', dom: 'robinsloan.com', t: 'An app can be a home-cooked meal', kept: 5210 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com', t: 'Fish: a tap essay', kept: 3420 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-home-cooked.png', href: 'https://www.robinsloan.com/notes/home-cooked-app/', dom: 'robinsloan.com', t: 'An app can be a home-cooked meal', kept: 5210 },
     { type: 'note', text: 'Liking is cheap. Love is coming back.', kept: 612 },
-    { type: 'link', img: 'web/sloan-moonbound.jpg', href: 'https://www.robinsloan.com/moonbound/', dom: 'robinsloan.com', t: 'Moonbound, a novel', kept: 890 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-moonbound.jpg', href: 'https://www.robinsloan.com/moonbound/', dom: 'robinsloan.com', t: 'Moonbound, a novel', kept: 890 },
   ]},
   { name: 'Digital gardens', by: 'the people who planted the idea', things: [
-    { type: 'link', img: 'web/appleton-garden-history.png', href: 'https://maggieappleton.com/garden-history', dom: 'maggieappleton.com · Maggie Appleton', t: 'A Brief History & Ethos of the Digital Garden', kept: 4870 },
-    { type: 'link', img: 'web/appleton-garden.png', href: 'https://maggieappleton.com/garden', dom: 'maggieappleton.com · Maggie Appleton', t: 'The Garden of Maggie Appleton', kept: 2310 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/appleton-garden-history.png', href: 'https://maggieappleton.com/garden-history', dom: 'maggieappleton.com · Maggie Appleton', t: 'A Brief History & Ethos of the Digital Garden', kept: 4870 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/appleton-garden.png', href: 'https://maggieappleton.com/garden', dom: 'maggieappleton.com · Maggie Appleton', t: 'The Garden of Maggie Appleton', kept: 2310 },
     { type: 'link', href: 'https://notes.andymatuschak.org/Evergreen_notes', dom: 'notes.andymatuschak.org · Andy Matuschak', t: 'Evergreen notes', kept: 3950 },
-    { type: 'link', img: 'web/ttft.png', href: 'https://numinous.productions/ttft/', dom: 'numinous.productions · Andy Matuschak & Michael Nielsen', t: 'How can we develop transformative tools for thought?', kept: 2780 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/ttft.png', href: 'https://numinous.productions/ttft/', dom: 'numinous.productions · Andy Matuschak & Michael Nielsen', t: 'How can we develop transformative tools for thought?', kept: 2780 },
     { type: 'link', href: 'https://hapgood.us/2015/10/17/the-garden-and-the-stream-a-technopastoral/', dom: 'hapgood.us · Mike Caulfield', t: 'The Garden and the Stream: A Technopastoral', kept: 1640 },
     { type: 'link', href: 'https://tomcritchlow.com/2019/02/17/building-digital-garden/', dom: 'tomcritchlow.com · Tom Critchlow', t: 'Building a digital garden', kept: 720 },
-    { type: 'link', img: 'web/arena.png', href: 'https://www.are.na', dom: 'are.na', t: 'Are.na', kept: 2600 },
-    { type: 'link', img: 'web/hypothesis.png', href: 'https://web.hypothes.is', dom: 'web.hypothes.is', t: 'Hypothesis, notes on the whole web', kept: 880 },
-    { type: 'link', img: 'web/tabfs.png', href: 'https://omar.website/tabfs/', dom: 'omar.website · Omar Rizwan', t: 'TabFS: your browser tabs as files', kept: 1520 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/arena.png', href: 'https://www.are.na', dom: 'are.na', t: 'Are.na', kept: 2600 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/hypothesis.png', href: 'https://web.hypothes.is', dom: 'web.hypothes.is', t: 'Hypothesis, notes on the whole web', kept: 880 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/tabfs.png', href: 'https://omar.website/tabfs/', dom: 'omar.website · Omar Rizwan', t: 'TabFS: your browser tabs as files', kept: 1520 },
     { type: 'note', text: 'Tend ideas in public, and let them grow slowly.', kept: 205 },
   ]},
   { name: 'Where Grdn comes from', by: 'a 2021 thesis, still growing', things: [
-    { type: 'link', img: 'web/diamond-age.jpg', href: 'https://en.wikipedia.org/wiki/The_Diamond_Age', dom: 'Neal Stephenson · wikipedia.org', t: 'The Diamond Age', kept: 2810 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/diamond-age.jpg', href: 'https://en.wikipedia.org/wiki/The_Diamond_Age', dom: 'Neal Stephenson · wikipedia.org', t: 'The Diamond Age', kept: 2810 },
     { type: 'note', text: 'The Primer: a book that learns its reader, and grows with her.', kept: 340 },
     { type: 'link', href: 'https://proto-knowledge.blogspot.com/2011/11/building-young-ladys-illustrated-primer.html', dom: 'proto-knowledge.blogspot.com', t: 'Building “A Young Lady’s Illustrated Primer”', kept: 260 },
-    { type: 'link', img: 'web/mother-of-all-demos.jpg', href: 'https://en.wikipedia.org/wiki/The_Mother_of_All_Demos', dom: 'Doug Engelbart, 1968 · wikipedia.org', t: 'The Mother of All Demos', kept: 3120 },
-    { type: 'link', img: 'web/dynabook.png', href: 'https://en.wikipedia.org/wiki/Dynabook', dom: 'Alan Kay · wikipedia.org', t: 'The Dynabook', kept: 1740 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/mother-of-all-demos.jpg', href: 'https://en.wikipedia.org/wiki/The_Mother_of_All_Demos', dom: 'Doug Engelbart, 1968 · wikipedia.org', t: 'The Mother of All Demos', kept: 3120 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/dynabook.png', href: 'https://en.wikipedia.org/wiki/Dynabook', dom: 'Alan Kay · wikipedia.org', t: 'The Dynabook', kept: 1740 },
     { type: 'link', href: 'https://worrydream.com/MediaForThinkingTheUnthinkable/', dom: 'worrydream.com · Bret Victor', t: 'Media for Thinking the Unthinkable', kept: 4410 },
     { type: 'link', href: 'http://hyperphysics.phy-astr.gsu.edu/hbase/index.html', dom: 'Rod Nave · hyperphysics.phy-astr.gsu.edu', t: 'HyperPhysics: pathways through physics', kept: 980 },
-    { type: 'link', img: 'web/las-pozas.jpg', href: 'https://en.wikipedia.org/wiki/Las_Pozas', dom: 'Edward James · wikipedia.org', t: 'Las Pozas, a garden in the jungle', kept: 1290 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/las-pozas.jpg', href: 'https://en.wikipedia.org/wiki/Las_Pozas', dom: 'Edward James · wikipedia.org', t: 'Las Pozas, a garden in the jungle', kept: 1290 },
     { type: 'link', href: 'https://www.nowness.com/series/great-gardens/great-gardens-las-pozas-toby-amies', dom: 'nowness.com · Toby Amies', t: 'Great Gardens: Las Pozas', kept: 410 },
     { type: 'app', e: '📗', bg: '#DDF3EF', k: 'Book', t: 'Metaphors We Live By', meta: 'Lakoff & Johnson', kept: 1150 },
   ]},
   { name: 'Small, opinionated apps', by: 'made by one person, loved by many', things: [
-    { type: 'link', img: 'web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com · Robin Sloan', t: 'Fish: a tap essay', kept: 3420 },
-    { type: 'link', img: 'web/pointer-pointer.jpg', href: 'https://pointerpointer.com', dom: 'pointerpointer.com', t: 'Pointer Pointer', kept: 6200 },
-    { type: 'link', img: 'web/little-alchemy.jpg', href: 'https://littlealchemy2.com', dom: 'littlealchemy2.com', t: 'Little Alchemy 2', kept: 5400 },
-    { type: 'link', img: 'web/orb-farm.png', href: 'https://orb.farm', dom: 'orb.farm · Max Bittker', t: 'orb.farm, a tiny aquarium ecosystem', kept: 2750 },
-    { type: 'link', img: 'web/is-it-christmas.png', href: 'https://isitchristmas.com', dom: 'isitchristmas.com', t: 'Is It Christmas?', kept: 3900 },
-    { type: 'link', img: 'web/kinopio.png', href: 'https://kinopio.club', dom: 'kinopio.club', t: 'Kinopio, spatial thinking', kept: 1480 },
-    { type: 'link', img: 'web/wordle.png', href: 'https://www.nytimes.com/games/wordle/index.html', dom: 'Josh Wardle, made for his partner', t: 'Wordle', kept: 9100 },
-    { type: 'link', img: 'web/spring83.jpg', href: 'https://www.robinsloan.com/lab/specifying-spring-83/', dom: 'robinsloan.com · Robin Sloan', t: 'Specifying Spring ’83', kept: 610 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com · Robin Sloan', t: 'Fish: a tap essay', kept: 3420 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/pointer-pointer.jpg', href: 'https://pointerpointer.com', dom: 'pointerpointer.com', t: 'Pointer Pointer', kept: 6200 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/little-alchemy.jpg', href: 'https://littlealchemy2.com', dom: 'littlealchemy2.com', t: 'Little Alchemy 2', kept: 5400 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/orb-farm.png', href: 'https://orb.farm', dom: 'orb.farm · Max Bittker', t: 'orb.farm, a tiny aquarium ecosystem', kept: 2750 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/is-it-christmas.png', href: 'https://isitchristmas.com', dom: 'isitchristmas.com', t: 'Is It Christmas?', kept: 3900 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/kinopio.png', href: 'https://kinopio.club', dom: 'kinopio.club', t: 'Kinopio, spatial thinking', kept: 1480 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/wordle.png', href: 'https://www.nytimes.com/games/wordle/index.html', dom: 'Josh Wardle, made for his partner', t: 'Wordle', kept: 9100 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/spring83.jpg', href: 'https://www.robinsloan.com/lab/specifying-spring-83/', dom: 'robinsloan.com · Robin Sloan', t: 'Specifying Spring ’83', kept: 610 },
     { type: 'link', href: 'https://alexanderperrin.com.au/paper/shorttrip/', dom: 'alexanderperrin.com.au', t: 'Short Trip, a tram through the hills', kept: 1330 },
     { type: 'link', href: 'https://thisissand.com', dom: 'thisissand.com', t: 'This Is Sand', kept: 2050 },
     { type: 'link', href: 'https://pippinbarr.com/itisasifyouweredoingwork/', dom: 'pippinbarr.com · Pippin Barr', t: 'It is as if you were doing work', kept: 870 },
     { type: 'link', href: 'https://asoftmurmur.com', dom: 'asoftmurmur.com', t: 'A Soft Murmur', kept: 1760 },
   ]},
   { name: 'Windows onto the world', by: 'a garden by Amara', things: [
-    { type: 'link', img: 'web/radio-garden-0.jpg', href: 'https://radio.garden', dom: 'radio.garden', t: 'Radio Garden', kept: 4210 },
-    { type: 'link', img: 'web/window-swap-com-5.png', href: 'https://www.window-swap.com', dom: 'window-swap.com', t: 'WindowSwap', kept: 2980 },
-    { type: 'link', img: 'web/earth-nullschool-net-10.jpg', href: 'https://earth.nullschool.net', dom: 'earth.nullschool.net', t: 'Earth, the wind right now', kept: 1575 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/radio-garden-0.jpg', href: 'https://radio.garden', dom: 'radio.garden', t: 'Radio Garden', kept: 4210 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/window-swap-com-5.png', href: 'https://www.window-swap.com', dom: 'window-swap.com', t: 'WindowSwap', kept: 2980 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/earth-nullschool-net-10.jpg', href: 'https://earth.nullschool.net', dom: 'earth.nullschool.net', t: 'Earth, the wind right now', kept: 1575 },
     { type: 'note', text: 'Morning coffee: a window in Reykjavík, radio from Dakar.', kept: 73 },
   ]},
   { name: 'Things that explain themselves', by: 'a garden by Nico', things: [
-    { type: 'link', img: 'web/ciechanow-ski-3.png', href: 'https://ciechanow.ski/mechanical-watch/', dom: 'ciechanow.ski', t: 'Mechanical Watch', kept: 5120 },
-    { type: 'link', img: 'web/ciechanow-ski-4.png', href: 'https://ciechanow.ski/gps/', dom: 'ciechanow.ski', t: 'GPS', kept: 3380 },
-    { type: 'link', img: 'web/ncase-me-20.png', href: 'https://ncase.me/trust/', dom: 'ncase.me', t: 'The Evolution of Trust', kept: 4470 },
-    { type: 'link', img: 'web/ncase-me-6.png', href: 'https://ncase.me/polygons/', dom: 'ncase.me', t: 'Parable of the Polygons', kept: 2160 },
-    { type: 'link', img: 'web/pudding-cool-16.jpg', href: 'https://pudding.cool', dom: 'pudding.cool', t: 'The Pudding', kept: 1210 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/ciechanow-ski-3.png', href: 'https://ciechanow.ski/mechanical-watch/', dom: 'ciechanow.ski', t: 'Mechanical Watch', kept: 5120 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/ciechanow-ski-4.png', href: 'https://ciechanow.ski/gps/', dom: 'ciechanow.ski', t: 'GPS', kept: 3380 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/ncase-me-20.png', href: 'https://ncase.me/trust/', dom: 'ncase.me', t: 'The Evolution of Trust', kept: 4470 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/ncase-me-6.png', href: 'https://ncase.me/polygons/', dom: 'ncase.me', t: 'Parable of the Polygons', kept: 2160 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/pudding-cool-16.jpg', href: 'https://pudding.cool', dom: 'pudding.cool', t: 'The Pudding', kept: 1210 },
   ]},
   { name: 'Walls I’d hang', by: 'public domain, kept by Sol', things: [
-    { type: 'link', img: 'web/great-wave.jpg', href: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa', dom: 'wikipedia.org', t: 'The Great Wave off Kanagawa', kept: 6040 },
-    { type: 'link', img: 'web/starry-night.jpg', href: 'https://en.wikipedia.org/wiki/The_Starry_Night', dom: 'wikipedia.org', t: 'The Starry Night', kept: 5530 },
-    { type: 'link', img: 'web/mandelbrot.jpg', href: 'https://en.wikipedia.org/wiki/Mandelbrot_set', dom: 'wikipedia.org', t: 'The Mandelbrot set', kept: 2210 },
-    { type: 'link', img: 'web/publicdomainreview-org-7.png', href: 'https://publicdomainreview.org', dom: 'publicdomainreview.org', t: 'The Public Domain Review', kept: 870 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/great-wave.jpg', href: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa', dom: 'wikipedia.org', t: 'The Great Wave off Kanagawa', kept: 6040 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/starry-night.jpg', href: 'https://en.wikipedia.org/wiki/The_Starry_Night', dom: 'wikipedia.org', t: 'The Starry Night', kept: 5530 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/mandelbrot.jpg', href: 'https://en.wikipedia.org/wiki/Mandelbrot_set', dom: 'wikipedia.org', t: 'The Mandelbrot set', kept: 2210 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/publicdomainreview-org-7.png', href: 'https://publicdomainreview.org', dom: 'publicdomainreview.org', t: 'The Public Domain Review', kept: 870 },
   ]},
   { name: 'Linear algebra, start here', by: 'crafted by Grdn', things: [
     { type: 'video', t: 'Eigenvectors in 60 seconds', dom: 'made by a node', kept: 980 },
     { type: 'app', e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake', kept: 1204 },
     { type: 'note', text: 'A matrix is a machine that moves space. Watch where the grid goes.', kept: 311 },
-    { type: 'link', img: 'web/ocw-mit-edu-29.jpg', href: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', dom: 'ocw.mit.edu', t: '18.06 Linear Algebra', kept: 530 },
-    { type: 'link', img: 'web/redblobgames-com-11.jpg', href: 'https://www.redblobgames.com/grids/hexagons/', dom: 'redblobgames.com', t: 'Hexagonal grids', kept: 2240 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/ocw-mit-edu-29.jpg', href: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', dom: 'ocw.mit.edu', t: '18.06 Linear Algebra', kept: 530 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/redblobgames-com-11.jpg', href: 'https://www.redblobgames.com/grids/hexagons/', dom: 'redblobgames.com', t: 'Hexagonal grids', kept: 2240 },
   ]},
   { name: 'Board game night', by: 'the Friday table', things: [
     { live: 'dice' },
@@ -254,7 +270,7 @@ const G = [
     { type: 'app', e: '🐸', bg: '#DDF3EF', k: 'Game', t: 'Frog jump', kept: 1630 },
     { type: 'app', e: '🏓', bg: '#FFE3D6', k: 'Game', t: 'Pong for two', kept: 902 },
     { type: 'app', e: '🧩', bg: '#FCEBC2', k: 'Game', t: 'Word ladder', kept: 244 },
-    { type: 'link', img: 'web/quickdraw-withgoogle-com-9.png', href: 'https://quickdraw.withgoogle.com', dom: 'quickdraw.withgoogle.com', t: 'Quick, Draw!', kept: 990 },
+    { type: 'link', img: 'https://grdn-site.vercel.app/web/quickdraw-withgoogle-com-9.png', href: 'https://quickdraw.withgoogle.com', dom: 'quickdraw.withgoogle.com', t: 'Quick, Draw!', kept: 990 },
   ]},
   { name: 'Birds at the window', by: 'Nana Ruth', things: [
     { type: 'app', e: '🐦', bg: '#DDF3EF', k: 'App', t: 'Who is singing?', kept: 640 },
@@ -442,8 +458,22 @@ const card = document.getElementById('card'), pill = document.getElementById('pi
 const scrim = document.getElementById('scrim');
 document.getElementById('wander').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false; };
 pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); };
-document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); // prototype: nothing is sent or stored yet
-  e.target.style.display = 'none'; document.getElementById('thanks').style.display = 'block'; });
+// Same-origin under grdn.page: the app's /api/waitlist answers 202 for every valid email.
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target, button = form.querySelector('button'), error = document.getElementById('form-error');
+  const email = form.querySelector('input[type="email"]').value.trim();
+  button.disabled = true; error.hidden = true;
+  let status = 0;
+  try {
+    const res = await fetch('/api/waitlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    status = res.status;
+  } catch {}
+  button.disabled = false;
+  if (status === 202) { form.style.display = 'none'; document.getElementById('reassure').hidden = true; document.getElementById('thanks').style.display = 'block'; return; }
+  error.textContent = status === 400 ? 'Please check that email address.' : 'Something went wrong. Please try again.';
+  error.hidden = false;
+});
 </script>
 </body>
 </html>
