@@ -52,7 +52,7 @@
   @media (hover: hover) { .link:hover img { transform: scale(1.02); } }
   .k { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   .t { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; margin-top: 3px; }
-  .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .meta { display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .kept::before { content: '♥ '; color: #e08a68; }
   .row { display: flex; gap: 12px; align-items: center; }
   .ic { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
@@ -422,7 +422,9 @@ const G = [
 // ---------- rendering ----------
 const world = document.getElementById('world');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const meta = th => `<div class="meta"><span>${th.meta ? esc(th.meta) : ''}</span>${th.kept ? `<span class="kept">kept by ${th.kept.toLocaleString('en-US')}</span>` : ''}</div>`;
+// A count of the people who keep a thing in their own garden. keepSomething() parses the number back out.
+const keptText = n => n === 1 ? '1 person keeps this' : `${n.toLocaleString('en-US')} people keep this`;
+const meta = th => `<div class="meta"><span>${th.meta ? esc(th.meta) : ''}</span>${th.kept ? `<span class="kept">${keptText(th.kept)}</span>` : ''}</div>`;
 function thingHTML(th) {
   if (th.live) return liveHTML(th.live);
   switch (th.type) {
@@ -439,12 +441,12 @@ function liveHTML(kind) {
     let paths = '';
     for (let i = 0; i < 8; i++) { const a0 = i / 8 * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / 8 * Math.PI * 2 - Math.PI / 2;
       paths += `<path data-i="${i}" d="M0 0 L${70 * Math.cos(a0)} ${70 * Math.sin(a0)} A70 70 0 0 1 ${70 * Math.cos(a1)} ${70 * Math.sin(a1)} Z" fill="#FBE3C4" stroke="#fff" stroke-width="3"/>`; }
-    return `<div class="thing live pizza">${head('Game', 'Fraction Pizza')}<div class="row" style="margin-top:10px"><svg width="150" height="150" viewBox="-75 -75 150 150"><circle r="73" fill="#e5b87a"/>${paths}</svg><div class="serif" style="font-size:36px" data-out>0/8</div></div><div class="meta"><span>tap the slices</span><span class="kept">kept by 1,204</span></div></div>`;
+    return `<div class="thing live pizza">${head('Game', 'Fraction Pizza')}<div class="row" style="margin-top:10px"><svg width="150" height="150" viewBox="-75 -75 150 150"><circle r="73" fill="#e5b87a"/>${paths}</svg><div class="serif" style="font-size:36px" data-out>0/8</div></div><div class="meta"><span>tap the slices</span><span class="kept">${keptText(1204)}</span></div></div>`;
   }
-  if (kind === 'palette') return `<div class="thing live">${head('Tool', 'Palette maker')}<div class="palette" data-pal>${'<div></div>'.repeat(5)}</div><div class="meta"><span>tap for another</span><span class="kept">kept by 522</span></div></div>`;
-  if (kind === 'synth') return `<div class="thing live">${head('Toy', 'Tiny synth')}<div class="keys">${['C', 'D', 'E', 'G', 'A', 'C'].map((n, i) => `<button data-f="${[261.6, 293.7, 329.6, 392, 440, 523.3][i]}">${n}</button>`).join('')}</div><div class="meta"><span>play a tune</span><span class="kept">kept by 318</span></div></div>`;
-  if (kind === 'dice') return `<div class="thing live">${head('Tool', 'Two dice')}<div class="dice" data-dice>⚂⚄</div><div class="meta"><span>tap to roll</span><span class="kept">kept by 141</span></div></div>`;
-  if (kind === 'moon') return `<div class="thing live">${head('App', 'Moon tonight')}<div class="row"><div class="moon" data-moon></div><div class="serif" style="font-size:20px" data-moontxt></div></div><div class="meta"><span>live</span><span class="kept">kept by 87</span></div></div>`;
+  if (kind === 'palette') return `<div class="thing live">${head('Tool', 'Palette maker')}<div class="palette" data-pal>${'<div></div>'.repeat(5)}</div><div class="meta"><span>tap for another</span><span class="kept">${keptText(522)}</span></div></div>`;
+  if (kind === 'synth') return `<div class="thing live">${head('Toy', 'Tiny synth')}<div class="keys">${['C', 'D', 'E', 'G', 'A', 'C'].map((n, i) => `<button data-f="${[261.6, 293.7, 329.6, 392, 440, 523.3][i]}">${n}</button>`).join('')}</div><div class="meta"><span>play a tune</span><span class="kept">${keptText(318)}</span></div></div>`;
+  if (kind === 'dice') return `<div class="thing live">${head('Tool', 'Two dice')}<div class="dice" data-dice>⚂⚄</div><div class="meta"><span>tap to roll</span><span class="kept">${keptText(141)}</span></div></div>`;
+  if (kind === 'moon') return `<div class="thing live">${head('App', 'Moon tonight')}<div class="row"><div class="moon" data-moon></div><div class="serif" style="font-size:20px" data-moontxt></div></div><div class="meta"><span>live</span><span class="kept">${keptText(87)}</span></div></div>`;
 }
 const COLS = 6, COLW = 640, GAP = 70;
 const heights = Array(COLS).fill(60);
@@ -563,7 +565,7 @@ function keepSomething() {
     return !cr || r.right < cr.left - 10 || r.left > cr.right + 10 || r.bottom < cr.top - 10 || r.top > cr.bottom + 10; });
   if (!seen.length) return;
   const k = seen[Math.random() * seen.length | 0], n = parseInt(k.textContent.replace(/\D/g, ''), 10) + 1;
-  k.textContent = 'kept by ' + n.toLocaleString('en-US'); k.classList.remove('bump'); void k.offsetWidth; k.classList.add('bump');
+  k.textContent = keptText(n); k.classList.remove('bump'); void k.offsetWidth; k.classList.add('bump');
   const thing = k.closest('.thing'), tr = thing.getBoundingClientRect(), kr = k.getBoundingClientRect(), h = document.createElement('span');
   h.className = 'heart'; h.textContent = '♥'; h.style.left = (kr.left - tr.left - 2) + 'px'; h.style.top = (kr.top - tr.top - 8) + 'px';
   thing.appendChild(h); setTimeout(() => h.remove(), 1500);
@@ -613,7 +615,7 @@ const SPECS = {
   paper: { kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
     next: [{ t: 'Café: warm, not cute', s: 'Mo’s moodboard', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico’s garden', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', garden: 'Robin Sloan' }],
     render: el => { el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><span>No. 42 · made every Sunday from the gardens Amara follows</span></div><div class="cols2">
-        <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · kept by 5,120</small></article>
+        <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · 5,120 people keep this</small></article>
         <div class="side"><article><h4>The Great Wave, up close</h4><p>Hokusai’s print, and why the boats matter more than the wave.</p><small>from Sol’s garden</small></article>
         <article><h4>An app can be a home-cooked meal</h4><p>Software made for four people, and loved by all four.</p><small>from Robin Sloan’s garden</small></article>
         <article><h4>Pale Blue Dot</h4><p>Everyone you love, on a mote of dust in a sunbeam.</p><small>from Grandpa Tom’s garden</small></article></div></div></div>`; } },
