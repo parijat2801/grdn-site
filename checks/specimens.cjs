@@ -66,6 +66,8 @@ async function everyCardOpens(page, vp, specs) {
     const v = await page.evaluate(() => ({ title: document.getElementById('spec-title').textContent, made: document.getElementById('spec-made').textContent, chips: document.querySelectorAll('#spec-made .chip').length }));
     check(`${vp}: card ${id} opens on click, title "${s.title}"`, v.title === s.title, v.title);
     check(`${vp}: ${id} made line names ${s.owner} with ${s.from.length} chips`, v.made.includes(s.owner) && v.made.includes(`from ${s.from.length} things`) && v.chips === s.from.length, `${v.made} / ${v.chips}`);
+    const shown = await page.evaluate(t => [...document.querySelectorAll('#spec .panel *')].filter(e => e.children.length === 0 && e.textContent.trim() === t && e.getClientRects().length && e.getBoundingClientRect().width > 2).length, s.title);
+    check(`${vp}: ${id} title shows once`, shown === 1, String(shown));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-${id}.png` });
     await closeEsc(page);
   }
@@ -191,11 +193,11 @@ async function motion(browser, vp, specs) {
   await page.evaluate(g => goGarden(g), specs.titan.garden); await wait(900);
   const b = await page.locator('[data-spec="titan"]').boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
-  const f = await page.evaluate(() => { const p = document.querySelector('#spec .panel'); return p.getAnimations().some(a => { const k = a.effect.getKeyframes(); return k.length && k[0].transform && k[0].transform !== 'none'; }); });
+  const f = await page.evaluate(() => { const p = document.querySelector('#spec .panel'); return p.getAnimations().some(a => { const k = a.effect.getKeyframes(); return k.length && /scale|matrix/.test(k[0].transform || ''); }); });
   check(`${vp}: opening grows the view from the card (FLIP)`, f);
   await wait(500);
   await page.keyboard.press('Escape');
-  const r = await page.evaluate(() => { const p = document.querySelector('#spec .panel'); return p.getAnimations().some(a => { const k = a.effect.getKeyframes(); return k.length && k[k.length - 1].transform && k[k.length - 1].transform !== 'none'; }); });
+  const r = await page.evaluate(() => { const p = document.querySelector('#spec .panel'); return p.getAnimations().some(a => { const k = a.effect.getKeyframes(); return k.length && /scale|matrix/.test(k[k.length - 1].transform || ''); }); });
   check(`${vp}: closing shrinks the view back to the card`, r);
   await wait(500);
   check(`${vp}: closed after the reverse motion`, !(await isOpen(page)));
@@ -211,6 +213,7 @@ async function motion(browser, vp, specs) {
   check(`${vp}: reduced motion opens instantly, no FLIP`, s.open && s.anims === 0 && s.tf === 'none', JSON.stringify(s));
   await rm.page.keyboard.press('Escape');
   check(`${vp}: reduced motion closes instantly`, !(await isOpen(rm.page)));
+  check(`${vp}: no errors with reduced motion`, rm.errors.length === 0, rm.errors.join(' | '));
   await rm.ctx.close();
 }
 
@@ -219,7 +222,7 @@ async function pulse(browser, vp, long) {
   await wander(page);
   await wait(3300);
   const p1 = await page.evaluate(() => ({ n: +(document.body.dataset.pulses || 0), id: document.body.dataset.pulsed || '' }));
-  const vis = p1.id && await page.evaluate(id => { const b = document.querySelector(`[data-spec="${id}"]`).getBoundingClientRect(); return b.left >= 0 && b.top >= 0 && b.right <= innerWidth && b.bottom <= innerHeight; }, p1.id);
+  const vis = p1.id && await page.evaluate(id => { const b = document.querySelector(`[data-spec="${id}"]`).getBoundingClientRect(); const w = Math.min(b.right, innerWidth) - Math.max(b.left, 0), h = Math.min(b.bottom, innerHeight) - Math.max(b.top, 0); return w > 0 && h > 0 && w * h >= .6 * b.width * b.height; }, p1.id);
   check(`${vp}: a visible specimen pulses once after idle`, p1.n === 1 && vis, JSON.stringify(p1));
   if (long) {
     await wait(3000);
