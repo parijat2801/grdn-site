@@ -180,6 +180,25 @@
   .plan li .stop.swapped { background: #E3ECF8; }
   .plan li .stop b { display: block; font-size: 16px; } .plan li .stop small { font-size: var(--fs-meta); color: var(--muted); }
   .plan .walk { grid-column: 2; font-size: var(--fs-tag); color: var(--muted); padding: 4px 0 4px 12px; }
+  .recipe .serves { display: inline-flex; align-items: center; gap: 10px; padding: 4px 4px 4px 16px; border-radius: var(--r-pill); background: #F1ECE0; font-weight: 600; }
+  .recipe .serves button { width: 36px; height: 36px; border-radius: 50%; border: 0; background: #fff; font: 600 20px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; box-shadow: var(--shadow-card); }
+  .recipe .serves button:disabled { opacity: .35; cursor: default; }
+  .recipe .serves b { min-width: 22px; text-align: center; font-size: 20px; }
+  .recipe ul { list-style: none; margin-top: 14px; columns: 2; column-gap: 24px; }
+  .recipe ul li { break-inside: avoid; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-body); }
+  .recipe .amt { display: inline-block; min-width: 64px; font-weight: 700; margin-right: 8px; }
+  .recipe .steps { margin: 14px 0 0 20px; font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.4; }
+  .recipe .steps li + li { margin-top: 4px; } .recipe .steps small { font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); color: var(--muted); }
+  .jar .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .jar label { display: block; font-size: var(--fs-meta); color: var(--muted); } .jar label b { color: var(--ink); font-size: 16px; margin-left: 4px; }
+  .jar input[type=range] { display: block; width: 100%; margin-top: 8px; accent-color: var(--teal); }
+  .jar .chart { position: relative; margin-top: 16px; }
+  .jar svg { display: block; width: 100%; height: 200px; background: #F4F6FB; border-radius: 14px; }
+  .jar .ymax { position: absolute; left: 10px; top: 12px; font-size: var(--fs-tag); color: var(--muted); }
+  .jar .sum { display: flex; gap: 28px; align-items: flex-end; margin-top: 12px; flex-wrap: wrap; }
+  .jar .v { font-size: 26px; font-weight: 800; letter-spacing: -.02em; } .jar .v.muted { color: var(--muted); font-weight: 600; }
+  .jar .note { font-family: 'Newsreader', serif; font-style: italic; font-size: 15px; color: var(--muted); }
+  @media (max-width: 760px) { .recipe ul { columns: 1; } .jar .inputs { grid-template-columns: 1fr; } }
   @media (max-width: 760px) { .dash { grid-template-columns: 1fr 1fr; } .dash .tile.big { grid-column: span 2; grid-row: auto; flex-direction: row; align-items: center; }
     .paper .cols2 { grid-template-columns: 1fr; } .mood { grid-template-columns: 1fr 1fr; grid-template-rows: 150px 100px 90px; } .mood .first { grid-row: auto; grid-column: span 2; } }
 </style>
@@ -333,9 +352,11 @@ const G = [
     { type: 'note', text: 'Why does my robot drift? Start with the wheel odometry.', kept: 11 },
   ]},
   { name: 'Kitchen', by: 'Priya & Sam', things: [
+    { spec: 'recipe', type: 'app', e: '🍚', bg: '#FCEBC2', k: 'Recipe', t: 'Fried rice for however many', meta: 'made with Grdn', kept: 148 },
     { type: 'app', e: '🍳', bg: '#FFE3D6', k: 'App', t: 'Meal roulette', kept: 377 },
     { type: 'link', dom: 'seriouseats.com', t: 'The food lab: eggs', kept: 60 },
     { type: 'note', text: 'Leftover rice: fried, never microwaved.', kept: 22 },
+    { type: 'link', dom: 'thewoksoflife.com', t: 'Egg fried rice', kept: 41 },
   ]},
   { name: 'Learning to draw', by: 'a garden by Ada', things: [
     { type: 'app', e: '✏️', bg: '#F1ECE0', k: 'Tool', t: 'Two-minute gesture timer', kept: 188 },
@@ -363,7 +384,8 @@ const G = [
     { type: 'link', dom: 'fonts.google.com', t: 'Newsreader, by Production Type', kept: 45 },
     { type: 'note', text: 'Set it big, then take away weight until it breathes.', kept: 33 },
   ]},
-  { name: 'Money basics', by: 'for my kids', things: [
+  { name: 'Money basics', by: 'Dami, for her kids', things: [
+    { spec: 'savings', type: 'app', e: '🫙', bg: '#DDF3EF', k: 'Chart', t: 'What the jar grows to', meta: 'made with Grdn', kept: 233 },
     { type: 'app', e: '🪙', bg: '#FCEBC2', k: 'Game', t: 'Pocket money jar', kept: 470 },
     { type: 'app', e: '📈', bg: '#DDF3EF', k: 'Toy', t: 'What compounding looks like', kept: 812 },
   ]},
@@ -592,7 +614,43 @@ const SPECS = {
         el.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); };
       el.innerHTML = `<div class="plan"><div class="toggle"><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div><ol></ol></div>`;
       el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },
+  recipe: { kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: ['The food lab: eggs', 'The Woks of Life: egg fried rice', 'Their note: leftover rice, fried'],
+    next: [{ t: 'Day planner, rain or shine', s: 'Mei & Jo’s app for Kyoto', open: 'kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'Board game night', s: 'the Friday table', garden: 'Board game night' }],
+    render: el => recipe(el) },
+  savings: { kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: ['Pocket money jar', 'What compounding looks like'],
+    next: [{ t: 'Land on Titan', s: 'Leo’s game, made from his space links', open: 'titan' }, { t: 'Fractions, by hand', s: 'Ms. Rao’s class 4B', garden: 'Fractions, by hand' }, { t: 'Money basics', s: 'the garden it came from', garden: 'Money basics' }],
+    render: el => savings(el) },
 };
+// Fried rice: the stepper scales every amount from the recipe for 2.
+function recipe(el) {
+  const base = 2, items = [[300, 'g', 'cooked rice, a day old'], [2, '', 'eggs'], [2, '', 'spring onions'], [1, '', 'garlic clove'], [1, 'tbsp', 'soy sauce'], [1, 'tsp', 'sesame oil'], [2, 'tbsp', 'neutral oil']];
+  const frac = q => { const w = Math.floor(q + 1e-9), f = Math.round((q - w) * 4) / 4; const part = { 0: '', .25: '¼', .5: '½', .75: '¾', 1: '' }[f]; const n = f === 1 ? w + 1 : w; return (n ? n : '') + part || '0'; };
+  const show = (q, u) => u === 'g' ? `${Math.round(q / 10) * 10} g` : `${frac(q)}${u ? ' ' + u : ''}`;
+  let serves = base;
+  el.innerHTML = `<div class="recipe"><div class="serves"><span>Serves</span><button type="button" data-step="-1" aria-label="Fewer people">−</button><b data-serves aria-live="polite">2</b><button type="button" data-step="1" aria-label="More people">+</button></div>
+    <ul></ul><ol class="steps"><li>Scramble the eggs soft and take them out. <small>the food lab</small></li><li>Fry the cold rice hot and fast, never microwaved. <small>their note</small></li><li>Eggs back in, then soy, sesame oil and spring onions. <small>the Woks of Life</small></li></ol></div>`;
+  const draw = () => { el.querySelector('[data-serves]').textContent = serves;
+    el.querySelector('ul').innerHTML = items.map(([q, u, n]) => { const v = q * serves / base; return `<li><span class="amt" data-q="${v}">${show(v, u)}</span>${n}</li>`; }).join('');
+    el.querySelector('[data-step="-1"]').disabled = serves <= 1; el.querySelector('[data-step="1"]').disabled = serves >= 12; };
+  el.querySelectorAll('[data-step]').forEach(b => b.onclick = () => { serves = Math.min(12, Math.max(1, serves + +b.dataset.step)); draw(); });
+  draw();
+}
+// The jar: a monthly amount, a number of years, and what 4% a year adds on top.
+function savings(el) {
+  el.innerHTML = `<div class="jar"><div class="inputs"><label>Each month <b data-mo-out></b><input type="range" data-monthly min="1" max="50" step="1" value="10"></label>
+    <label>For <b data-yr-out></b><input type="range" data-years min="1" max="18" step="1" value="10"></label></div>
+    <div class="chart"><span class="ymax" data-ymax></span><svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="600" y1="10" y2="10" stroke="var(--ink)" stroke-opacity=".12" vector-effect="non-scaling-stroke"/><path data-grow fill="rgba(15,143,128,.14)" stroke="var(--teal)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path data-put fill="none" stroke="var(--ink)" stroke-opacity=".35" stroke-width="2" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="sum"><div><div class="k">In the jar</div><div class="v" data-total></div></div><div><div class="k">You put in</div><div class="v muted" data-put-total></div></div><div class="note">if the jar paid 4% a year, added monthly</div></div></div>`;
+  const mo = el.querySelector('[data-monthly]'), yr = el.querySelector('[data-years]'), money = n => '£' + Math.round(n).toLocaleString('en-GB');
+  const draw = () => { const m = +mo.value, n = +yr.value * 12, r = .04 / 12, grow = [0], put = [0];
+    for (let i = 1; i <= n; i++) { grow.push(grow[i - 1] * (1 + r) + m); put.push(m * i); }
+    const p10 = 10 ** Math.floor(Math.log10(grow[n])), top = [1, 1.5, 2, 3, 4, 5, 6, 8, 10].map(k => k * p10).find(v => v >= grow[n] * 1.04), X = i => (i / n * 600).toFixed(1), Y = v => (220 - v / top * 210).toFixed(1);
+    el.querySelector('[data-grow]').setAttribute('d', `M0 220 ${grow.map((v, i) => `L${X(i)} ${Y(v)}`).join(' ')} L600 220 Z`);
+    el.querySelector('[data-put]').setAttribute('d', put.map((v, i) => `${i ? 'L' : 'M'}${X(i)} ${Y(v)}`).join(' '));
+    el.querySelector('[data-mo-out]').textContent = money(m); el.querySelector('[data-yr-out]').textContent = `${yr.value} year${yr.value === '1' ? '' : 's'}`;
+    el.querySelector('[data-ymax]').textContent = money(top); el.querySelector('[data-total]').textContent = money(grow[n]); el.querySelector('[data-put-total]').textContent = money(put[n]); };
+  mo.oninput = yr.oninput = draw; draw();
+}
 // Land on Titan: hold to fire the engine, touch down slowly. Titan's gravity is weak and its air is thick.
 let landerStop = null;
 function lander(el) {
