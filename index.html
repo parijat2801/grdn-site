@@ -631,7 +631,7 @@ const SPECS = {
         el.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); };
       el.innerHTML = `<div class="plan"><div class="toggle"><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div><ol></ol></div>`;
       el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },
-  recipe: { kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: ['The food lab: eggs', 'The Woks of Life: egg fried rice', 'Their note: leftover rice, fried'],
+  recipe: { kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: ['The food lab: eggs · seriouseats.com', 'Egg fried rice · thewoksoflife.com', 'Note: fried, never microwaved'],
     next: [{ t: 'Day planner, rain or shine', s: 'Mei & Jo’s app for Kyoto', open: 'kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'Board game night', s: 'the Friday table', garden: 'Board game night' }],
     render: el => recipe(el) },
   savings: { kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: ['Pocket money jar', 'What compounding looks like'],
