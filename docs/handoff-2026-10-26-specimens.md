@@ -11,18 +11,21 @@ Read this first. It says where the landing page work stands, what the owner has 
   - 96b4c53, 1e00a64: cherry-picked no-store headers (`vercel.json`), needed for grdn.page.
   - 4dccdad: static base. Signups post to the app's `/api/waitlist`, images load from `https://grdn-site.vercel.app/web/…`, the approved opening copy is in, and the design tokens are in.
   - 6dbdce2: the specimens prototype, with five specimens. The owner reviewed it and said: "looks good actually. And this one is way more scalable and easier to change too."
-- **Round 2 (in flight when this was written):** an Opus agent is building it in the same worktree.
-  - A one-line definition of Grdn on the opening card. The agent reports 3 candidates; the owner picks one.
-  - Two more specimens: a recipe scaler in Kitchen, and a savings chart in Money basics.
-  - Polish:
-    - a discoverability pulse on the nearest specimen;
-    - an open/close FLIP from the card;
-    - a phone bottom sheet with a sticky close button;
-    - a de-duplicated paper title;
-    - keyboard and focus handling.
-  - A new check script, `node checks/specimens.cjs` (Playwright, PORT defaults to 8850), with every check written to fail first.
-
-  Check `git log` on the branch and the agent's report before continuing.
+- **Round 2 (done, built by an Opus agent):**
+  - f11ca23: the definition line on the opening card, plus the check script `node checks/specimens.cjs` (Playwright, PORT defaults to 8850). The checks were written to fail first; two full runs both passed 167/0 on desktop 1440×900 and phones 390×844 and 360×740.
+  - bf64d09: two more specimens, "Fried rice for however many" (Kitchen) and "What the jar grows to" (Money basics, now "Dami, for her kids").
+  - f44f7b6: polish (pulse on the nearest specimen, FLIP open/close, phone bottom sheet with sticky close, paper title once, keyboard and focus handling), plus three fixes: reduced motion threw on load, Where next panned headings off screen, the savings chart ignored the monthly amount.
+  - Screenshots of every specimen are in `checks/shots/` (git-ignored).
+- **Definition line on the page:** "Keep things from the web in a garden people can visit. Grdn makes small things from them." The owner has not picked yet. The other candidates were:
+  - "Keep what you find on the web in a garden. Others can visit. Grdn makes things from it."
+  - "A garden for what you keep from the web, open to visitors. Grdn makes small things from it."
+- **Agent judgement calls for the owner to review:**
+  - The canvas now starts on the specimen nearest the middle (the recipe card).
+  - The pulse counts a card as visible when 60% of it is on screen.
+  - The moodboard and Kyoto cards moved to the top of their gardens, so they can be tapped on phones.
+  - The savings chart uses £ at 4% a year.
+  - Space fires the lander only while the game canvas has focus.
+  - Where next rows that go to a garden fade the view out instead of shrinking it back into the card.
 
 ## What the page is now (owner-approved concept)
 
