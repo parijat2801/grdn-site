@@ -113,6 +113,75 @@
     transition: all .35s ease; }
   #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
+
+  /* specimens: things made with Grdn that open into a live view, with Where next beside them */
+  .thing.spec { cursor: pointer; box-shadow: 0 0 0 2px var(--teal), var(--shadow-card); }
+  .open-mark { position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: var(--r-pill); background: var(--teal); color: #fff; font-size: var(--fs-tag); font-weight: 700; }
+  .open-mark::after { content: ' ↗'; }
+  .live.spec .tag { display: none; }
+  #spec { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 24px; }
+  #spec[hidden] { display: none; }
+  #spec .dim { position: absolute; inset: 0; background: rgba(248,245,236,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: fadeIn var(--fade) ease; }
+  #spec .panel { position: relative; width: min(1000px, 100%); max-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 290px; background: var(--card);
+    border-radius: 24px; box-shadow: var(--shadow-lift); overflow: hidden; animation: up .35s var(--ease) backwards; }
+  #spec .main { padding: 26px 28px 22px; overflow: auto; }
+  #spec .close { position: absolute; top: 12px; right: 12px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #F1ECE0; color: var(--ink); font-size: 20px; cursor: pointer; }
+  #spec h3 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-top: 4px; }
+  #spec .body { margin-top: 16px; }
+  #spec .made { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: var(--fs-meta); color: var(--muted); }
+  #spec .made b { color: var(--ink); font-weight: 600; }
+  #spec .chip { padding: 4px 10px; border-radius: var(--r-pill); background: #F1ECE0; color: var(--ink); font-size: var(--fs-tag); font-weight: 600; }
+  #spec .next { background: #FAF8F2; border-left: 1px solid var(--line); padding: 26px 18px 18px; overflow: auto; }
+  #spec .next .sub { font-family: 'Newsreader', serif; font-style: italic; font-size: 15px; color: var(--muted); margin: 4px 0 12px; }
+  #spec .nx { display: block; width: 100%; text-align: left; margin-top: 8px; padding: 11px 12px; border-radius: 14px; border: 1px solid var(--line); background: #fff; font: inherit; color: var(--ink); cursor: pointer; }
+  #spec .nx:hover { border-color: var(--teal); }
+  #spec .nx b { display: block; font-size: 15px; font-weight: 600; line-height: 1.2; }
+  #spec .nx small { display: block; margin-top: 3px; font-size: var(--fs-tag); color: var(--muted); }
+  #spec .nx small::after { content: ' →'; }
+  @keyframes fadeIn { from { opacity: 0; } }
+  @media (max-width: 760px) {
+    #spec { padding: 10px; align-items: end; }
+    #spec .panel { grid-template-columns: 1fr; max-height: calc(100% - 20px); overflow: auto; border-radius: 22px; }
+    #spec .main, #spec .next { overflow: visible; } #spec .main { padding: 22px 18px 18px; } #spec h3 { font-size: 24px; padding-right: 36px; }
+    #spec .next { border-left: 0; border-top: 1px solid var(--line); }
+  }
+  .garden.arrive header h2 { animation: arrive 1.6s var(--ease); }
+  @keyframes arrive { 20% { color: var(--teal); } }
+  /* the five specimens */
+  .lander canvas { display: block; width: 100%; height: 300px; border-radius: 14px; touch-action: none; cursor: pointer; }
+  .lander .hud { display: flex; justify-content: space-between; margin-top: 10px; font-size: var(--fs-meta); color: var(--muted); }
+  .lander .hud b { color: var(--ink); }
+  .dash { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; }
+  .dash .tile { background: #F4F6FB; border-radius: 14px; padding: 14px; }
+  .dash .tile.big { grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; background: #10243A; color: #fff; }
+  .dash .big .moonface { font-size: 86px; line-height: 1; }
+  .dash .k { margin-bottom: 4px; } .dash .big .k { color: rgba(255,255,255,.6); }
+  .dash .v { font-size: 20px; font-weight: 700; letter-spacing: -.01em; } .dash .s { font-size: var(--fs-meta); color: var(--muted); margin-top: 2px; } .dash .big .s { color: rgba(255,255,255,.7); }
+  .paper { font-family: 'Newsreader', serif; }
+  .paper .mast { text-align: center; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+  .paper .mast b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -.01em; } .paper .mast span { font-size: 14px; font-style: italic; color: var(--muted); }
+  .paper .cols2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; margin-top: 14px; }
+  .paper article img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: block; }
+  .paper article h4 { font-size: 20px; font-weight: 500; line-height: 1.15; margin-top: 8px; } .paper article p { font-size: 15px; line-height: 1.4; color: rgba(16,36,58,.75); margin-top: 4px; }
+  .paper article small { display: block; margin-top: 4px; font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); color: var(--muted); }
+  .paper .side article + article { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .mood { display: grid; grid-template-columns: 1.4fr 1fr 1fr; grid-template-rows: 150px 110px; gap: 8px; }
+  .mood img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+  .mood .first { grid-row: span 2; }
+  .mood .swatches { display: flex; border-radius: 10px; overflow: hidden; cursor: pointer; } .mood .swatches div { flex: 1; }
+  .mood .type { display: grid; place-items: center; background: #F3EBDD; border-radius: 10px; font-family: 'Newsreader', serif; font-size: 26px; font-style: italic; color: #263B42; }
+  .plan .toggle { display: inline-flex; padding: 3px; border-radius: var(--r-pill); background: #F1ECE0; }
+  .plan .toggle button { border: 0; background: none; padding: 7px 16px; border-radius: var(--r-pill); font: 600 14px 'Bricolage Grotesque'; color: var(--muted); cursor: pointer; }
+  .plan .toggle button.on { background: #fff; color: var(--ink); box-shadow: var(--shadow-card); }
+  .plan ol { list-style: none; margin-top: 14px; }
+  .plan li { display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: start; }
+  .plan li .time { font-weight: 700; font-size: 15px; padding-top: 12px; }
+  .plan li .stop { background: #F4F6FB; border-radius: 12px; padding: 10px 12px; transition: background .3s; }
+  .plan li .stop.swapped { background: #E3ECF8; }
+  .plan li .stop b { display: block; font-size: 16px; } .plan li .stop small { font-size: var(--fs-meta); color: var(--muted); }
+  .plan .walk { grid-column: 2; font-size: var(--fs-tag); color: var(--muted); padding: 4px 0 4px 12px; }
+  @media (max-width: 760px) { .dash { grid-template-columns: 1fr 1fr; } .dash .tile.big { grid-column: span 2; grid-row: auto; flex-direction: row; align-items: center; }
+    .paper .cols2 { grid-template-columns: 1fr; } .mood { grid-template-columns: 1fr 1fr; grid-template-rows: 150px 100px 90px; } .mood .first { grid-row: auto; grid-column: span 2; } }
 </style>
 </head>
 <body>
@@ -133,6 +202,11 @@
   <div class="fine"><button class="wander" id="wander">Wander</button></div>
 </section>
 <button class="btn" id="pill">Reserve your grdn</button>
+<div id="spec" hidden><div class="dim"></div><div class="panel" role="dialog" aria-modal="true" aria-labelledby="spec-title">
+  <button class="close" type="button" aria-label="Close">×</button>
+  <div class="main"><div class="k" id="spec-kind"></div><h3 id="spec-title"></h3><div class="body" id="spec-body"></div><div class="made" id="spec-made"></div></div>
+  <aside class="next"><div class="k">Where next</div><div class="sub">Because you opened this</div><div id="spec-next"></div></aside>
+</div></div>
 
 <script>
 // ---------- content ----------
@@ -164,12 +238,13 @@ const G = [
   ]},
   { name: 'Colour', by: 'a garden by Mo', things: [
     { live: 'palette' },
+    { spec: 'mood', type: 'app', e: '🎨', bg: '#E6E9F0', k: 'Moodboard', t: 'Café: warm, not cute', meta: 'made with Grdn', kept: 96 },
     { type: 'note', text: 'Warm paper, one ink, one accent. Everything else is noise.', kept: 19 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/oklch-com-23.png', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/weavesilk-com-13.png', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
   ]},
   { name: 'Moon & sky', by: 'Grandpa Tom', things: [
-    { live: 'moon' },
+    { live: 'moon', spec: 'moon' },
     { type: 'app', e: '🔭', bg: '#E4E8F7', k: 'App', t: 'What’s up tonight', kept: 205 },
     { type: 'note', text: 'Saturn is low in the east after nine. Take the kids.', kept: 6 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/pale-blue-dot.png', href: 'https://en.wikipedia.org/wiki/Pale_Blue_Dot', dom: 'wikipedia.org', t: 'Pale Blue Dot', kept: 3120 },
@@ -220,6 +295,7 @@ const G = [
     { type: 'link', href: 'https://asoftmurmur.com', dom: 'asoftmurmur.com', t: 'A Soft Murmur', kept: 1760 },
   ]},
   { name: 'Windows onto the world', by: 'a garden by Amara', things: [
+    { spec: 'paper', type: 'app', e: '📰', bg: '#EFE4F8', k: 'Paper', t: 'The Sunday Garden', meta: 'made with Grdn · every Sunday', kept: 1210 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/radio-garden-0.jpg', href: 'https://radio.garden', dom: 'radio.garden', t: 'Radio Garden', kept: 4210 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/window-swap-com-5.png', href: 'https://www.window-swap.com', dom: 'window-swap.com', t: 'WindowSwap', kept: 2980 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/earth-nullschool-net-10.jpg', href: 'https://earth.nullschool.net', dom: 'earth.nullschool.net', t: 'Earth, the wind right now', kept: 1575 },
@@ -267,6 +343,7 @@ const G = [
     { type: 'note', text: 'Draw from the shoulder. Ghost the line first.', kept: 57 },
   ]},
   { name: 'Tiny games', by: 'Leo, age 11', things: [
+    { spec: 'titan', type: 'app', e: '🚀', bg: '#FBECD6', k: 'Game', t: 'Land on Titan', meta: 'made with Grdn', kept: 214 },
     { type: 'app', e: '🐸', bg: '#DDF3EF', k: 'Game', t: 'Frog jump', kept: 1630 },
     { type: 'app', e: '🏓', bg: '#FFE3D6', k: 'Game', t: 'Pong for two', kept: 902 },
     { type: 'app', e: '🧩', bg: '#FCEBC2', k: 'Game', t: 'Word ladder', kept: 244 },
@@ -292,7 +369,7 @@ const G = [
   ]},
   { name: 'Trip to Kyoto', by: 'Mei & Jo', things: [
     { type: 'link', dom: 'maps.google.com', t: 'Temples we can walk between', kept: 12 },
-    { type: 'app', e: '🗺️', bg: '#E4E8F7', k: 'App', t: 'Day planner, rain or shine', kept: 66 },
+    { spec: 'kyoto', type: 'app', e: '🗺️', bg: '#E4E8F7', k: 'App', t: 'Day planner, rain or shine', meta: 'made with Grdn', kept: 66 },
     { type: 'note', text: 'Fushimi Inari before 7am. Nobody else there.', kept: 29 },
   ]},
   { name: 'Quiz night', by: 'The Crown, Thursdays', things: [
@@ -345,6 +422,7 @@ G.forEach((g, i) => {
   world.appendChild(d);
   const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
   g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
+    if (th.spec) { el.classList.add('spec'); el.dataset.spec = th.spec; el.insertAdjacentHTML('beforeend', '<span class="open-mark">Open</span>'); }
     (cols[0].offsetHeight <= cols[1].offsetHeight ? cols[0] : cols[1]).appendChild(el); });
   let c = order[0]; for (const k of order) if (heights[k] < heights[c] - 40) c = k;
   d.style.left = (60 + c * COLW) + 'px'; d.style.top = heights[c] + 'px';
@@ -474,6 +552,98 @@ document.getElementById('f').addEventListener('submit', async e => {
   error.textContent = status === 400 ? 'Please check that email address.' : 'Something went wrong. Please try again.';
   error.hidden = false;
 });
+
+// ---------- specimens: things made with Grdn open into a live view, with Where next beside them ----------
+const IMG = n => `https://grdn-site.vercel.app/web/${n}`;
+function moonNow() { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14) / 864e5, now = Date.now() / 864e5, age = (((now - ref) % syn) + syn) % syn;
+  const idx = Math.round(age / syn * 8) % 8, toFull0 = ((syn / 2 - age) % syn + syn) % syn, toFull = toFull0 < 1.5 ? toFull0 + syn : toFull0;
+  return { face: [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx], name: ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'][idx],
+    lit: Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100), full: new Date(Date.now() + toFull * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }; }
+const SPECS = {
+  titan: { kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: ['Titan, Saturn’s largest moon', 'Lunar lander physics', 'Leo’s note: “make it hard”'],
+    next: [{ t: 'Moon tonight', s: 'Grandpa Tom’s dashboard', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom’s garden', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'tiny games people love', garden: 'Small, opinionated apps' }],
+    render: el => lander(el) },
+  moon: { kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: ['NASA image of the day', 'What’s up tonight', 'Tom’s note on Saturn'],
+    next: [{ t: 'Land on Titan', s: 'Leo’s game, made from his space links', open: 'titan' }, { t: 'Pale Blue Dot', s: 'in Grandpa Tom’s garden', garden: 'Moon & sky' }, { t: 'GPS, explained', s: 'Nico’s garden', garden: 'Things that explain themselves' }],
+    render: el => { const m = moonNow();
+      el.innerHTML = `<div class="dash"><div class="tile big"><div class="k">Tonight</div><div class="moonface">${m.face}</div><div><div class="v">${m.name}</div><div class="s">${m.lit}% lit</div></div></div>
+        <div class="tile"><div class="k">Saturn</div><div class="v">Up after 9pm</div><div class="s">low in the south-east</div></div>
+        <div class="tile"><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
+        <div class="tile"><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
+        <div class="tile"><div class="k">Space station</div><div class="v">21:14</div><div class="s">4 minutes, west to east</div></div></div>`; } },
+  paper: { kind: 'Paper', title: 'The Sunday Garden', owner: 'Amara', garden: 'Windows onto the world', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
+    next: [{ t: 'Café: warm, not cute', s: 'Mo’s moodboard', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico’s garden', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', garden: 'Robin Sloan' }],
+    render: el => { el.innerHTML = `<div class="paper"><div class="mast"><span>No. 42 · made every Sunday from the gardens Amara follows</span></div><div class="cols2">
+        <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · kept by 5,120</small></article>
+        <div class="side"><article><h4>The Great Wave, up close</h4><p>Hokusai’s print, and why the boats matter more than the wave.</p><small>from Sol’s garden</small></article>
+        <article><h4>An app can be a home-cooked meal</h4><p>Software made for four people, and loved by all four.</p><small>from Robin Sloan’s garden</small></article>
+        <article><h4>Pale Blue Dot</h4><p>Everyone you love, on a mote of dust in a sunbeam.</p><small>from Grandpa Tom’s garden</small></article></div></div></div>`; } },
+  mood: { kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: ['Mo’s palette', 'The Starry Night', 'The Great Wave', 'Mo’s note: one ink, one accent'],
+    next: [{ t: 'Walls I’d hang', s: 'Sol’s garden', garden: 'Walls I’d hang' }, { t: 'The Sunday Garden', s: 'Amara’s weekly paper', open: 'paper' }, { t: 'Type & letters', s: 'Wen’s garden', garden: 'Type & letters' }],
+    render: el => { el.innerHTML = `<div class="mood"><img class="first" src="${IMG('starry-night.jpg')}" alt=""><img src="${IMG('great-wave.jpg')}" alt=""><img src="${IMG('weavesilk-com-13.png')}" alt="">
+        <div class="swatches" title="tap for another">${['#F3EBDD', '#D8C3A5', '#C46B4E', '#8C9B82', '#263B42'].map(c => `<div style="background:${c}"></div>`).join('')}</div><div class="type">Warm, not cute.</div></div>`;
+      const sw = el.querySelector('.swatches'); sw.onclick = () => { const h = 15 + Math.random() * 40; [...sw.children].forEach((c, i) => c.style.background = hsl((h + i * 18) % 360, 30 + i * 8, 88 - i * 16)); }; } },
+  kyoto: { kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: ['Temples we can walk between', 'Their note: Fushimi Inari before 7am', '6 places they kept'],
+    next: [{ t: 'Trip to Kyoto', s: 'Mei & Jo’s garden', garden: 'Trip to Kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'The Sunday Garden', s: 'Amara’s weekly paper', open: 'paper' }],
+    render: el => { const days = {
+        sun: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20], ['9:30', 'Arashiyama bamboo grove', 'walk the river after', 25], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15], ['15:00', 'Philosopher’s Path', 'two hours, slowly', 10], ['18:30', 'Gion at dusk', 'lanterns come on']],
+        rain: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20], ['9:30', 'Kyoto National Museum', 'indoors, swapped for the rain', 25, 1], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15], ['15:00', 'Nishiki Market', 'covered, swapped for the rain', 10, 1], ['18:30', 'Gion at dusk', 'lanterns come on']] };
+      const draw = k => { el.querySelector('ol').innerHTML = days[k].map(([t, n, s, w, sw]) => `<li><div class="time">${t}</div><div class="stop${sw ? ' swapped' : ''}"><b>${n}</b><small>${s}</small></div>${w ? `<div class="walk">${w} min walk</div>` : ''}</li>`).join('');
+        el.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); };
+      el.innerHTML = `<div class="plan"><div class="toggle"><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div><ol></ol></div>`;
+      el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },
+};
+// Land on Titan: hold to fire the engine, touch down slowly. Titan's gravity is weak and its air is thick.
+let landerStop = null;
+function lander(el) {
+  el.innerHTML = `<div class="lander"><canvas aria-label="Land on Titan: hold to fire the engine"></canvas><div class="hud"><span>Speed <b data-v>0</b></span><span>Fuel <b data-f>100</b></span><span data-s>Hold to fire the engine</span></div></div>`;
+  const cv = el.querySelector('canvas'), cx = cv.getContext('2d'), dpr = devicePixelRatio || 1, vEl = el.querySelector('[data-v]'), fEl = el.querySelector('[data-f]'), sEl = el.querySelector('[data-s]');
+  let W, H, y, vy, fuel, thrust = false, done = false, last = performance.now(), raf;
+  const size = () => { W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  const reset = () => { y = 30; vy = 0; fuel = 100; done = false; sEl.textContent = 'Hold to fire the engine'; };
+  const on = e => { e.preventDefault(); if (done) { reset(); return; } thrust = true; }, off = () => { thrust = false; };
+  cv.addEventListener('pointerdown', on); addEventListener('pointerup', off); const key = e => { if (e.code === 'Space') { e.type === 'keydown' ? on(e) : off(); } };
+  addEventListener('keydown', key); addEventListener('keyup', key);
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now; const ground = H - 34;
+    if (!done) { const burn = thrust && fuel > 0; vy += (38 - (burn ? 95 : 0)) * dt; vy *= 1 - .25 * dt; if (burn) fuel = Math.max(0, fuel - 22 * dt); y += vy * dt;
+      if (y >= ground - 22) { y = ground - 22; done = true; sEl.textContent = vy < 34 ? 'Landed softly. Tap to fly again' : 'Too fast. Tap to try again'; } }
+    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#efc27e'); g.addColorStop(1, '#cf8f45'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = 'rgba(255,240,215,.5)'; cx.beginPath(); cx.arc(W * .82, 46, 22, 0, 7); cx.fill();
+    cx.fillStyle = '#8a5a2b'; cx.fillRect(0, ground, W, H - ground); cx.fillStyle = '#a06c38'; cx.fillRect(W / 2 - 40, ground, 80, 4);
+    const x = W / 2; cx.save(); cx.translate(x, y);
+    if (thrust && fuel > 0 && !done) { cx.fillStyle = '#fff3d6'; cx.beginPath(); cx.moveTo(-6, 14); cx.lineTo(6, 14); cx.lineTo(0, 30 + Math.random() * 8); cx.fill(); }
+    cx.fillStyle = '#10243A'; cx.beginPath(); cx.arc(0, 0, 12, Math.PI, 0); cx.fill(); cx.fillRect(-12, 0, 24, 10);
+    cx.strokeStyle = '#10243A'; cx.lineWidth = 2.5; cx.beginPath(); cx.moveTo(-9, 10); cx.lineTo(-16, 22); cx.moveTo(9, 10); cx.lineTo(16, 22); cx.stroke(); cx.restore();
+    vEl.textContent = Math.round(vy); vEl.style.color = vy < 34 ? '' : 'var(--coral)'; fEl.textContent = Math.round(fuel);
+    raf = requestAnimationFrame(frame);
+  }
+  size(); reset(); raf = requestAnimationFrame(frame);
+  landerStop = () => { cancelAnimationFrame(raf); removeEventListener('pointerup', off); removeEventListener('keydown', key); removeEventListener('keyup', key); landerStop = null; };
+}
+const specEl = document.getElementById('spec');
+function openSpec(id) {
+  const s = SPECS[id]; if (!s) return; if (landerStop) landerStop();
+  document.getElementById('spec-kind').textContent = `${s.kind} · made with Grdn`; document.getElementById('spec-title').textContent = s.title;
+  document.getElementById('spec-made').innerHTML = `<span>Made with Grdn from ${s.from.length} things in <b>${esc(s.owner)}’s garden</b>:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
+  document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}"><b>${esc(n.t)}</b><small>${esc(n.s)}</small></button>`).join('');
+  document.querySelectorAll('#spec-next .nx').forEach(b => b.onclick = () => { const n = s.next[b.dataset.i]; if (n.open) openSpec(n.open); else { closeSpec(); goGarden(n.garden); } });
+  specEl.hidden = false; specEl.querySelector('.main').scrollTop = 0; specEl.querySelector('.panel').scrollTop = 0;
+  s.render(document.getElementById('spec-body')); drifting = false; vx = vy = 0;
+}
+function closeSpec() { if (landerStop) landerStop(); specEl.hidden = true; }
+specEl.querySelector('.close').onclick = closeSpec; specEl.querySelector('.dim').onclick = closeSpec;
+addEventListener('keydown', e => { if (e.key === 'Escape' && !specEl.hidden) closeSpec(); });
+// The canvas captures the pointer while it drags, so a click lands on #view: find the card under the pointer instead.
+view.addEventListener('click', e => { const hit = document.elementFromPoint(e.clientX, e.clientY), t = hit && hit.closest('.spec');
+  if (t && !hit.closest('button, a, path, [data-pal]')) { e.preventDefault(); openSpec(t.dataset.spec); } });
+// Pan the canvas to a garden (its nearest copy) and let it glow once.
+function goGarden(name) {
+  const t = tiles.find(t => t.el.querySelector('h2').textContent.trim() === name); if (!t) return;
+  const tx = innerWidth / 2 - (t.x + 290) * z, ty = Math.min(innerHeight / 2 - (t.y + t.h / 2) * z, 90 - t.y * z), fx = px, fy = py, t0g = performance.now();
+  (function step(now) { const p = Math.min(1, (now - t0g) / 700), e = 1 - Math.pow(1 - p, 3); px = fx + (tx - fx) * e; py = fy + (ty - fy) * e; apply();
+    if (p < 1) requestAnimationFrame(step); else { t.el.classList.remove('arrive'); void t.el.offsetWidth; t.el.classList.add('arrive'); } })(t0g);
+}
 </script>
 </body>
 </html>
