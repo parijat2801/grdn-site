@@ -110,7 +110,11 @@
   .reassure { margin-top: 12px; font-size: 14px; color: var(--muted); }
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-  #pill { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
+  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(100px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, rgba(248,245,236,0), var(--paper) 16px);
+    opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+  #pillbar.show { opacity: 1; pointer-events: auto; }
+  #pill { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
     transition: all .35s ease; }
   #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
@@ -214,7 +218,7 @@
 </style>
 </head>
 <body>
-<div id="view"><div id="world"></div></div>
+<div id="view"><div id="world"></div><div id="pillbar" aria-hidden="true"></div></div>
 <div id="scrim"></div>
 
 <section id="card" aria-label="Reserve your Grdn">
@@ -561,7 +565,7 @@ if (!calm) {
 function keepSomething() {
   const card = document.getElementById('card'), cr = card.classList.contains('away') ? null : card.getBoundingClientRect();
   const seen = [...document.querySelectorAll('.kept')].filter(k => { const r = k.getBoundingClientRect();
-    if (r.top < 40 || r.bottom > innerHeight - 90 || r.left < 20 || r.right > innerWidth - 20) return false;
+    if (r.top < 40 || r.bottom > innerHeight - 110 || r.left < 20 || r.right > innerWidth - 20) return false;
     return !cr || r.right < cr.left - 10 || r.left > cr.right + 10 || r.bottom < cr.top - 10 || r.top > cr.bottom + 10; });
   if (!seen.length) return;
   const k = seen[Math.random() * seen.length | 0], n = parseInt(k.textContent.replace(/\D/g, ''), 10) + 1;
@@ -573,10 +577,10 @@ function keepSomething() {
 if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 + Math.random() * 2200); }, 3800);
 
 // ---------- card ----------
-const card = document.getElementById('card'), pill = document.getElementById('pill');
+const card = document.getElementById('card'), pill = document.getElementById('pill'), pillbar = document.getElementById('pillbar');
 const scrim = document.getElementById('scrim');
-document.getElementById('explore').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); drifting = false; };
-pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); };
+document.getElementById('explore').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); pillbar.classList.add('show'); drifting = false; };
+pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); pillbar.classList.remove('show'); };
 // Same-origin under grdn.page: the app's /api/waitlist answers 202 for every valid email.
 document.getElementById('f').addEventListener('submit', async e => {
   e.preventDefault();
