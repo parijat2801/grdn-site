@@ -45,6 +45,7 @@ async function openViaCard(page, id, spec) {
 }
 async function closeEsc(page) { await page.keyboard.press('Escape'); await wait(450); }
 
+const WAIT = 'Grdn opens soon. Explore example gardens while you wait.';
 async function openingCard(page, vp) {
   const c = await page.evaluate(() => {
     const t = s => (document.querySelector(s)?.textContent || '').replace(/ /g, ' ').trim();
@@ -60,13 +61,24 @@ async function openingCard(page, vp) {
   check(`${vp}: pill and card label say "Reserve your Grdn"`, c.pill === 'Reserve your Grdn' && c.label === 'Reserve your Grdn', `${c.pill} / ${c.label}`);
   check(`${vp}: no lower-case "grdn" in visible text`, c.lowerName === 0, String(c.lowerName));
   check(`${vp}: reassure line unchanged`, c.reassure === 'We’ll email you once, when your garden is ready.', c.reassure);
-  check(`${vp}: a line says it is a waitlist and the gardens are real`, c.waitVisible && /waitlist/i.test(c.wait) && /\breal\b/i.test(c.wait) && /garden/i.test(c.wait) && c.wait.split(/\s+/).length <= 14, c.wait);
+  check(`${vp}: the wait line is honest: Grdn opens soon, these are example gardens`, c.waitVisible && c.wait === WAIT && !/\breal\b/i.test(c.wait), c.wait);
+  const lastLine = await page.evaluate(() => { const el = document.getElementById('waitnote'), tn = el.firstChild, words = [], re = /\S+/g; let m;
+    while ((m = re.exec(tn.textContent))) { const r = document.createRange(); r.setStart(tn, m.index); r.setEnd(tn, m.index + m[0].length); words.push(Math.round(r.getBoundingClientRect().top)); }
+    const top = Math.max(...words); return { lines: new Set(words).size, last: words.filter(t => t === top).length }; });
+  check(`${vp}: the wait line wraps with no lone word`, lastLine.lines === 1 || lastLine.last >= 2, JSON.stringify(lastLine));
   check(`${vp}: Wander is now "Explore the gardens"`, c.explore === 'Explore the gardens' && !c.oldWander, c.explore);
 }
 
 // The made line names Grdn as the maker and the owner as the keeper; possessives and plurals read right for every owner.
-const MADE = { titan: 'Grdn made this from 3 things Leo kept:', moon: 'Grdn made this from 3 things Grandpa Tom kept:', paper: 'Grdn made this from 4 gardens Amara follows:',
-  mood: 'Grdn made this from 4 things Mo kept:', kyoto: 'Grdn made this from 3 things Mei & Jo kept:', recipe: 'Grdn made this from 3 things Priya & Sam kept:', savings: 'Grdn made this from 2 things Dami kept:' };
+const MADE = { titan: 'Grdn built this game from 3 things Leo kept:', moon: 'Grdn built this dashboard from 3 things Grandpa Tom kept:', paper: 'Grdn wrote this paper from 4 gardens Amara follows:',
+  mood: 'Grdn built this moodboard from 4 things Mo kept:', kyoto: 'Grdn built this planner from 3 things Mei & Jo kept:', recipe: 'Grdn built this scaler from 3 things Priya & Sam kept:', savings: 'Grdn built this chart from 2 things Dami kept:' };
+// The badge on each specimen card names what you do with it.
+const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try' };
+async function badges(page, vp) {
+  const b = await page.evaluate(() => [...document.querySelectorAll('[data-spec]')].map(c => { const m = c.querySelector('.open-mark'); return { id: c.dataset.spec, t: m.textContent.trim(), after: getComputedStyle(m, '::after').content, label: c.getAttribute('aria-label') }; }));
+  const bad = b.filter(x => x.t !== BADGE[x.id] || x.after !== '" ↗"' || !x.label.startsWith(BADGE[x.id] + ' '));
+  check(`${vp}: specimen badges say Play/Read/Try/View by kind (${b.length})`, b.length === Object.keys(BADGE).length && bad.length === 0, JSON.stringify(bad));
+}
 async function everyCardOpens(page, vp, specs) {
   for (const [id, s] of Object.entries(specs)) {
     const o = await openViaCard(page, id, s);
@@ -146,10 +158,20 @@ async function pillClear(page, vp) {
       }
       return { out, shown: pill.classList.contains('show') && getComputedStyle(pill).opacity === '1' };
     });
+    // pixels just outside the pill are solid paper, so no card text shows beside it
+    const P = await page.evaluate(() => { const r = document.getElementById('pill').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+    const png = (await page.screenshot({ scale: 'css', clip: { x: P.x - 8, y: P.y - 8, width: P.w + 16, height: P.h + 16 } })).toString('base64');
+    const ring = await page.evaluate(async b64 => { const img = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob()), c = new OffscreenCanvas(img.width, img.height), x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      const d = x.getImageData(0, 0, img.width, img.height).data, at = (i, j) => [...d.slice((j * img.width + i) * 4, (j * img.width + i) * 4 + 3)], off = [];
+      for (let i = 2; i < img.width - 2; i += 3) off.push(at(i, 3), at(i, img.height - 4)); for (let j = 3; j < img.height - 3; j += 3) off.push(at(3, j), at(img.width - 4, j));
+      return off.filter(([r, g, b]) => Math.abs(r - 248) > 4 || Math.abs(g - 245) > 4 || Math.abs(b - 236) > 4).length; }, png);
+    if (ring) bad.push(`(${dx},${dy}) ${ring} non-paper pixels around the pill`);
     shown = shown && res.shown;
     bad.push(...res.out.map(t => `(${dx},${dy}) "${t}"`));
   }
   check(`${vp}: the pill shows after the card closes`, shown);
+  const band = await page.evaluate(() => { const b = document.getElementById('pillbar'), cs = getComputedStyle(b); return { h: b.getBoundingClientRect().height, bg: cs.backgroundImage }; });
+  check(`${vp}: the paper band is short and soft: solid only around the pill, a fade elsewhere`, band.h <= 100 && /radial-gradient/.test(band.bg), JSON.stringify(band));
   check(`${vp}: the pill never covers visible card text at ${moves.length} pan positions`, bad.length === 0, bad.slice(0, 6).join(' | '));
 }
 
@@ -305,6 +327,7 @@ async function fullPass(browser, vp) {
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-canvas.png` });
   await pillClear(page, vp);
   await keptCounts(page, vp);
+  await badges(page, vp);
   const specs = await specInfo(page);
   await recipeSources(page, vp);
   check(`${vp}: recipe and savings specimens exist with 3 Where next rows each`, ['recipe', 'savings'].every(k => specs[k] && specs[k].next.length === 3 && specs[k].next.some(n => n.open) && specs[k].next.some(n => n.garden)));

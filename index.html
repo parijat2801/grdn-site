@@ -18,6 +18,7 @@
     --r-small: 10px; --r-bubble: 13px; --r-card: 18px; --r-focus: 20px; --r-pill: 999px;
     --shadow-card: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
     --shadow-lift: 0 6px 18px rgba(16,36,58,.10), 0 24px 60px rgba(16,36,58,.16);
+    --paper-0: rgba(248,245,236,0); --paper-fade: rgba(248,245,236,.82); --band-rx: 270px; --band-ry: 72px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -111,7 +112,10 @@
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
-  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(100px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, rgba(248,245,236,0), var(--paper) 16px);
+  /* solid paper only in an ellipse around the pill; elsewhere a soft fade, so cards visibly slide under it instead of looking cut off */
+  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(96px + env(safe-area-inset-bottom));
+    background: radial-gradient(var(--band-rx) var(--band-ry) at 50% calc(100% - 48px - env(safe-area-inset-bottom)), var(--paper) 62%, var(--paper-0)),
+      linear-gradient(to bottom, var(--paper-0), var(--paper-fade) 100%);
     opacity: 0; pointer-events: none; transition: opacity .35s ease; }
   #pillbar.show { opacity: 1; pointer-events: auto; }
   #pill { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
@@ -225,7 +229,7 @@
   <div class="mark">Grdn</div>
   <h1>Everything worth a&nbsp;revisit.</h1>
   <p class="lede">A garden is one page of the things you keep from the web. Anyone can visit. Grdn makes small things from them.</p>
-  <p class="waitnote" id="waitnote">Grdn opens soon: join the waitlist. The gardens around this card are real.</p>
+  <p class="waitnote" id="waitnote">Grdn opens soon. Explore example gardens while you wait.</p>
   <form id="f">
     <input type="email" required placeholder="you@example.com" aria-label="Email">
     <button class="btn" type="submit">Reserve your Grdn</button>
@@ -461,8 +465,8 @@ G.forEach((g, i) => {
   world.appendChild(d);
   const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
   g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
-    if (th.spec) { el.classList.add('spec'); el.dataset.spec = th.spec; el.insertAdjacentHTML('beforeend', '<span class="open-mark" aria-hidden="true">Open</span>');
-      el.setAttribute('role', 'button'); el.tabIndex = 0; el.setAttribute('aria-label', `Open ${el.querySelector('.t').textContent}, made with Grdn`); }
+    if (th.spec) { el.classList.add('spec'); el.dataset.spec = th.spec; el.insertAdjacentHTML('beforeend', '<span class="open-mark" aria-hidden="true"></span>');
+      el.setAttribute('role', 'button'); el.tabIndex = 0; } // the badge verb and label come from SPECS, once it exists (see below)
     (cols[0].offsetHeight <= cols[1].offsetHeight ? cols[0] : cols[1]).appendChild(el); });
   let c = order[0]; for (const k of order) if (heights[k] < heights[c] - 40) c = k;
   d.style.left = (60 + c * COLW) + 'px'; d.style.top = heights[c] + 'px';
@@ -605,10 +609,10 @@ function moonNow() { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14
   return { face: [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx], name: ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'][idx],
     lit: Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100), full: new Date(Date.now() + toFull * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }; }
 const SPECS = {
-  titan: { kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: ['Titan, Saturn’s largest moon', 'Lunar lander physics', 'Leo’s note: “make it hard”'],
+  titan: { act: 'Play', noun: 'game', kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: ['Titan, Saturn’s largest moon', 'Lunar lander physics', 'Leo’s note: “make it hard”'],
     next: [{ t: 'Moon tonight', s: 'Grandpa Tom’s dashboard', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom’s garden', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'tiny games people love', garden: 'Small, opinionated apps' }],
     render: el => lander(el) },
-  moon: { kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: ['NASA image of the day', 'What’s up tonight', 'Tom’s note on Saturn'],
+  moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: ['NASA image of the day', 'What’s up tonight', 'Tom’s note on Saturn'],
     next: [{ t: 'Land on Titan', s: 'Leo’s game, made from his space links', open: 'titan' }, { t: 'Pale Blue Dot', s: 'in Grandpa Tom’s garden', garden: 'Moon & sky' }, { t: 'GPS, explained', s: 'Nico’s garden', garden: 'Things that explain themselves' }],
     render: el => { const m = moonNow();
       el.innerHTML = `<div class="dash"><div class="tile big"><div class="k">Tonight</div><div class="moonface">${m.face}</div><div><div class="v">${m.name}</div><div class="s">${m.lit}% lit</div></div></div>
@@ -616,19 +620,19 @@ const SPECS = {
         <div class="tile"><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
         <div class="tile"><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
         <div class="tile"><div class="k">Space station</div><div class="v">21:14</div><div class="s">4 minutes, west to east</div></div></div>`; } },
-  paper: { kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
+  paper: { act: 'Read', noun: 'paper', verb: 'wrote', kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
     next: [{ t: 'Café: warm, not cute', s: 'Mo’s moodboard', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico’s garden', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', garden: 'Robin Sloan' }],
     render: el => { el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><span>No. 42 · made every Sunday from the gardens Amara follows</span></div><div class="cols2">
         <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · 5,120 people keep this</small></article>
         <div class="side"><article><h4>The Great Wave, up close</h4><p>Hokusai’s print, and why the boats matter more than the wave.</p><small>from Sol’s garden</small></article>
         <article><h4>An app can be a home-cooked meal</h4><p>Software made for four people, and loved by all four.</p><small>from Robin Sloan’s garden</small></article>
         <article><h4>Pale Blue Dot</h4><p>Everyone you love, on a mote of dust in a sunbeam.</p><small>from Grandpa Tom’s garden</small></article></div></div></div>`; } },
-  mood: { kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: ['Mo’s palette', 'The Starry Night', 'The Great Wave', 'Mo’s note: one ink, one accent'],
+  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: ['Mo’s palette', 'The Starry Night', 'The Great Wave', 'Mo’s note: one ink, one accent'],
     next: [{ t: 'Walls I’d hang', s: 'Sol’s garden', garden: 'Walls I’d hang' }, { t: 'The Sunday Garden', s: 'Amara’s weekly paper', open: 'paper' }, { t: 'Type & letters', s: 'Wen’s garden', garden: 'Type & letters' }],
     render: el => { el.innerHTML = `<div class="mood"><img class="first" src="${IMG('starry-night.jpg')}" alt=""><img src="${IMG('great-wave.jpg')}" alt=""><img src="${IMG('weavesilk-com-13.png')}" alt="">
         <div class="swatches" title="tap for another">${['#F3EBDD', '#D8C3A5', '#C46B4E', '#8C9B82', '#263B42'].map(c => `<div style="background:${c}"></div>`).join('')}</div><div class="type">Warm, not cute.</div></div>`;
       const sw = el.querySelector('.swatches'); sw.onclick = () => { const h = 15 + Math.random() * 40; [...sw.children].forEach((c, i) => c.style.background = hsl((h + i * 18) % 360, 30 + i * 8, 88 - i * 16)); }; } },
-  kyoto: { kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: ['Temples we can walk between', 'Their note: Fushimi Inari before 7am', '6 places they kept'],
+  kyoto: { act: 'Try', noun: 'planner', kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: ['Temples we can walk between', 'Their note: Fushimi Inari before 7am', '6 places they kept'],
     next: [{ t: 'Trip to Kyoto', s: 'Mei & Jo’s garden', garden: 'Trip to Kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'The Sunday Garden', s: 'Amara’s weekly paper', open: 'paper' }],
     render: el => { const days = {
         sun: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20], ['9:30', 'Arashiyama bamboo grove', 'walk the river after', 25], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15], ['15:00', 'Philosopher’s Path', 'two hours, slowly', 10], ['18:30', 'Gion at dusk', 'lanterns come on']],
@@ -637,13 +641,16 @@ const SPECS = {
         el.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); };
       el.innerHTML = `<div class="plan"><div class="toggle"><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div><ol></ol></div>`;
       el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },
-  recipe: { kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: ['The food lab: eggs · seriouseats.com', 'Egg fried rice · thewoksoflife.com', 'Note: fried, never microwaved'],
+  recipe: { act: 'Try', noun: 'scaler', kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: ['The food lab: eggs · seriouseats.com', 'Egg fried rice · thewoksoflife.com', 'Note: fried, never microwaved'],
     next: [{ t: 'Day planner, rain or shine', s: 'Mei & Jo’s app for Kyoto', open: 'kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'Board game night', s: 'the Friday table', garden: 'Board game night' }],
     render: el => recipe(el) },
-  savings: { kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: ['Pocket money jar', 'What compounding looks like'],
+  savings: { act: 'Try', noun: 'chart', kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: ['Pocket money jar', 'What compounding looks like'],
     next: [{ t: 'Land on Titan', s: 'Leo’s game, made from his space links', open: 'titan' }, { t: 'Fractions, by hand', s: 'Ms. Rao’s class 4B', garden: 'Fractions, by hand' }, { t: 'Money basics', s: 'the garden it came from', garden: 'Money basics' }],
     render: el => savings(el) },
 };
+// Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
+document.querySelectorAll('[data-spec]').forEach(el => { const s = SPECS[el.dataset.spec]; el.querySelector('.open-mark').textContent = s.act;
+  el.setAttribute('aria-label', `${s.act} ${s.title}, made with Grdn`); });
 // Fried rice: the stepper scales every amount from the recipe for 2.
 function recipe(el) {
   const base = 2, items = [[300, 'g', 'cooked rice, a day old'], [2, '', 'eggs'], [2, '', 'spring onions'], [1, '', 'garlic clove'], [1, 'tbsp', 'soy sauce'], [1, 'tsp', 'sesame oil'], [2, 'tbsp', 'neutral oil']];
@@ -720,9 +727,9 @@ function openSpec(id, from) {
   current = id; everOpened = true; clearTimeout(pulseT);
   specEl.classList.toggle('masthead', !!s.mast);
   document.getElementById('spec-kind').textContent = `${s.kind} · made with Grdn`; document.getElementById('spec-title').textContent = s.title;
-  // Grdn is the maker, the owner is the keeper: "Grdn made this from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
+  // Grdn is the maker, the owner is the keeper: "Grdn built this game from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
   const n = s.from.length, what = s.fromWhat || (n === 1 ? 'thing' : 'things'), verb = s.fromVerb || 'kept';
-  document.getElementById('spec-made').innerHTML = `<span>Grdn made this from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
+  document.getElementById('spec-made').innerHTML = `<span>Grdn ${s.verb || 'built'} this ${s.noun} from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
   document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}"><b>${esc(n.t)}</b><small>${esc(n.s)}</small></button>`).join('');
   document.querySelectorAll('#spec-next .nx').forEach(b => b.onclick = () => { const n = s.next[b.dataset.i]; if (n.open) openSpec(n.open); else { closeSpec({ toCard: false, focus: false }); goGarden(n.garden, true); } });
   specEl.hidden = false; specEl.querySelector('.main').scrollTop = 0; panel.scrollTop = 0;
