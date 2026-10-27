@@ -18,7 +18,7 @@
     --r-small: 10px; --r-bubble: 13px; --r-card: 18px; --r-focus: 20px; --r-pill: 999px;
     --shadow-card: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
     --shadow-lift: 0 6px 18px rgba(16,36,58,.10), 0 24px 60px rgba(16,36,58,.16);
-    --paper-0: rgba(248,245,236,0); --paper-fade: rgba(248,245,236,.82); --band-rx: 270px; --band-ry: 72px;
+    --paper-0: rgba(248,245,236,0); --paper-fade: rgba(248,245,236,.82); --band-rx: 300px; --band-ry: 92px;
     --teal-ink: #0a5a51; --teal-tint: #DDF3EF; --paper-deep: #F4EFE3; --dim: rgba(248,245,236,.74);
     --fs-lead: 15px; --fs-row: 15px; --fs-hud: 20px; --fs-hud-s: 17px; --fs-spec-title: 34px; --fs-spec-title-s: 27px;
     --sp-6: 32px; --sp-7: 40px; --r-panel: 28px; --r-sheet: 24px; --r-stage: 16px; --panel-w: 1080px; --aside-w: 300px;
@@ -123,9 +123,9 @@
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
   /* solid paper only in an ellipse around the pill; elsewhere a soft fade, so cards visibly slide under it instead of looking cut off */
-  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(96px + env(safe-area-inset-bottom));
-    background: radial-gradient(var(--band-rx) var(--band-ry) at 50% calc(100% - 48px - env(safe-area-inset-bottom)), var(--paper) 62%, var(--paper-0)),
-      linear-gradient(to bottom, var(--paper-0), var(--paper-fade) 100%);
+  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--band-ry) + 48px + env(safe-area-inset-bottom));
+    background: radial-gradient(var(--band-rx) var(--band-ry) at 50% calc(100% - 48px - env(safe-area-inset-bottom)), var(--paper) 50%, var(--paper-0)),
+      linear-gradient(to bottom, var(--paper-0) 50%, var(--paper-fade) 100%);
     opacity: 0; pointer-events: none; transition: opacity .35s ease; }
   #pillbar.show { opacity: 1; pointer-events: auto; }
   #pill { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none;

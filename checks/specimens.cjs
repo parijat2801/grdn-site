@@ -171,7 +171,12 @@ async function pillClear(page, vp) {
   }
   check(`${vp}: the pill shows after the card closes`, shown);
   const band = await page.evaluate(() => { const b = document.getElementById('pillbar'), cs = getComputedStyle(b); return { h: b.getBoundingClientRect().height, bg: cs.backgroundImage }; });
-  check(`${vp}: the paper band is short and soft: solid only around the pill, a fade elsewhere`, band.h <= 100 && /radial-gradient/.test(band.bg), JSON.stringify(band));
+  // soft: at the band's top edge the canvas looks the same with and without the band, so no hard line cuts the cards
+  const strip = async () => (await page.screenshot({ scale: 'css', clip: { x: 0, y: (await page.evaluate(() => document.getElementById('pillbar').getBoundingClientRect().top)) + 1, width: VIEWPORTS[vp].viewport.width, height: 3 } })).toString('base64');
+  const withBand = await strip(); await page.evaluate(() => document.getElementById('pillbar').style.visibility = 'hidden'); const noBand = await strip(); await page.evaluate(() => document.getElementById('pillbar').style.visibility = '');
+  const edge = await page.evaluate(async ([a, b]) => { const px = async b64 => { const i = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob()), c = new OffscreenCanvas(i.width, i.height), x = c.getContext('2d'); x.drawImage(i, 0, 0); return x.getImageData(0, 0, i.width, i.height).data; };
+    const A = await px(a), B = await px(b); let n = 0; for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 9) n++; return n; }, [withBand, noBand]);
+  check(`${vp}: the paper band is soft: solid only around the pill, no hard edge where cards slide under it`, /radial-gradient/.test(band.bg) && edge === 0, JSON.stringify({ ...band, edgePixels: edge }));
   check(`${vp}: the pill never covers visible card text at ${moves.length} pan positions`, bad.length === 0, bad.slice(0, 6).join(' | '));
 }
 
