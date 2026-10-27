@@ -217,6 +217,30 @@ async function landerCheck(page, vp) {
   let txt = '';
   for (let k = 0; k < 40; k++) { txt = await page.evaluate(() => document.querySelector('#spec-body [data-s]').textContent); if (/Landed|Too fast/.test(txt)) break; await wait(250); }
   check(`${vp}: lander shows a landing state`, /Landed|Too fast/.test(txt), txt);
+  // The result is a clear card with a restart button; the restart puts the lander back at the top with a full tank.
+  const end = await page.evaluate(() => { const l = document.querySelector('#spec-body .lander'), b = l.querySelector('button.again'), r = b && b.getBoundingClientRect(), st = l.querySelector('.stage').getBoundingClientRect();
+    return { state: l.dataset.state, btn: b && b.textContent.trim(), shown: !!r && r.width > 0 && r.left >= st.left && r.right <= st.right && r.top >= st.top && r.bottom <= st.bottom }; });
+  check(`${vp}: lander result card has a restart button inside the game`, /^(landed|crashed)$/.test(end.state) && /^(Fly again|Try again)$/.test(end.btn) && end.shown, JSON.stringify(end));
+  if (end.btn) await page.locator('#spec-body button.again').click();
+  await wait(150);
+  const re = await page.evaluate(() => ({ state: document.querySelector('#spec-body .lander').dataset.state, fuel: document.querySelector('#spec-body [data-f]').textContent, alt: +document.querySelector('#spec-body [data-a]')?.textContent }));
+  check(`${vp}: restart flies again with a full tank`, re.state === 'play' && re.fuel === '100' && re.alt > 40, JSON.stringify(re));
+  await closeEsc(page);
+}
+
+// The view frame: kind and home garden in the header, readable HUD inside the game, Where next rows say what they do.
+async function frame(page, vp, specs) {
+  await page.evaluate(() => openSpec('titan')); await wait(450);
+  const f = await page.evaluate(() => {
+    const t = s => (document.querySelector(s)?.textContent || '').replace(/\s+/g, ' ').trim(), st = document.querySelector('#spec-body .stage').getBoundingClientRect(), p = document.querySelector('#spec .panel').getBoundingClientRect();
+    const gauges = [...document.querySelectorAll('#spec-body .hud .gauge')].map(g => { const r = g.getBoundingClientRect(); return { t: g.textContent.replace(/\s+/g, ' ').trim(), inside: r.left >= st.left && r.right <= st.right && r.top >= st.top && r.bottom <= st.bottom }; });
+    return { kind: t('#spec-kind .kind'), home: t('#spec-kind .home'), head: t('#spec .next .nx-head'), gauges, stageInPanel: st.left >= p.left && st.right <= p.right,
+      rows: [...document.querySelectorAll("#spec-next .nx .go")].map(g => g.textContent.replace(/\s+/g, " ").trim()), stream: /stream/i.test(document.getElementById('spec').innerText) };
+  });
+  check(`${vp}: header names the kind and the garden it lives in`, f.kind === 'Game' && f.home === 'in Tiny games, Leo’s garden', `${f.kind} / ${f.home}`);
+  check(`${vp}: titan HUD shows altitude, descent and fuel with units, inside the game`, f.gauges.length === 3 && /Altitude [\d.]+ m/.test(f.gauges[0].t) && /Descent -?[\d.]+ m\/s/.test(f.gauges[1].t) && /Fuel \d+%/.test(f.gauges[2].t) && f.gauges.every(g => g.inside) && f.stageInPanel, JSON.stringify(f.gauges));
+  check(`${vp}: Where next heading reads "Where next", never "stream"`, f.head === 'Where next' && !f.stream, f.head);
+  check(`${vp}: Where next rows say what they do (Play/View ↗ or Visit →)`, f.rows.length === 3 && f.rows.every((r, i) => specs.titan.next[i].open ? /^(Play|Read|Try|View) ↗$/.test(r) : r === 'Visit →'), JSON.stringify(f.rows));
   await closeEsc(page);
 }
 
@@ -335,6 +359,7 @@ async function fullPass(browser, vp) {
   await whereNext(page, vp, specs);
   if (specs.recipe && specs.savings) await recipeAndSavings(page, vp);
   await landerCheck(page, vp);
+  await frame(page, vp, specs);
   await keyboard(page, vp, specs);
   if (vp !== 'desktop') await sheet(page, vp, specs);
   const broken = await page.evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth === 0).map(i => i.src));
@@ -350,7 +375,7 @@ async function fullPass(browser, vp) {
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
     // small phone: sheet behaviour only
-    { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs);
+    { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
     await motion(browser, 'desktop', specs);
     await motion(browser, 'phone', specs);

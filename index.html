@@ -19,6 +19,16 @@
     --shadow-card: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
     --shadow-lift: 0 6px 18px rgba(16,36,58,.10), 0 24px 60px rgba(16,36,58,.16);
     --paper-0: rgba(248,245,236,0); --paper-fade: rgba(248,245,236,.82); --band-rx: 270px; --band-ry: 72px;
+    --teal-ink: #0a5a51; --teal-tint: #DDF3EF; --paper-deep: #F4EFE3; --dim: rgba(248,245,236,.74);
+    --fs-lead: 15px; --fs-row: 15px; --fs-hud: 20px; --fs-hud-s: 17px; --fs-spec-title: 34px; --fs-spec-title-s: 27px;
+    --sp-6: 32px; --sp-7: 40px; --r-panel: 28px; --r-sheet: 24px; --r-stage: 16px; --panel-w: 1080px; --aside-w: 300px;
+    --stage-h: clamp(300px, 46vh, 420px); --stage-h-s: clamp(320px, 50vh, 400px);
+    --seed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M6 11V6.5M6 6.5C6 4 4.2 2.6 1.8 2.8 1.8 5.2 3.5 6.6 6 6.5ZM6 6.5C6 4.4 7.5 3 9.9 3.1 9.9 5.3 8.4 6.6 6 6.5Z' fill='%23fff' stroke='%23fff' stroke-width='.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* Titan: thick orange haze, a dim sun, Saturn faint behind it, dark dunes and a methane lake */
+    --titan-sky-1: #4a220d; --titan-sky-2: #a8561c; --titan-sky-3: #e9a95e; --titan-haze: #f2c58a; --titan-sun: #fff2d6; --titan-saturn: #f1d6a4; --titan-saturn-band: #d9b47c; --titan-ring: #ffe7bd;
+    --titan-ridge: #8a4a20; --titan-dune: #6e3a18; --titan-ground: #4f2a12; --titan-ground-hi: #9a6234; --titan-lake: #1e1714; --titan-pad: #b98653;
+    --titan-hull: #10243A; --titan-hull-hi: #2b4a6b; --titan-foil: #d9a441; --titan-window: #ffe9c4; --titan-flame: #fff4cf; --titan-flame-2: #ff9a3c; --titan-beacon: #ffcf70;
+    --titan-safe: #7fe0cf; --titan-warn: #ffb199; --hud-glass: rgba(30,13,4,.44); --hud-ink: #FFF4E4; --hud-track: rgba(255,244,228,.22); --hud-clear: 84px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -132,43 +142,93 @@
   .open-mark { position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: var(--r-pill); background: var(--teal); color: #fff; font-size: var(--fs-tag); font-weight: 700; }
   .open-mark::after { content: ' ↗'; }
   .live.spec .tag { display: none; }
-  #spec { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 24px; }
+  /* the specimen view: a warm sheet of paper over the dimmed canvas. Header (kind, home garden, title), the live thing, how Grdn made it, and Where next beside it. */
+  #spec { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: var(--sp-5); }
   #spec[hidden] { display: none; }
-  #spec .dim { position: absolute; inset: 0; background: rgba(248,245,236,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: fadeIn var(--fade) ease; }
-  #spec .panel { position: relative; width: min(1000px, 100%); max-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 290px; background: var(--card);
-    border-radius: 24px; box-shadow: var(--shadow-lift); overflow: hidden; transform-origin: 0 0; }
+  #spec .dim { position: absolute; inset: 0; background: var(--dim); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fadeIn var(--fade) ease; }
+  #spec .panel { position: relative; width: min(var(--panel-w), 100%); max-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) var(--aside-w); background: var(--card);
+    border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow-lift); overflow: hidden; transform-origin: 0 0; }
+  #spec .main { padding: var(--sp-6) var(--sp-7) var(--sp-6); overflow: auto; }
+  #spec .kicker { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-2); }
+  #spec .kicker .kind { align-self: center; padding: 3px 10px 4px; border-radius: var(--r-pill); background: var(--teal-tint); color: var(--teal-ink); font-size: var(--fs-tag); font-weight: 700; letter-spacing: .01em; }
+  #spec .kicker .home { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); }
+  #spec h3 { font-size: var(--fs-spec-title); font-weight: 800; letter-spacing: -.028em; line-height: 1.04; margin-top: var(--sp-2); text-wrap: balance; }
   #spec.masthead h3 { position: absolute; width: 1px; height: 1px; padding: 0; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  #spec.masthead .body { margin-top: 12px; }
-  #spec .main { padding: 26px 28px 22px; overflow: auto; }
-  #spec .close { position: absolute; top: 12px; right: 12px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #F1ECE0; color: var(--ink); font-size: 20px; cursor: pointer; }
-  #spec h3 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-top: 4px; }
-  #spec .body { margin-top: 16px; }
-  #spec .made { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: var(--fs-meta); color: var(--muted); }
-  #spec .made b { color: var(--ink); font-weight: 600; }
-  #spec .chip { padding: 4px 10px; border-radius: var(--r-pill); background: #F1ECE0; color: var(--ink); font-size: var(--fs-tag); font-weight: 600; }
-  #spec .next { background: #FAF8F2; border-left: 1px solid var(--line); padding: 26px 18px 18px; overflow: auto; }
-  #spec .next .sub { font-family: 'Newsreader', serif; font-style: italic; font-size: 15px; color: var(--muted); margin: 4px 0 12px; }
-  #spec .nx { display: block; width: 100%; text-align: left; margin-top: 8px; padding: 11px 12px; border-radius: 14px; border: 1px solid var(--line); background: #fff; font: inherit; color: var(--ink); cursor: pointer; }
-  #spec .nx:hover { border-color: var(--teal); }
-  #spec .nx b { display: block; font-size: 15px; font-weight: 600; line-height: 1.2; }
+  #spec .body { margin-top: var(--sp-5); }
+  #spec.masthead .body { margin-top: var(--sp-4); }
+  #spec .close { position: absolute; top: var(--sp-3); right: var(--sp-3); z-index: 2; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); cursor: pointer; transition: background var(--fade) ease, color var(--fade) ease; }
+  #spec .close svg { width: 14px; height: 14px; }
+  @media (hover: hover) { #spec .close:hover { background: var(--ink); color: var(--paper); } }
+  #spec .close:focus-visible, #spec .nx:focus-visible, .lander .again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+  /* how Grdn made it: the sentence, then the kept things as small tickets */
+  #spec .made { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-5); padding: var(--sp-3) var(--sp-4) var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep);
+    font-size: var(--fs-meta); line-height: 1.35; color: var(--muted); }
+  #spec .made > span:first-child { flex-basis: 100%; margin-bottom: 2px; }
+  #spec .made > span:first-child::before { content: ''; display: inline-block; vertical-align: -4px; width: 18px; height: 18px; margin-right: var(--sp-2); border-radius: 50%; background: var(--teal) var(--seed) center/12px no-repeat; }
+  #spec .made b { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  #spec .chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px 6px 10px; border-radius: var(--r-pill); background: var(--card); border: 1px solid var(--line);
+    color: var(--ink); font-size: var(--fs-tag); font-weight: 600; line-height: 1.2; }
+  #spec .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); opacity: .7; }
+  /* Where next: what to open after this */
+  #spec .next { background: var(--bubble); border-left: 1px solid var(--line); padding: var(--sp-6) var(--sp-5) var(--sp-5); overflow: auto; }
+  #spec .nx-head { font-size: var(--fs-title); font-weight: 700; letter-spacing: -.01em; padding-right: 44px; }
+  #spec .next .sub { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); margin: 2px 0 var(--sp-3); }
+  #spec .nx { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2); width: 100%; text-align: left; margin-top: var(--sp-2); padding: 13px 14px 13px 16px;
+    border-radius: var(--r-bubble); border: 1px solid var(--line); background: var(--card); font: inherit; color: var(--ink); cursor: pointer;
+    transition: border-color var(--fade) ease, transform var(--hover) var(--ease), box-shadow var(--hover) ease; }
+  @media (hover: hover) { #spec .nx:hover { border-color: var(--teal); transform: translateY(-1px); box-shadow: var(--shadow-card); } }
+  #spec .nx b { display: block; font-size: var(--fs-row); font-weight: 600; line-height: 1.2; }
   #spec .nx small { display: block; margin-top: 3px; font-size: var(--fs-tag); color: var(--muted); }
-  #spec .nx small::after { content: ' →'; }
+  #spec .nx .go { font-size: var(--fs-tag); font-weight: 700; white-space: nowrap; color: var(--muted); }
+  #spec .nx .go.open { padding: 3px 9px; border-radius: var(--r-pill); background: var(--teal-tint); color: var(--teal-ink); }
   @keyframes fadeIn { from { opacity: 0; } }
   @media (max-width: 760px) {
-    /* a bottom sheet that scrolls inside itself; the close button stays in reach */
-    #spec { padding: 28px 0 0; align-items: end; }
+    /* a bottom sheet that scrolls inside itself, with a grab bar; the close button stays in reach */
+    #spec { padding: var(--sp-6) 0 0; align-items: end; }
     #spec .panel { display: block; width: 100%; max-height: 100%; overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
-      border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom); }
-    #spec .close { position: sticky; top: 10px; display: block; margin: 10px 10px -46px auto; }
-    #spec .main, #spec .next { overflow: visible; } #spec .main { padding: 22px 18px 18px; } #spec h3 { font-size: 24px; padding-right: 36px; }
-    #spec .next { border-left: 0; border-top: 1px solid var(--line); }
+      border-radius: var(--r-sheet) var(--r-sheet) 0 0; border-width: 1px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+    #spec .panel::before { content: ''; position: absolute; top: var(--sp-2); left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--seen-line); }
+    #spec .close { position: sticky; top: var(--sp-3); display: grid; margin: var(--sp-3) var(--sp-3) -52px auto; }
+    #spec .main, #spec .next { overflow: visible; } #spec .main { padding: var(--sp-5) var(--sp-4) var(--sp-5); }
+    #spec .kicker { padding-right: 48px; } #spec h3 { font-size: var(--fs-spec-title-s); padding-right: 40px; }
+    #spec .made { padding: var(--sp-3) var(--sp-3) var(--sp-3); }
+    #spec .next { border-left: 0; border-top: 1px solid var(--line); padding: var(--sp-5) var(--sp-4) var(--sp-6); }
+    #spec .nx-head { padding-right: 0; }
   }
   .garden.arrive header h2 { animation: arrive 1.6s var(--ease); }
   @keyframes arrive { 20% { color: var(--teal); } }
   /* the five specimens */
-  .lander canvas { display: block; width: 100%; height: 300px; border-radius: 14px; touch-action: none; cursor: pointer; }
-  .lander .hud { display: flex; justify-content: space-between; margin-top: 10px; font-size: var(--fs-meta); color: var(--muted); }
-  .lander .hud b { color: var(--ink); }
+  /* Land on Titan: an orange-haze moon, Saturn behind the haze, dunes and a methane lake; a glass HUD over the scene */
+  .lander .stage { position: relative; border-radius: var(--r-stage); overflow: hidden; background: var(--titan-sky-2); box-shadow: inset 0 0 0 1px var(--line); isolation: isolate; }
+  .lander canvas { display: block; width: 100%; height: var(--stage-h); touch-action: none; cursor: pointer; outline: none; }
+  .lander .stage:has(canvas:focus-visible) { box-shadow: 0 0 0 3px var(--teal); }
+  .lander .hud { position: absolute; top: var(--sp-3); left: var(--sp-3); right: var(--sp-3); display: flex; gap: var(--sp-2); pointer-events: none; }
+  .lander .gauge { min-width: 0; flex: 0 1 112px; padding: 7px 12px 9px; border-radius: var(--r-small); background: var(--hud-glass); color: var(--hud-ink);
+    backdrop-filter: blur(8px) saturate(1.2); -webkit-backdrop-filter: blur(8px) saturate(1.2); font-variant-numeric: tabular-nums; }
+  .lander .gauge.fuel { margin-left: auto; }
+  .lander .gauge .lbl { display: block; font-size: var(--fs-tag); font-weight: 600; opacity: .78; }
+  .lander .gauge .val { display: block; margin-top: 1px; font-size: var(--fs-hud); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; white-space: nowrap; }
+  .lander .gauge .val i { font-style: normal; font-size: var(--fs-tag); font-weight: 600; opacity: .72; }
+  .lander .meter { position: relative; display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--hud-track); overflow: hidden; }
+  .lander .meter b { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--hud-ink); }
+  .lander .speed .meter b { background: var(--titan-safe); } .lander .speed.fast .meter b { background: var(--titan-warn); } .lander .speed.fast .val { color: var(--titan-warn); }
+  .lander .speed .meter s { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--hud-ink); opacity: .7; }
+  .lander .msg { position: absolute; left: 50%; bottom: var(--sp-3); transform: translateX(-50%); width: max-content; max-width: calc(100% - 2 * var(--sp-3)); pointer-events: none; text-align: center; }
+  .lander .msg [data-s] { padding: 7px 14px 8px; border-radius: var(--r-pill); background: var(--hud-glass); color: var(--hud-ink); font-size: var(--fs-meta); font-weight: 600;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .lander .msg .sub, .lander .msg .again { display: none; }
+  .lander:not([data-state="play"]) .msg { top: var(--hud-clear); bottom: auto; transform: translateX(-50%); width: min(320px, calc(100% - 2 * var(--sp-4))); padding: var(--sp-4) var(--sp-5) var(--sp-5);
+    border-radius: var(--r-card); background: var(--card); color: var(--ink); box-shadow: var(--shadow-lift); pointer-events: auto; animation: resultIn .35s var(--ease) backwards; }
+  @keyframes resultIn { from { opacity: 0; transform: translate(-50%, 8px) scale(.97); } }
+  .lander:not([data-state="play"]) .msg [data-s] { display: block; padding: 0; background: none; color: var(--ink); font-size: var(--fs-garden); font-weight: 800; letter-spacing: -.02em; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .lander[data-state="crashed"] .msg [data-s] { color: var(--coral); }
+  .lander:not([data-state="play"]) .msg .sub { display: block; margin-top: var(--sp-1); text-wrap: balance; font-family: 'Newsreader', serif; font-size: var(--fs-lead); line-height: 1.4; color: var(--muted); }
+  .lander:not([data-state="play"]) .msg .again { display: inline-block; margin-top: var(--sp-3); }
+  .lander .again { font: 600 var(--fs-meta) 'Bricolage Grotesque'; padding: 10px 18px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); cursor: pointer; }
+  .lander .howto { margin-top: var(--sp-3); font-size: var(--fs-meta); color: var(--muted); }
+  .lander .howto b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 760px) { .lander canvas { height: var(--stage-h-s); } .lander .gauge { padding: 6px 10px 8px; } .lander .gauge .val { font-size: var(--fs-hud-s); } }
   .dash { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; }
   .dash .tile { background: #F4F6FB; border-radius: 14px; padding: 14px; }
   .dash .tile.big { grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; background: #10243A; color: #fff; }
@@ -241,9 +301,9 @@
 </section>
 <button class="btn" id="pill">Reserve your Grdn</button>
 <div id="spec" hidden><div class="dim"></div><div class="panel" role="dialog" aria-modal="true" aria-labelledby="spec-title">
-  <button class="close" type="button" aria-label="Close">×</button>
-  <div class="main"><div class="k" id="spec-kind"></div><h3 id="spec-title"></h3><div class="body" id="spec-body"></div><div class="made" id="spec-made"></div></div>
-  <aside class="next"><div class="k">Where next</div><div class="sub">Because you opened this</div><div id="spec-next"></div></aside>
+  <button class="close" type="button" aria-label="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <div class="main"><div class="kicker" id="spec-kind"></div><h3 id="spec-title"></h3><div class="body" id="spec-body"></div><div class="made" id="spec-made"></div></div>
+  <aside class="next"><div class="nx-head">Where next</div><div class="sub">Because you opened this</div><div id="spec-next"></div></aside>
 </div></div>
 
 <script>
@@ -681,33 +741,121 @@ function savings(el) {
     el.querySelector('[data-ymax]').textContent = money(top); el.querySelector('[data-total]').textContent = money(grow[n]); el.querySelector('[data-put-total]').textContent = money(put[n]); };
   mo.oninput = yr.oninput = draw; draw();
 }
-// Land on Titan: hold to fire the engine, touch down slowly. Titan's gravity is weak and its air is thick.
+// Land on Titan: hold to fire the engine, touch down under 3 m/s. Titan's gravity is weak and its air is thick, so the fall is slow and drag is strong.
 let landerStop = null;
 function lander(el) {
-  el.innerHTML = `<div class="lander"><canvas tabindex="0" data-autofocus aria-label="Land on Titan: hold the mouse, a finger or Space to fire the engine"></canvas><div class="hud"><span>Speed <b data-v>0</b></span><span>Fuel <b data-f>100</b></span><span data-s>Hold to fire the engine</span></div></div>`;
-  const cv = el.querySelector('canvas'), cx = cv.getContext('2d'), dpr = devicePixelRatio || 1, vEl = el.querySelector('[data-v]'), fEl = el.querySelector('[data-f]'), sEl = el.querySelector('[data-s]');
-  let W, H, y, vy, fuel, thrust = false, done = false, last = performance.now(), raf;
-  const size = () => { W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); };
-  const reset = () => { y = 30; vy = 0; fuel = 100; done = false; sEl.textContent = 'Hold to fire the engine'; };
-  const on = e => { e.preventDefault(); if (done) { reset(); return; } thrust = true; }, off = () => { thrust = false; };
-  cv.addEventListener('pointerdown', on); addEventListener('pointerup', off); const key = e => { if (e.code === 'Space' && !(e.target.closest && e.target.closest('button, input, a, [role=button]'))) { e.type === 'keydown' ? on(e) : off(); } };
-  addEventListener('keydown', key); addEventListener('keyup', key);
+  const START = 50, CEIL = 62, G = 4, DRAG = .25, THRUST = 10, BURN = 18, SAFE = 3; // metres, m/s², fuel %/s
+  el.innerHTML = `<div class="lander" data-state="play"><div class="stage"><canvas tabindex="0" data-autofocus aria-label="Land on Titan: hold the mouse, a finger or Space to fire the engine. Touch down under 3 metres a second."></canvas>
+    <div class="hud" aria-hidden="true"><div class="gauge"><span class="lbl">Altitude</span> <span class="val"><b data-a>50</b> <i>m</i></span></div>
+      <div class="gauge speed"><span class="lbl">Descent</span> <span class="val"><b data-v>0</b> <i>m/s</i></span><span class="meter"><b data-vm></b><s style="left:${SAFE / 16 * 100}%"></s></span></div>
+      <div class="gauge fuel"><span class="lbl">Fuel</span> <span class="val"><b data-f>100</b><i>%</i></span><span class="meter"><b data-fm></b></span></div></div>
+    <div class="msg" aria-live="polite"><p data-s>Hold to fire the engine</p><p class="sub" data-sub></p><button class="again" type="button">Fly again</button></div></div>
+    <p class="howto">Hold the mouse, a finger or <b>Space</b> to fire. Touch down slower than <b>3 m/s</b>.</p></div>`;
+  const root = el.querySelector('.lander'), cv = el.querySelector('canvas'), cx = cv.getContext('2d'), $ = q => el.querySelector(q);
+  const aEl = $('[data-a]'), vEl = $('[data-v]'), fEl = $('[data-f]'), vm = $('[data-vm]'), fm = $('[data-fm]'), spd = $('.speed'), sEl = $('[data-s]'), subEl = $('[data-sub]'), again = $('.again');
+  const css = getComputedStyle(document.documentElement), C = new Proxy({}, { get: (_, k) => css.getPropertyValue('--titan-' + k).trim() });
+  const P = { sky1: C['sky-1'], sky2: C['sky-2'], sky3: C['sky-3'], haze: C.haze, sun: C.sun, sat: C.saturn, band: C['saturn-band'], ring: C.ring, ridge: C.ridge, dune: C.dune, ground: C.ground, hi: C['ground-hi'],
+    lake: C.lake, pad: C.pad, hull: C.hull, hullHi: C['hull-hi'], foil: C.foil, win: C.window, flame: C.flame, flame2: C['flame-2'], beacon: C.beacon, safe: css.getPropertyValue('--teal').trim() };
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, dpr, groundY, s, far = [], near = [], rocks = [], fired = false, alt, v, fuel, thrust = false, state = 'play', last = performance.now(), raf, parts = [], tip = 0;
+  const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${n >> 8 & 255},${n & 255},${a})`; };
+  const size = () => { dpr = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    groundY = H * .8; s = Math.max(1, Math.min(1.6, H / 270));
+    // terrain is fixed for a size: a far ridge, and near dunes that flatten to a pad in the middle
+    far = []; near = []; const padW = 64 * s;
+    for (let x = 0; x <= W + 8; x += 8) { far.push(groundY - 26 * s - 18 * s * (Math.sin(x / 97 + 1.3) * .6 + Math.sin(x / 41 + .4) * .3 + Math.sin(x / 23) * .1));
+      const d = Math.abs(x - W / 2), flat = Math.min(1, Math.max(0, (d - padW) / (60 * s)));
+      near.push(groundY - flat * 10 * s * (1.1 + Math.sin(x / 53 + 2) * .7 + Math.sin(x / 19 + 1) * .3)); }
+    rocks = []; let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 26; i++) { const x = rnd() * W, y = groundY + 8 * s + rnd() * (H - groundY - 12 * s); if (Math.abs(x - W / 2) < padW + 12 && y < groundY + 22 * s) continue; rocks.push([x, y, (1 + rnd() * 2.6) * s * (.6 + (y - groundY) / (H - groundY))]); } };
+  const reset = () => { alt = START; v = 0; fuel = 100; tip = 0; parts = []; state = 'play'; fired = false; root.dataset.state = 'play'; sEl.textContent = 'Hold to fire the engine'; subEl.textContent = ''; hud(); };
+  const finish = () => { const ok = v < SAFE; state = ok ? 'landed' : 'crashed'; root.dataset.state = state; thrust = false;
+    sEl.textContent = ok ? 'Landed softly' : 'Too fast';
+    subEl.textContent = ok ? `Touched down at ${v.toFixed(1)} m/s with ${Math.round(fuel)}% fuel left.`.replace(/ (m\/s|%)/g, '\u00a0$1') : `You hit the dunes at ${v.toFixed(1)} m/s. Under 3 m/s lands softly.`.replace(/ (m\/s|%)/g, '\u00a0$1');
+    again.textContent = ok ? 'Fly again' : 'Try again';
+    if (!calm) for (let i = 0; i < (ok ? 14 : 26); i++) { const a = Math.PI + Math.random() * Math.PI, sp = (ok ? 20 : 70) + Math.random() * (ok ? 30 : 90);
+      parts.push({ x: W / 2 + (Math.random() - .5) * 20 * s, y: groundY - (ok ? 2 : 12 * s), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * (ok ? .4 : 1), life: 1, r: (ok ? 2.5 : 2) * s, debris: !ok && i % 3 === 0 }); } };
+  const hud = () => { aEl.textContent = Math.max(0, alt).toFixed(alt < 10 ? 1 : 0); vEl.textContent = v.toFixed(1); fEl.textContent = Math.round(fuel);
+    vm.style.width = Math.min(100, Math.max(0, v) / 16 * 100) + '%'; fm.style.width = fuel + '%'; spd.classList.toggle('fast', v >= SAFE); };
+  const on = e => { e.preventDefault(); if (state !== 'play') { reset(); return; } thrust = true; }, off = () => { thrust = false; };
+  cv.addEventListener('pointerdown', on); addEventListener('pointerup', off); again.addEventListener('click', () => { reset(); cv.focus({ preventScroll: true }); });
+  const key = e => { if (e.code === 'Space' && !(e.target.closest && e.target.closest('button, input, a, [role=button]'))) { if (e.type === 'keydown') { if (!e.repeat || state === 'play') on(e); } else off(); } };
+  addEventListener('keydown', key); addEventListener('keyup', key); addEventListener('resize', size);
+
+  function sky(t) {
+    const g = cx.createLinearGradient(0, 0, 0, groundY); g.addColorStop(0, P.sky1); g.addColorStop(.55, P.sky2); g.addColorStop(1, P.sky3); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    // a dim sun through the haze
+    const sx = W * .2, sy = H * .2, sg = cx.createRadialGradient(sx, sy, 0, sx, sy, 70 * s); sg.addColorStop(0, rgba(P.sun, .55)); sg.addColorStop(.12, rgba(P.sun, .35)); sg.addColorStop(1, rgba(P.sun, 0));
+    cx.fillStyle = sg; cx.fillRect(sx - 80 * s, sy - 80 * s, 160 * s, 160 * s);
+    // Saturn, faint and large, behind the haze
+    const R = Math.min(W, H) * .15, X = W * .73, Y = H * .3; cx.save(); cx.globalAlpha = .42;
+    const ring = (front) => { cx.save(); cx.translate(X, Y); cx.rotate(-.32); cx.beginPath(); cx.ellipse(0, 0, R * 2.15, R * .5, 0, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2);
+      cx.lineWidth = R * .22; cx.strokeStyle = rgba(P.ring, .55); cx.stroke(); cx.beginPath(); cx.ellipse(0, 0, R * 1.72, R * .4, 0, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); cx.lineWidth = R * .08; cx.strokeStyle = rgba(P.ring, .4); cx.stroke(); cx.restore(); };
+    ring(false);
+    const pg = cx.createLinearGradient(X - R, Y - R, X + R, Y + R); pg.addColorStop(0, P.sat); pg.addColorStop(1, P.band); cx.fillStyle = pg; cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.fill();
+    cx.save(); cx.clip(); cx.translate(X, Y); cx.rotate(-.32); cx.fillStyle = rgba(P.band, .5); for (const [o, h] of [[-.45, .12], [-.1, .08], [.3, .16]]) cx.fillRect(-R, o * R, 2 * R, h * R);
+    const sh = cx.createRadialGradient(X - R * .45, Y - R * .4, R * .2, X, Y, R * 1.05); sh.addColorStop(0, rgba(P.sat, 0)); sh.addColorStop(1, rgba(P.sky1, .55)); cx.fillStyle = sh; cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.fill();
+    cx.restore(); ring(true); cx.restore();
+    // haze: a wash that thickens toward the horizon, and slow bands drifting across
+    const hz = cx.createLinearGradient(0, H * .15, 0, groundY); hz.addColorStop(0, rgba(P.haze, 0)); hz.addColorStop(1, rgba(P.haze, .55)); cx.fillStyle = hz; cx.fillRect(0, 0, W, groundY);
+    for (let i = 0; i < 4; i++) { const y = H * (.2 + i * .14), span = W * 1.6, x = ((i * W * .37 + (calm ? 0 : t / 1000 * (5 + i * 3))) % span) - W * .3;
+      cx.save(); cx.translate(x, y); cx.scale(W * .45, 12 * s * (1 + i * .25)); const bg = cx.createRadialGradient(0, 0, 0, 0, 0, 1); bg.addColorStop(0, rgba(P.haze, .2)); bg.addColorStop(1, rgba(P.haze, 0));
+      cx.fillStyle = bg; cx.beginPath(); cx.arc(0, 0, 1, 0, 7); cx.fill(); cx.restore(); }
+  }
+  function land(t) {
+    cx.fillStyle = rgba(P.ridge, .75); cx.beginPath(); cx.moveTo(0, groundY); far.forEach((y, i) => cx.lineTo(i * 8, y)); cx.lineTo(W, groundY); cx.fill();
+    const ng = cx.createLinearGradient(0, groundY - 20 * s, 0, H); ng.addColorStop(0, P.dune); ng.addColorStop(.35, P.ground); ng.addColorStop(1, P.sky1);
+    cx.fillStyle = ng; cx.beginPath(); cx.moveTo(0, H); near.forEach((y, i) => cx.lineTo(i * 8, y)); cx.lineTo(W, H); cx.fill();
+    cx.strokeStyle = rgba(P.hi, .7); cx.lineWidth = 1.5; cx.beginPath(); near.forEach((y, i) => i ? cx.lineTo(i * 8, y) : cx.moveTo(0, y)); cx.stroke();
+    // a methane lake on the left, holding a smear of the sky
+    const lw = Math.max(W * .15, 64), lx = Math.max(W * .18, lw + 10), ly = groundY + (H - groundY) * .45, lh = (H - groundY) * .13;
+    const lg = cx.createLinearGradient(0, ly - lh, 0, ly + lh); lg.addColorStop(0, rgba(P.sky3, .5)); lg.addColorStop(.35, P.lake); lg.addColorStop(1, P.lake); cx.fillStyle = lg; cx.beginPath(); cx.ellipse(lx, ly, lw, lh, 0, 0, 7); cx.fill();
+    cx.save(); cx.clip(); cx.strokeStyle = rgba(P.sky3, .28); cx.lineWidth = 1; for (const [dx, dy, w] of [[-.3, -.1, .5], [.15, .2, .35], [-.05, .5, .25]]) { cx.beginPath(); cx.moveTo(lx + (dx - w / 2) * lw, ly + dy * lh); cx.lineTo(lx + (dx + w / 2) * lw, ly + dy * lh); cx.stroke(); } cx.restore();
+    for (const [x, y, r] of rocks) { cx.fillStyle = rgba(P.sky1, .55); cx.beginPath(); cx.ellipse(x, y, r * 1.5, r * .8, 0, 0, 7); cx.fill(); cx.fillStyle = rgba(P.hi, .45); cx.beginPath(); cx.ellipse(x - r * .3, y - r * .35, r * .8, r * .35, 0, 0, 7); cx.fill(); }
+    // the pad and its two beacons: amber while you fly, teal once you are down safely
+    const pw = 64 * s; cx.fillStyle = rgba(P.pad, .55); cx.fillRect(W / 2 - pw, groundY, pw * 2, 3 * s);
+    const lit = state === 'landed' ? 1 : calm ? .85 : .45 + .55 * (Math.sin(t / 260) > 0 ? 1 : 0), col = state === 'landed' ? P.safe : P.beacon;
+    for (const bx of [W / 2 - pw, W / 2 + pw]) { const bg = cx.createRadialGradient(bx, groundY - 4 * s, 0, bx, groundY - 4 * s, 12 * s); bg.addColorStop(0, rgba(col, .7 * lit)); bg.addColorStop(1, rgba(col, 0));
+      cx.fillStyle = bg; cx.fillRect(bx - 12 * s, groundY - 16 * s, 24 * s, 24 * s); cx.fillStyle = P.hull; cx.fillRect(bx - 1, groundY - 6 * s, 2, 6 * s); cx.fillStyle = rgba(col, Math.max(.4, lit)); cx.beginPath(); cx.arc(bx, groundY - 7 * s, 2.2 * s, 0, 7); cx.fill(); }
+  }
+  function craft(y, burning, t) {
+    cx.save(); cx.translate(W / 2, y); cx.scale(s, s);
+    if (state === 'crashed') { cx.translate(10, 2); cx.rotate(tip); }
+    if (burning) { // glow on the ground grows as you get close
+      const near = Math.max(0, 1 - alt / 14); if (near > 0) { cx.save(); cx.setTransform(dpr, 0, 0, dpr, 0, 0); const gg = cx.createRadialGradient(W / 2, groundY, 0, W / 2, groundY, 90 * s); gg.addColorStop(0, rgba(P.flame2, .45 * near)); gg.addColorStop(1, rgba(P.flame2, 0)); cx.fillStyle = gg; cx.fillRect(W / 2 - 90 * s, groundY - 90 * s, 180 * s, 120 * s); cx.restore(); }
+      const L = calm ? 34 : 28 + Math.random() * 12, fg = cx.createLinearGradient(0, -6, 0, -6 + L); fg.addColorStop(0, P.flame); fg.addColorStop(.45, P.flame2); fg.addColorStop(1, rgba(P.flame2, 0));
+      cx.fillStyle = fg; cx.beginPath(); cx.moveTo(-6, -7); cx.quadraticCurveTo(-6, -7 + L * .45, 0, -7 + L); cx.quadraticCurveTo(6, -7 + L * .45, 6, -7); cx.fill();
+      const hg = cx.createRadialGradient(0, -4, 0, 0, -4, 14); hg.addColorStop(0, rgba(P.flame, .6)); hg.addColorStop(1, rgba(P.flame, 0)); cx.fillStyle = hg; cx.beginPath(); cx.arc(0, -4, 14, 0, 7); cx.fill(); }
+    cx.strokeStyle = P.hull; cx.lineWidth = 2.2; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(-8, -13); cx.lineTo(-15, 0); cx.moveTo(8, -13); cx.lineTo(state === 'crashed' ? 11 : 15, state === 'crashed' ? -5 : 0); cx.stroke();
+    cx.lineWidth = 3; cx.beginPath(); cx.moveTo(-18, 0); cx.lineTo(-12, 0); if (state !== 'crashed') { cx.moveTo(12, 0); cx.lineTo(18, 0); } cx.stroke();
+    cx.fillStyle = '#3a3f47'; cx.beginPath(); cx.moveTo(-4, -12); cx.lineTo(4, -12); cx.lineTo(6, -6); cx.lineTo(-6, -6); cx.fill(); // engine bell
+    cx.fillStyle = P.foil; cx.beginPath(); cx.roundRect(-13, -17, 26, 6, 2); cx.fill(); // gold foil skirt
+    const hg2 = cx.createLinearGradient(-12, -36, 12, -16); hg2.addColorStop(0, P.hullHi); hg2.addColorStop(1, P.hull); cx.fillStyle = hg2;
+    cx.beginPath(); cx.moveTo(-11, -17); cx.lineTo(-9, -31); cx.quadraticCurveTo(0, -38, 9, -31); cx.lineTo(11, -17); cx.closePath(); cx.fill();
+    cx.fillStyle = P.win; cx.beginPath(); cx.arc(0, -26, 3.6, 0, 7); cx.fill(); cx.strokeStyle = P.foil; cx.lineWidth = 1; cx.stroke();
+    cx.strokeStyle = P.hull; cx.lineWidth = 1.2; cx.beginPath(); cx.moveTo(4, -34); cx.lineTo(7, -41); cx.stroke(); cx.fillStyle = P.beacon; cx.beginPath(); cx.arc(7, -41, 1.4, 0, 7); cx.fill();
+    cx.restore();
+  }
   function frame(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now; const ground = H - 34;
-    if (!done) { const burn = thrust && fuel > 0; vy += (38 - (burn ? 95 : 0)) * dt; vy *= 1 - .25 * dt; if (burn) fuel = Math.max(0, fuel - 22 * dt); y += vy * dt;
-      if (y >= ground - 22) { y = ground - 22; done = true; sEl.textContent = vy < 34 ? 'Landed softly. Tap to fly again' : 'Too fast. Tap to try again'; } }
-    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#efc27e'); g.addColorStop(1, '#cf8f45'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-    cx.fillStyle = 'rgba(255,240,215,.5)'; cx.beginPath(); cx.arc(W * .82, 46, 22, 0, 7); cx.fill();
-    cx.fillStyle = '#8a5a2b'; cx.fillRect(0, ground, W, H - ground); cx.fillStyle = '#a06c38'; cx.fillRect(W / 2 - 40, ground, 80, 4);
-    const x = W / 2; cx.save(); cx.translate(x, y);
-    if (thrust && fuel > 0 && !done) { cx.fillStyle = '#fff3d6'; cx.beginPath(); cx.moveTo(-6, 14); cx.lineTo(6, 14); cx.lineTo(0, 30 + Math.random() * 8); cx.fill(); }
-    cx.fillStyle = '#10243A'; cx.beginPath(); cx.arc(0, 0, 12, Math.PI, 0); cx.fill(); cx.fillRect(-12, 0, 24, 10);
-    cx.strokeStyle = '#10243A'; cx.lineWidth = 2.5; cx.beginPath(); cx.moveTo(-9, 10); cx.lineTo(-16, 22); cx.moveTo(9, 10); cx.lineTo(16, 22); cx.stroke(); cx.restore();
-    vEl.textContent = Math.round(vy); vEl.style.color = vy < 34 ? '' : 'var(--coral)'; fEl.textContent = Math.round(fuel);
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const burning = state === 'play' && thrust && fuel > 0;
+    if (state === 'play') { v += (G - (burning ? THRUST : 0)) * dt; v *= 1 - DRAG * dt; if (burning) fuel = Math.max(0, fuel - BURN * dt); alt -= v * dt;
+      if (alt > CEIL) { alt = CEIL; v = Math.max(0, v); }
+      if (burning && alt < 9 && !calm && Math.random() < .7) parts.push({ x: W / 2 + (Math.random() - .5) * 30 * s, y: groundY - 1, vx: (Math.random() < .5 ? -1 : 1) * (30 + Math.random() * 60) * (1 - alt / 9), vy: -Math.random() * 14, life: .8, r: 2 * s });
+      if (burning && !fired) { fired = true; sEl.textContent = 'Touch down under 3\u00a0m/s'; }
+      if (alt <= 0) { alt = 0; finish(); } hud(); }
+    if (state === 'crashed' && tip < 1.25) tip = calm ? 1.25 : Math.min(1.25, tip + dt * 5);
+    sky(now); land(now);
+    const top = 64 + 6, y = groundY - Math.max(0, alt) / CEIL * (groundY - top - 40 * s);
+    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.debris ? 140 : 18) * dt; p.vx *= 1 - 1.6 * dt; p.life -= dt * (p.debris ? .5 : .9);
+      if (p.y > groundY + 4 && p.debris) { p.y = groundY + 4; p.vy *= -.3; } }
+    parts = parts.filter(p => p.life > 0);
+    for (const p of parts) { cx.fillStyle = p.debris ? rgba(P.hull, Math.min(1, p.life * 1.4)) : rgba(P.hi, p.life * .55); cx.beginPath(); cx.arc(p.x, p.y, p.r * (p.debris ? 1 : 1 + (1 - p.life) * 2), 0, 7); cx.fill(); }
+    craft(y, burning, now);
     raf = requestAnimationFrame(frame);
   }
   size(); reset(); raf = requestAnimationFrame(frame);
-  landerStop = () => { cancelAnimationFrame(raf); removeEventListener('pointerup', off); removeEventListener('keydown', key); removeEventListener('keyup', key); landerStop = null; };
+  landerStop = () => { cancelAnimationFrame(raf); removeEventListener('pointerup', off); removeEventListener('keydown', key); removeEventListener('keyup', key); removeEventListener('resize', size); landerStop = null; };
 }
 const specEl = document.getElementById('spec'), panel = specEl.querySelector('.panel'), closeBtn = specEl.querySelector('.close'), dimEl = specEl.querySelector('.dim');
 const EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';
@@ -726,11 +874,14 @@ function openSpec(id, from) {
   if (!swap) opener = from || document.querySelector(`[data-spec="${id}"]`);
   current = id; everOpened = true; clearTimeout(pulseT);
   specEl.classList.toggle('masthead', !!s.mast);
-  document.getElementById('spec-kind').textContent = `${s.kind} · made with Grdn`; document.getElementById('spec-title').textContent = s.title;
+  // the kind, and the garden it lives in: "Game  in Tiny games, Leo’s garden"
+  document.getElementById('spec-kind').innerHTML = `<span class="kind">${esc(s.kind)}</span><span class="home">in ${esc(s.garden)}, ${esc(s.owner)}’s garden</span>`; document.getElementById('spec-title').textContent = s.title;
   // Grdn is the maker, the owner is the keeper: "Grdn built this game from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
   const n = s.from.length, what = s.fromWhat || (n === 1 ? 'thing' : 'things'), verb = s.fromVerb || 'kept';
   document.getElementById('spec-made').innerHTML = `<span>Grdn ${s.verb || 'built'} this ${s.noun} from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
-  document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}"><b>${esc(n.t)}</b><small>${esc(n.s)}</small></button>`).join('');
+  // each row says what it does: open another specimen (its verb, ↗) or visit a garden (→)
+  document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}"><span><b>${esc(n.t)}</b><small>${esc(n.s)}</small></span>${n.open
+    ? `<span class="go open" aria-hidden="true">${SPECS[n.open].act} ↗</span>` : `<span class="go" aria-hidden="true">Visit →</span>`}</button>`).join('');
   document.querySelectorAll('#spec-next .nx').forEach(b => b.onclick = () => { const n = s.next[b.dataset.i]; if (n.open) openSpec(n.open); else { closeSpec({ toCard: false, focus: false }); goGarden(n.garden, true); } });
   specEl.hidden = false; specEl.querySelector('.main').scrollTop = 0; panel.scrollTop = 0;
   const body = document.getElementById('spec-body'); s.render(body); drifting = false; vx = vy = 0; setInert(true);
