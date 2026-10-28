@@ -923,6 +923,27 @@ async function greyContrast(browser) {
   await ctx.close();
 }
 
+// Video cards show a real frame, and no rendered text uses internal words (node, Veo) a newcomer can't parse.
+const fs = require('fs'), path = require('path');
+const ROOT = path.join(__dirname, '..');
+async function videosAndWords(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop'); await explore(page);
+  const v = await page.evaluate(() => Promise.all([...document.querySelectorAll('.thing.video')].map(async c => { const img = c.querySelector('.thumb img'), svg = c.querySelector('.thumb svg');
+    if (img) { if (!img.complete) await new Promise(r => { img.onload = img.onerror = r; setTimeout(r, 8000); }); }
+    return { t: c.querySelector('.t').textContent, img: img ? img.getAttribute('src') : null, ok: img ? img.naturalWidth > 0 : !!svg && svg.querySelectorAll('path, line, rect, circle, polyline, polygon').length >= 5 }; })));
+  const missing = v.filter(x => !x.ok || (x.img && !fs.existsSync(path.join(ROOT, 'web', x.img.replace(/^https:\/\/grdn-site\.vercel\.app\/web\//, '')))));
+  check(`desktop: every video card shows a real frame (${v.length})`, v.length >= 3 && missing.length === 0, JSON.stringify(missing.length ? missing : v));
+  const texts = [await page.evaluate(() => document.body.innerText)];
+  for (const id of await page.evaluate(() => Object.keys(SPECS))) { await page.evaluate(id => openSpec(id), id); await wait(150); texts.push(await page.evaluate(() => document.getElementById('spec').innerText)); await closeEsc(page); }
+  const hits = texts.flatMap(t => t.match(/[^\n]*(\bnode\b|Veo)[^\n]*/gi) || []);
+  check('desktop: no rendered text says "node" or "Veo"', hits.length === 0, hits.slice(0, 4).join(' | '));
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), refs = [...new Set([...html.matchAll(/grdn-site\.vercel\.app\/web\/([\w.-]+\.(?:png|jpe?g|webp|gif|svg))/g)].map(m => m[1]))];
+  const absent = refs.filter(f => !fs.existsSync(path.join(ROOT, 'web', f)));
+  check(`every web/ image the page names exists in web/ (${refs.length})`, refs.length > 20 && absent.length === 0, absent.join(', '));
+  check('desktop: no errors in the video pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
@@ -931,6 +952,7 @@ async function audit(browser) {
   await widowPass(browser);
   await tapTargets(browser);
   await greyContrast(browser);
+  await videosAndWords(browser);
 }
 
 async function fullPass(browser, vp) {

@@ -30,7 +30,7 @@
     --titan-hull: #10243A; --titan-hull-hi: #2b4a6b; --titan-foil: #d9a441; --titan-window: #ffe9c4; --titan-flame: #fff4cf; --titan-flame-2: #ff9a3c; --titan-beacon: #ffcf70;
     --titan-safe: #7fe0cf; --titan-warn: #ffb199; --hud-glass: rgba(24,10,3,.64); --hud-ink: #FFF4E4; --hud-ink-2: #F7E2C8; --hud-safe-bg: rgba(12,96,74,.82); --hud-safe-ink: #E6FFF6; --hud-fast-bg: rgba(170,34,22,.86); --hud-fast-ink: #FFFFFF; --hud-track: rgba(255,244,228,.22); --hud-clear: 84px;
     --made-bg: #EAF4EF; --made-line: rgba(15,143,128,.20); --made-ring: rgba(15,143,128,.16); --fs-made: 16px;
-    --muted-strong: rgba(16,36,58,.70); --nx-top: 68px;
+    --muted-strong: rgba(16,36,58,.70); --nx-top: 68px; --play-bg: rgba(16,36,58,.72);
     --rice-bg-1: #FCEBC2; --rice-bg-2: #F4CF94; --rice-steam: #fff; --rice-bowl: #2f6db5; --rice-bowl-hi: #5d91d0; --rice-grain-bg: #FFF7E6; --rice-grain: #F2E3C2; --rice-egg: #F5B83D; --rice-onion: #5E9E4A; --rice-chop: #8A5A2B; --rice-num: #c4552f;
     --kyo-time: 46px; --kyo-sky: #FCEFD3; --kyo-rain: #DCE6F3; --kyo-spine: #C9BFA9; --kyo-stop: #F6F3EA; --kyo-swap: #E3ECF8;
     --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
@@ -80,8 +80,11 @@
   .link .strip { height: 70px; border-radius: 10px; margin-bottom: 10px; }
   .link img { display: block; width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; background: #F1ECE0; }
   .link a { color: inherit; text-decoration: none; }
-  .video .thumb { height: 120px; border-radius: 10px; margin-bottom: 10px; background: linear-gradient(135deg,#10243A,#2b4a6b);
-    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; }
+  /* a video card opens on a real frame, with a small play mark over it */
+  .video .thumb { position: relative; height: 120px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; background: var(--art-bg); }
+  .video .thumb img, .video .thumb svg { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .video .play { position: absolute; left: 10px; bottom: 10px; width: 34px; height: 34px; border-radius: 50%; background: var(--play-bg); }
+  .video .play::after { content: ''; position: absolute; left: 13px; top: 10px; border-style: solid; border-width: 7px 0 7px 11px; border-color: transparent transparent transparent var(--card); }
   .flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .flow span { font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #F1ECE0; }
   .flow i { font-style: normal; color: var(--muted); }
@@ -430,9 +433,9 @@ const G = [
     { type: 'link', dom: 'khanacademy.org', t: 'Fractions on a number line', kept: 31 },
   ]},
   { name: 'Octopus minds', by: 'a rabbit hole by Ines', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/octopus.jpg', href: 'https://en.wikipedia.org/wiki/Cephalopod_intelligence', dom: 'wikipedia.org', t: 'Cephalopod intelligence', kept: 88 },
+    { type: 'link', href: 'https://en.wikipedia.org/wiki/Cephalopod_intelligence', dom: 'wikipedia.org', t: 'Cephalopod intelligence', kept: 88 },
     { type: 'note', text: 'Two thirds of the neurons are in the arms. Do the arms think?', kept: 40 },
-    { type: 'video', t: 'An octopus opens a jar', dom: 'youtube.com', kept: 302 },
+    { type: 'video', img: 'https://grdn-site.vercel.app/web/octopus.jpg', t: 'An octopus opens a jar', dom: 'youtube.com', kept: 302 },
     { type: 'app', e: '🐙', bg: '#FFE3D6', k: 'Toy', t: 'Eight-arm drawing', kept: 57 },
     { type: 'link', dom: 'arxiv.org', t: 'Distributed control in soft arms', kept: 9 },
   ]},
@@ -527,7 +530,7 @@ const G = [
     { type: 'link', img: 'https://grdn-site.vercel.app/web/publicdomainreview-org-7.png', href: 'https://publicdomainreview.org', dom: 'publicdomainreview.org', t: 'The Public Domain Review', kept: 870 },
   ]},
   { name: 'Linear algebra, start here', by: 'crafted by Grdn', things: [
-    { type: 'video', t: 'Eigenvectors in 60 seconds', dom: 'made by a node', kept: 980 },
+    { type: 'video', frame: 'eigen', t: 'Eigenvectors in 60 seconds', dom: 'made by Grdn from this garden', kept: 980 },
     { type: 'app', e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake', kept: 1204 },
     { type: 'note', text: 'A matrix is a machine that moves space. Watch where the grid goes.', kept: 311 },
     { type: 'link', img: 'https://grdn-site.vercel.app/web/ocw-mit-edu-29.jpg', href: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', dom: 'ocw.mit.edu', t: '18.06 Linear Algebra', kept: 530 },
@@ -539,8 +542,8 @@ const G = [
     { type: 'note', text: 'House rule: robber goes home after a seven.', kept: 4 },
   ]},
   { name: 'Robotics, new this week', by: 'Lena’s lab', things: [
-    { type: 'flow', k: 'Node · Veo', t: 'Explain anything new', steps: ['arXiv stream', 'Veo', 'video'], kept: 48 },
-    { type: 'video', t: 'Tactile SLAM, in 40 seconds', dom: 'made by a node', kept: 71 },
+    { type: 'flow', k: 'Workflow', t: 'Explain anything new', steps: ['new arXiv papers', 'Grdn explains', 'short video'], kept: 48 },
+    { type: 'video', frame: 'slam', t: 'Tactile SLAM, in 40 seconds', dom: 'made by Grdn from new papers', kept: 71 },
     { type: 'link', dom: 'arxiv.org', t: 'New in cs.RO', kept: 35 },
     { type: 'note', text: 'Why does my robot drift? Start with the wheel odometry.', kept: 11 },
   ]},
@@ -613,10 +616,22 @@ function thingHTML(th) {
     case 'note': return `<div class="thing note"><div class="k">Note</div><p style="margin-top:6px">${esc(th.text)}</p>${meta(th)}</div>`;
     case 'app': return `<div class="thing"><div class="row"><div class="ic" style="background:${th.bg}">${th.e}</div><div><div class="k">${esc(th.k)}</div><div class="t">${esc(th.t)}</div></div></div>${meta(th)}</div>`;
     case 'link': return `<div class="thing link">${th.img ? `<img src="${th.img}" alt="" loading="lazy" draggable="false">` : ''}<div class="k">Link</div><div class="t">${th.href ? `<a href="${th.href}" target="_blank" rel="noopener">${esc(th.t)}</a>` : esc(th.t)}</div><div class="dom">${esc(th.dom)}</div>${meta(th)}</div>`;
-    case 'video': return `<div class="thing video"><div class="thumb">▶</div><div class="k">Video</div><div class="t">${esc(th.t)}</div><div class="dom" style="font-size:13px;color:var(--muted)">${esc(th.dom)}</div>${meta(th)}</div>`;
+    case 'video': return `<div class="thing video"><div class="thumb">${th.img ? `<img src="${th.img}" alt="" loading="lazy" draggable="false">` : FRAMES[th.frame]}<span class="play" aria-hidden="true"></span></div><div class="k">Video</div><div class="t">${esc(th.t)}</div><div class="dom" style="font-size:13px;color:var(--muted)">${esc(th.dom)}</div>${meta(th)}</div>`;
     case 'flow': return `<div class="thing"><div class="k">${esc(th.k)}</div><div class="t">${esc(th.t)}</div><div class="flow">${th.steps.map(esc).map(s => `<span>${s}</span>`).join('<i>→</i>')}</div>${meta(th)}</div>`;
   }
 }
+// Stills from the two videos Grdn made: a grid that a matrix shears, with its two eigenvectors; a robot's touch map with the path it felt its way along.
+const FRAMES = {
+  eigen: `<svg viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="240" height="120" fill="var(--paper-deep)"/>
+    <g stroke="var(--line)" stroke-width="1">${[...Array(13)].map((_, i) => `<path d="M${i * 20} 0V120"/>`).join('')}${[...Array(7)].map((_, i) => `<path d="M0 ${i * 20}H240"/>`).join('')}</g>
+    <g transform="translate(120 60) matrix(1.35 .3 .25 .9 0 0)" stroke="var(--c-tom)" stroke-opacity=".55" stroke-width="1" vector-effect="non-scaling-stroke" fill="none">${[-4, -3, -2, -1, 0, 1, 2, 3, 4].map(k => `<path d="M${k * 20} -80V80" vector-effect="non-scaling-stroke"/><path d="M-100 ${k * 20}H100" vector-effect="non-scaling-stroke"/>`).join('')}</g>
+    <g stroke-width="3" stroke-linecap="round"><path d="M120 60L176 38" stroke="var(--teal)"/><path d="M120 60L104 86" stroke="var(--coral)"/></g><circle cx="120" cy="60" r="3.5" fill="var(--ink)"/></svg>`,
+  slam: `<svg viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="240" height="120" fill="var(--jar-bg)"/>
+    <g fill="var(--ink)" fill-opacity=".78"><rect x="20" y="14" width="200" height="8"/><rect x="20" y="14" width="8" height="92"/><rect x="20" y="98" width="130" height="8"/><rect x="212" y="14" width="8" height="60"/><rect x="88" y="44" width="52" height="8"/><rect x="132" y="44" width="8" height="40"/></g>
+    <g fill="var(--c-tom)" fill-opacity=".22"><rect x="150" y="98" width="70" height="8"/><rect x="212" y="74" width="8" height="32"/></g>
+    <path d="M46 84C60 60 70 34 104 32S170 30 190 52 186 84 168 86" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/>
+    <circle cx="168" cy="86" r="7" fill="var(--teal)"/><path d="M168 86l9 -5" stroke="var(--card)" stroke-width="2" stroke-linecap="round"/></svg>`,
+};
 function liveHTML(kind) {
   const head = (k, t) => `<div class="row" style="justify-content:space-between"><div><div class="k">${k}</div><div class="t">${t}</div></div><span class="tag">TRY IT</span></div>`;
   if (kind === 'pizza') {
