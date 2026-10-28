@@ -430,11 +430,71 @@ async function whereNextPanel(page, vp, specs) {
   }
 }
 
+// Fly the lander in the page with a simple controller (hold when too fast), so a soft landing is a real landing.
+const flySoft = page => page.evaluate(() => new Promise(done => { const cv = document.querySelector('#spec-body canvas'), root = document.querySelector('#spec-body .lander'); let held = false;
+  const press = on => { if (on === held) return; held = on; on ? cv.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })) : dispatchEvent(new PointerEvent('pointerup')); };
+  (function tick() { if (root.dataset.state !== 'play') { press(false); return done(root.dataset.state); }
+    const v = +root.querySelector('[data-v]').textContent, a = +root.querySelector('[data-a]').textContent, target = a > 25 ? 9 : a > 9 ? 5 : 2.1;
+    if (v > target) press(true); else if (v < target - .5) press(false); requestAnimationFrame(tick); })(); }));
+const waitState = async (page, re, ms = 20000) => { let st = ''; for (let t = 0; t < ms; t += 100) { st = await page.evaluate(() => document.querySelector('#spec-body .lander').dataset.state); if (re.test(st)) break; await wait(100); } return st; };
+// Where the lander and the pad are drawn, from the game's own geometry (ground at 80% of the height, scale H/270 clamped to 1..1.6).
+const craftAndPad = page => page.evaluate(() => { const cv = document.querySelector('#spec-body canvas'), c = cv.getBoundingClientRect(), W = cv.clientWidth, H = cv.clientHeight, gy = H * .8, s = Math.max(1, Math.min(1.6, H / 270)), m = document.querySelector('#spec-body .msg').getBoundingClientRect();
+  return { craft: { l: c.left + W / 2 - 20 * s, r: c.left + W / 2 + 50 * s, t: c.top + gy - 42 * s, b: c.top + gy + 4 * s }, pad: { l: c.left + W / 2 - 64 * s, r: c.left + W / 2 + 64 * s, t: c.top + gy - 16 * s, b: c.top + gy + 3 * s }, msg: { l: m.left, r: m.right, t: m.top, b: m.bottom } }; });
+// overlap, or closer than 12px: the card must leave clear air around the lander and the pad
+const meets = (a, b, m = 12) => !(a.r + m <= b.l || a.l >= b.r + m || a.b + m <= b.t || a.t >= b.b + m);
+
+async function titanPolish(page, vp) {
+  await page.evaluate(() => openSpec('titan')); await wait(350); // after the open fade, still well under 3 m/s
+  const tile = () => page.evaluate(() => { const g = document.querySelector('#spec-body .gauge.speed'), bg = __c.rgb(getComputedStyle(g).backgroundColor), mark = g.querySelector('.meter s'); return { v: +g.querySelector('[data-v]').textContent, bg, mark: mark ? (mark.textContent || getComputedStyle(mark, '::after').content).replace(/"/g, '') : '' }; });
+  const safe = await tile(); const safeC = await textContrast(page, '#spec-body .gauge.speed .val b');
+  await wait(1700);
+  const fast = await tile(); const fastC = await textContrast(page, '#spec-body .gauge.speed .val b');
+  const hud = await textContrast(page, '#spec-body .hud .lbl, #spec-body .hud .val b, #spec-body .hud .val i');
+  check(`${vp}: titan HUD text has ≥4.5:1 contrast against its tile (pixels)`, hud.length >= 6 && hud.every(h => h.ratio >= 4.5), JSON.stringify(hud));
+  check(`${vp}: descent tile is green while under 3 m/s and red once too fast, text readable in both`, safe.v < 3 && fast.v >= 3 && safe.bg.g > safe.bg.r + 20 && safe.bg.a >= .5 && fast.bg.r > fast.bg.g + 50 && fast.bg.a >= .5 && safeC[0].ratio >= 4.5 && fastC[0].ratio >= 4.5 && /3/.test(safe.mark), JSON.stringify({ safe, fast, safeC, fastC }));
+  await closeEsc(page);
+
+  // a real soft landing, then the result card must leave the lander and the pad in view
+  await page.evaluate(() => openSpec('titan')); await wait(200);
+  const landed = await flySoft(page); await wait(450);
+  const g1 = await craftAndPad(page);
+  check(`${vp}: titan soft landing with the controller lands`, landed === 'landed', landed);
+  check(`${vp}: landed result card covers neither the lander nor the pad`, !meets(g1.msg, g1.craft) && !meets(g1.msg, g1.pad), JSON.stringify(g1));
+  const best1 = await page.evaluate(() => { const b = document.querySelector('#spec-body [data-best]'), sub = document.querySelector('#spec-body [data-sub]').textContent; return { best: b && b.getClientRects().length ? b.textContent.trim() : '', speed: (sub.match(/([\d.]+)\s*m\/s/) || [])[1] }; });
+  check(`${vp}: a best landing line shows this landing`, /^Best this visit: [\d.]+\s?m\/s/.test(best1.best) && best1.best.includes(best1.speed), JSON.stringify(best1));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-titan-landed.png` });
+  await page.keyboard.press('r'); await wait(150);
+  const r1 = await page.evaluate(() => ({ state: document.querySelector('#spec-body .lander').dataset.state, fuel: document.querySelector('#spec-body [data-f]').textContent }));
+  check(`${vp}: R flies again with a full tank`, r1.state === 'play' && r1.fuel === '100', JSON.stringify(r1));
+  if (SHOTS) { await wait(600); await page.screenshot({ path: `${SHOTS}/${vp}-titan-play.png` }); }
+  const crashed = await waitState(page, /crashed|landed/); await wait(450);
+  const g2 = await craftAndPad(page);
+  check(`${vp}: crashed result card covers neither the lander nor the pad`, crashed === 'crashed' && !meets(g2.msg, g2.craft) && !meets(g2.msg, g2.pad), JSON.stringify({ crashed, ...g2 }));
+  const best2 = await page.evaluate(() => document.querySelector('#spec-body [data-best]')?.textContent.trim() || '');
+  const plain = t => t.replace(/ · new best$/, '');
+  check(`${vp}: the best landing is remembered across flights`, best2 !== '' && plain(best2) === plain(best1.best), `${best1.best} / ${best2}`);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-titan-crash.png` });
+  await page.keyboard.press('Enter'); await wait(150);
+  const r2 = await page.evaluate(() => document.querySelector('#spec-body .lander').dataset.state);
+  check(`${vp}: Enter flies again`, r2 === 'play', r2);
+  await closeEsc(page);
+}
+
+// On a phone the game must not push Where next far down the sheet.
+async function sheetReach(page, vp) {
+  await page.evaluate(() => openSpec('titan')); await wait(400);
+  const r = await page.evaluate(() => { const p = document.querySelector('#spec .panel'); p.scrollTop = 0; return { top: Math.round(document.querySelector('#spec .nx-head').getBoundingClientRect().top - p.getBoundingClientRect().top), vh: innerHeight }; });
+  check(`${vp}: titan sheet: Where next starts within 1.5 screen heights (${r.top}px of ${1.5 * r.vh})`, r.top <= 1.5 * r.vh, JSON.stringify(r));
+  await closeEsc(page);
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
   await madeLine(page, vp, specs);
   await whereNextPanel(page, vp, specs);
+  await titanPolish(page, vp);
+  if (vp !== 'desktop') await sheetReach(page, vp);
 }
 
 async function fullPass(browser, vp) {
