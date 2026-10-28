@@ -768,6 +768,44 @@ async function imagesLoad(page, vp, specs) {
   check(`${vp}: every canvas image and CSS background URL answers 200 (${urls.all.length}, ${urls.bg} backgrounds)`, urls.bg >= 1 && urls.all.length > urls.bg && failed.length === 0, failed.join(', '));
 }
 
+// ---------- audit fixes (2026-10-28): measured checks for the antiwebslop audit items ----------
+VIEWPORTS.tablet = { viewport: { width: 768, height: 1024 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
+VIEWPORTS.laptop = { viewport: { width: 1024, height: 768 } };
+VIEWPORTS.mid = { viewport: { width: 880, height: 800 } };
+
+// The specimen view between phone and desktop: a wide main column, nothing wider than the screen, paper text in real lines.
+async function tabletDialog(browser) {
+  for (const vp of ['tablet', 'mid', 'laptop']) {
+    const { ctx, page, errors } = await newPage(browser, vp);
+    await explore(page);
+    for (const id of await page.evaluate(() => Object.keys(SPECS))) {
+      await page.evaluate(id => openSpec(id), id); await wait(400);
+      const r = await page.evaluate(() => { const P = document.querySelector('#spec .panel'), p = P.getBoundingClientRect(), m = document.querySelector('#spec .main'), mr = m.getBoundingClientRect(), n = document.querySelector('#spec .next').getBoundingClientRect();
+        const wide = [...P.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > p.right + 1 || b.left < p.left - 1) && !e.closest('.stage'); }).map(e => e.className || e.tagName).slice(0, 4);
+        return { vw: innerWidth, panel: Math.round(p.width), main: Math.round(mr.width), next: Math.round(n.width), docOver: document.documentElement.scrollWidth - innerWidth, panelOver: P.scrollWidth - P.clientWidth, mainOver: m.scrollWidth - m.clientWidth, wide }; });
+      check(`${vp}: ${id} view main column is wide (≥560px or the full panel)`, r.main >= 560 || r.main >= r.panel - 2, JSON.stringify(r));
+      check(`${vp}: ${id} view has no horizontal overflow`, r.docOver <= 0 && r.panelOver <= 1 && r.mainOver <= 1 && r.wide.length === 0, JSON.stringify(r));
+      check(`${vp}: ${id} Where next is at least 260px wide`, r.next >= 260, JSON.stringify(r));
+      if (id === 'paper') {
+        // words per line in each paper paragraph and headline: a line box count from the element's height and line height
+        const lines = await page.evaluate(() => [...document.querySelectorAll('#spec-body .paper article p, #spec-body .paper article h4, #spec-body .paper .dateline span')].filter(e => e.getClientRects().length).map(e => {
+          const cs = getComputedStyle(e), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2, n = Math.max(1, Math.round(e.getBoundingClientRect().height / lh)), words = e.textContent.trim().split(/\s+/).length;
+          return { t: e.textContent.trim().slice(0, 20), tag: e.tagName, lines: n, perLine: +(words / n).toFixed(1), words }; }));
+        const bad = lines.filter(l => l.tag === 'SPAN' ? l.lines > 1 : l.tag === 'P' ? l.perLine < 4 : l.words > 3 && l.perLine < 2.5);
+        check(`${vp}: paper text reads in real lines (paragraphs ≥4 words a line, headlines ≥2.5, dateline on one line)`, lines.length >= 8 && bad.length === 0, JSON.stringify(bad.length ? bad : lines.slice(0, 3)));
+      }
+      if (SHOTS && ['paper', 'titan', 'kyoto'].includes(id)) await page.screenshot({ path: `${SHOTS}/${vp}-${id}.png` });
+      await closeEsc(page);
+    }
+    check(`${vp}: no errors in the tablet dialog pass`, errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+}
+
+async function audit(browser) {
+  await tabletDialog(browser);
+}
+
 async function fullPass(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-opening.png` });
@@ -802,6 +840,7 @@ async function fullPass(browser, vp) {
         check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); await openingPolish(browser, vp); }
       throw 'only';
     }
+    if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
     // small phone: sheet behaviour only
@@ -812,6 +851,7 @@ async function fullPass(browser, vp) {
     await motion(browser, 'phone', specs);
     await pulse(browser, 'desktop', true);
     await pulse(browser, 'phone', false);
+    await audit(browser);
   } catch (e) { if (e !== 'only') { failed++; console.log('FAIL harness crashed :: ' + (e.stack || e)); } }
   await browser.close();
   console.log(`\n${passed} passed, ${failed} failed`);

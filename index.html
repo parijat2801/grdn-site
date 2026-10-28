@@ -219,6 +219,14 @@
     #spec .next { margin: 0; border: 0; border-radius: 0; border-top: 1px solid var(--line); padding: var(--sp-5) var(--sp-4) var(--sp-6); }
     #spec .nx-head, #spec .next .sub { padding: 0; }
   }
+  @media (min-width: 761px) and (max-width: 1127px) {
+    /* tablets and small laptops: one column that scrolls inside the panel, Where next under the view; the close button stays in reach */
+    #spec .panel { display: block; overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    #spec .close { position: sticky; top: var(--sp-3); display: grid; margin: var(--sp-3) var(--sp-3) -52px auto; }
+    #spec .main { overflow: visible; }
+    #spec .kicker { padding-right: 48px; } #spec h3 { padding-right: 40px; }
+    #spec .next { margin: 0 var(--sp-7) var(--sp-6); }
+  }
   .garden.arrive header h2 { animation: arrive 1.6s var(--ease); }
   @keyframes arrive { 20% { color: var(--teal); } }
   /* the five specimens */
@@ -376,6 +384,11 @@
     .paper .mast b { padding: 0 34px; font-size: 32px; } .paper .dateline span:last-child { display: none; } .paper .lead { grid-template-columns: 1fr; } .paper .lead img { height: 180px; } .paper .lead h4 { font-size: 26px; }
     .paper .stories { grid-template-columns: 1fr; gap: var(--sp-3); } .paper .stories article { display: grid; grid-template-columns: 96px 1fr; column-gap: var(--sp-3); padding: 0 0 var(--sp-3); } .paper .stories article + article { border-left: 0; border-top: 1px solid var(--line); padding-top: var(--sp-3); }
     .paper .stories img { grid-row: span 3; height: 84px; margin: 0; } .mood .tiles { grid-template-columns: 1fr 1fr; } .mood figure { aspect-ratio: 1; } .mood .pal { grid-template-columns: repeat(6, 1fr); } .mood .sw { grid-column: span 2; } .mood .sw:nth-child(n+4) { grid-column: span 3; } }
+  @media (min-width: 761px) and (max-width: 900px) {
+    /* the paper's three stories become rows (picture beside text), as on the phone, so no column drops to three words a line */
+    .paper .stories { grid-template-columns: 1fr; gap: var(--sp-3); } .paper .stories article { display: grid; grid-template-columns: 120px 1fr; column-gap: var(--sp-4); padding: 0 0 var(--sp-3); }
+    .paper .stories article + article { border-left: 0; border-top: 1px solid var(--line); padding-top: var(--sp-3); } .paper .stories img { grid-row: span 3; height: 96px; margin: 0; }
+  }
 </style>
 </head>
 <body>
