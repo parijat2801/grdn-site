@@ -35,6 +35,7 @@
     --kyo-time: 46px; --kyo-sky: #FCEFD3; --kyo-rain: #DCE6F3; --kyo-spine: #C9BFA9; --kyo-stop: #F6F3EA; --kyo-swap: #E3ECF8;
     --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
     --jar-bg: #F4F6FB; --jar-fill: rgba(15,143,128,.14); --jar-put: rgba(16,36,58,.5); --jar-track: #E3E6EE;
+    --moon-dark: #24394F; --moon-lit: #F3E7C8; --moon-crater: rgba(170,150,110,.22);
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -262,7 +263,12 @@
   .dash { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; }
   .dash .tile { background: #F4F6FB; border-radius: 14px; padding: 14px; }
   .dash .tile.big { grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; background: #10243A; color: #fff; }
-  .dash .big .moonface { font-size: 86px; line-height: 1; }
+  .dash .tile { position: relative; } .dash .ti { position: absolute; top: 12px; right: 12px; display: block; } .dash .ti svg { display: block; height: 20px; width: auto; max-width: 54px; }
+  .dash .tile:not(.big) .k { padding-right: 58px; }
+  .dash .ti text { font: 600 6px 'Bricolage Grotesque'; fill: var(--muted-strong); }
+  .dash .moonrow { display: flex; align-items: center; gap: var(--sp-3); margin: var(--sp-2) 0; } .dash .moonsvg { width: 92px; height: 92px; flex: none; filter: drop-shadow(0 0 14px rgba(243,231,200,.25)); }
+  .dash .phasearc { display: block; width: 100%; max-width: 220px; height: auto; } .dash .phasearc text { font: 600 8px 'Bricolage Grotesque'; fill: rgba(255,255,255,.65); }
+  .dash .countdown { font-variant-numeric: tabular-nums; }
   .dash .k { margin-bottom: 4px; } .dash .big .k { color: rgba(255,255,255,.6); }
   .dash .v { font-size: 20px; font-weight: 700; letter-spacing: -.01em; } .dash .s { font-size: var(--fs-meta); color: var(--muted); margin-top: 2px; } .dash .big .s { color: rgba(255,255,255,.7); }
   .paper { font-family: 'Newsreader', serif; }
@@ -358,7 +364,7 @@
   @media (max-width: 760px) { .recipe ul { columns: 1; } .recipe .hero { height: auto; overflow: visible; display: flex; flex-direction: column; align-items: center; padding-bottom: var(--sp-3); } .recipe .hero svg { height: 140px; border-radius: var(--r-stage) var(--r-stage) 0 0; }
     .recipe .serves { position: relative; right: auto; top: auto; transform: none; margin-top: -10px; }
     .recipe .steps { grid-template-columns: 1fr; gap: var(--sp-3); } .recipe .steps li { flex-direction: row; align-items: baseline; gap: var(--sp-3); } .recipe .steps .n { flex: none; width: 30px; } .jar .inputs { grid-template-columns: 1fr; } }
-  @media (max-width: 760px) { .dash { grid-template-columns: 1fr 1fr; } .dash .tile.big { grid-column: span 2; grid-row: auto; flex-direction: row; align-items: center; }
+  @media (max-width: 760px) { .dash { grid-template-columns: 1fr 1fr; } .dash .tile.big { grid-column: span 2; grid-row: auto; } .dash .big .phasearc { max-width: 260px; margin: 0 auto; }
     .paper .mast b { padding: 0 34px; font-size: 32px; } .paper .dateline span:last-child { display: none; } .paper .lead { grid-template-columns: 1fr; } .paper .lead img { height: 180px; } .paper .lead h4 { font-size: 26px; }
     .paper .stories { grid-template-columns: 1fr; gap: var(--sp-3); } .paper .stories article { display: grid; grid-template-columns: 96px 1fr; column-gap: var(--sp-3); padding: 0 0 var(--sp-3); } .paper .stories article + article { border-left: 0; border-top: 1px solid var(--line); padding-top: var(--sp-3); }
     .paper .stories img { grid-row: span 3; height: 84px; margin: 0; } .mood .tiles { grid-template-columns: 1fr 1fr; } .mood figure { aspect-ratio: 1; } .mood .pal { grid-template-columns: repeat(6, 1fr); } .mood .sw { grid-column: span 2; } .mood .sw:nth-child(n+4) { grid-column: span 3; } }
@@ -750,19 +756,14 @@ const IMG = n => `https://grdn-site.vercel.app/web/${n}`;
 function moonNow() { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14) / 864e5, now = Date.now() / 864e5, age = (((now - ref) % syn) + syn) % syn;
   const idx = Math.round(age / syn * 8) % 8, toFull0 = ((syn / 2 - age) % syn + syn) % syn, toFull = toFull0 < 1.5 ? toFull0 + syn : toFull0;
   return { face: [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx], name: ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'][idx],
-    lit: Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100), full: new Date(Date.now() + toFull * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }; }
+    age, syn, lit: Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100), full: new Date(Date.now() + toFull * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }; }
 const SPECS = {
   titan: { act: 'Play', noun: 'game', kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: [{ t: 'Titan, Saturn’s largest moon', icon: '🪐', became: 'the orange haze, the dunes and Saturn' }, { t: 'Lunar lander physics', icon: '🚀', became: 'weak gravity, thick air, a slow fall' }, { t: 'Leo’s note: “make it hard”', icon: '📝', became: 'set the 3 m/s landing limit' }],
     next: [{ t: 'Moon tonight', s: 'Grandpa Tom · dashboard', why: 'The real sky tonight, made from Tom’s links', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom', why: 'Saturn notes and NASA pictures', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'made by one, loved by many', why: 'More games one person made', garden: 'Small, opinionated apps' }],
     render: el => lander(el) },
   moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: [{ t: 'NASA image of the day', img: 'nasa-gov-27.jpg', became: 'the night-sky look of every tile' }, { t: 'What’s up tonight', icon: '🔭', became: 'the space station pass and clear hours' }, { t: 'Tom’s note on Saturn', icon: '📝', became: 'the Saturn tile: up after 9pm' }],
     next: [{ t: 'Land on Titan', s: 'Leo · game', why: 'Fly down to Saturn’s biggest moon', open: 'titan' }, { t: 'Walls I’d hang', s: 'Sol', why: 'The Starry Night, and other skies', garden: 'Walls I’d hang' }, { t: 'GPS, explained', s: 'Nico', why: 'How the satellites overhead find you', garden: 'Things that explain themselves' }],
-    render: el => { const m = moonNow();
-      el.innerHTML = `<div class="dash"><div class="tile big"><div class="k">Tonight</div><div class="moonface">${m.face}</div><div><div class="v">${m.name}</div><div class="s">${m.lit}% lit</div></div></div>
-        <div class="tile"><div class="k">Saturn</div><div class="v">Up after 9pm</div><div class="s">low in the south-east</div></div>
-        <div class="tile"><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
-        <div class="tile"><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
-        <div class="tile"><div class="k">Space station</div><div class="v">21:14</div><div class="s">4 minutes, west to east</div></div></div>`; } },
+    render: el => moonDash(el) },
   paper: { act: 'Read', noun: 'paper', verb: 'wrote', kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: [{ t: 'Nico’s garden', icon: '⚙️', became: 'the lead: how a watch keeps time' }, { t: 'Sol’s garden', icon: '🌊', became: 'The Great Wave, up close' }, { t: 'Robin Sloan', icon: '🍲', became: 'the home-cooked app story' }, { t: 'Grandpa Tom’s garden', icon: '🌍', became: 'Pale Blue Dot, on the back page' }],
     next: [{ t: 'Café: warm, not cute', s: 'Mo · moodboard', why: 'Built from The Great Wave, like page two', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico', why: 'Where this week’s lead story came from', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', why: 'More home-cooked software, at the source', garden: 'Robin Sloan' }],
     render: el => { const sun = new Date(); sun.setDate(sun.getDate() - sun.getDay()); const nxt = new Date(sun); nxt.setDate(sun.getDate() + 7);
@@ -804,6 +805,37 @@ const SPECS = {
 // Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
 document.querySelectorAll('[data-spec]').forEach(el => { const s = SPECS[el.dataset.spec]; el.querySelector('.open-mark').textContent = s.act;
   el.setAttribute('aria-label', `${s.act} ${s.title}, made with Grdn`); });
+// Moon tonight: the real phase drawn as a lit disc, its place on the cycle, and a live countdown; each small tile carries a little picture of its own.
+function moonDisc(age, syn, R = 44) {
+  const k = (1 - Math.cos(2 * Math.PI * age / syn)) / 2, wax = age < syn / 2, rx = (R * Math.abs(1 - 2 * k)).toFixed(2), crescent = k < .5;
+  // lit half on the right while waxing, the left while waning; the terminator is an ellipse that bulges into the lit side for a crescent
+  const d = wax ? `M0 ${-R} A${R} ${R} 0 0 1 0 ${R} A${rx} ${R} 0 0 ${crescent ? 0 : 1} 0 ${-R}Z` : `M0 ${-R} A${R} ${R} 0 0 0 0 ${R} A${rx} ${R} 0 0 ${crescent ? 1 : 0} 0 ${-R}Z`;
+  return `<svg class="moonsvg" viewBox="${-R - 2} ${-R - 2} ${2 * R + 4} ${2 * R + 4}" aria-hidden="true"><circle r="${R}" fill="var(--moon-dark)"/><path d="${d}" fill="var(--moon-lit)"/>
+    <g fill="var(--moon-crater)"><circle cx="${-R * .3}" cy="${-R * .25}" r="${R * .16}"/><circle cx="${R * .28}" cy="${R * .3}" r="${R * .11}"/><circle cx="${R * .12}" cy="${-R * .5}" r="${R * .07}"/><circle cx="${-R * .45}" cy="${R * .35}" r="${R * .08}"/></g></svg>`;
+}
+function moonDash(el) {
+  const m = moonNow(), f = m.age / m.syn, th = Math.PI * (1 - f), ax = 100 + 88 * Math.cos(th), ay = 46 - 34 * Math.sin(th);
+  // the arc runs new → full → new; the dot is today
+  const arc = `<svg class="phasearc" data-frac="${f.toFixed(4)}" viewBox="0 0 200 58" aria-hidden="true"><path d="M12 46 A88 34 0 0 1 188 46" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>
+    <text x="12" y="57" text-anchor="middle">new</text><text x="100" y="9" text-anchor="middle">full</text><text x="188" y="57" text-anchor="middle">new</text>
+    <circle class="now" cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="5" fill="var(--moon-lit)" stroke="var(--ink)" stroke-width="2"/></svg>`;
+  // the next 15 days of real moonlight, as a sparkline, with the full moon marked
+  const lits = Array.from({ length: 15 }, (_, d) => (1 - Math.cos(2 * Math.PI * (m.age + d) / m.syn)) / 2), fi = lits.indexOf(Math.max(...lits));
+  const spark = `<svg viewBox="0 0 84 26" aria-hidden="true"><path d="${lits.map((v, i) => `${i ? 'L' : 'M'}${(i * 6).toFixed(0)} ${(23 - v * 20).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--c-tom)" stroke-width="2" stroke-linejoin="round"/><circle cx="${fi * 6}" cy="${(23 - lits[fi] * 20).toFixed(1)}" r="3" fill="var(--c-tom)"/></svg>`;
+  const clouds = [8, 6, 10, 14, 35, 70, 85], sky = `<svg viewBox="0 0 84 26" aria-hidden="true"><path d="M0 26 ${clouds.map((v, i) => `L${(i * 14).toFixed(0)} ${(24 - v / 100 * 21).toFixed(1)}`).join(' ')} L84 26Z" fill="rgba(47,109,181,.12)"/><path d="${clouds.map((v, i) => `${i ? 'L' : 'M'}${(i * 14).toFixed(0)} ${(24 - v / 100 * 21).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--c-tom)" stroke-width="2" stroke-linejoin="round"/></svg>`;
+  const saturn = `<svg viewBox="0 0 40 26" aria-hidden="true"><ellipse cx="20" cy="13" rx="17" ry="5" fill="none" stroke="var(--titan-saturn-band)" stroke-width="2" transform="rotate(-14 20 13)"/><circle cx="20" cy="13" r="7.5" fill="var(--titan-saturn)"/><path d="M12.6 14.6 A17 5 -14 0 0 27.4 11.4" fill="none" stroke="var(--titan-saturn-band)" stroke-width="2" transform="rotate(-14 20 13) rotate(14 20 13)"/></svg>`;
+  const iss = `<svg viewBox="0 0 60 26" aria-hidden="true"><path d="M3 22 Q30 -4 57 22" fill="none" stroke="var(--c-tom)" stroke-width="1.6" stroke-dasharray="3 3"/><g transform="translate(30 9)"><rect x="-3" y="-2" width="6" height="4" rx="1" fill="var(--ink)"/><rect x="-11" y="-1.5" width="6" height="3" fill="var(--c-tom)"/><rect x="5" y="-1.5" width="6" height="3" fill="var(--c-tom)"/></g><text x="3" y="25" font-size="6">W</text><text x="52" y="25" font-size="6">E</text></svg>`;
+  el.innerHTML = `<div class="dash"><div class="tile big"><div class="k">Tonight</div><div class="moonrow">${moonDisc(m.age, m.syn)}<div><div class="v">${m.name}</div><div class="s">${m.lit}% lit</div></div></div>${arc}</div>
+    <div class="tile"><span class="ti">${saturn}</span><div class="k">Saturn</div><div class="v">Up after 9pm</div><div class="s">low in the south-east</div></div>
+    <div class="tile"><span class="ti">${sky}</span><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
+    <div class="tile"><span class="ti">${spark}</span><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
+    <div class="tile"><span class="ti">${iss}</span><div class="k">Space station</div><div class="v">21:14</div><div class="s countdown" aria-live="off"></div></div></div>`;
+  // illustrative pass at 21:14 local time: today, or tomorrow once it has gone
+  const cd = el.querySelector('.countdown'), pass = new Date(); pass.setHours(21, 14, 0, 0); if (pass <= new Date()) pass.setDate(pass.getDate() + 1);
+  const tick = () => { if (!cd.isConnected) return clearInterval(iv); const t = Math.max(0, Math.round((pass - Date.now()) / 1000)), p2 = n => String(n).padStart(2, '0');
+    cd.textContent = `in ${Math.floor(t / 3600)}h ${p2(Math.floor(t / 60) % 60)}m ${p2(t % 60)}s · 4 min, west to east`; };
+  const iv = setInterval(tick, 1000); tick();
+}
 // Café moodboard: an even grid of what Mo kept, then a palette sampled from the two paintings. A swatch copies its hex and lights up the image it came from.
 function moodboard(el) {
   const art = { starry: ['The Starry Night', 'starry-night.jpg', 'night blue and ochre'], wave: ['The Great Wave', 'great-wave.jpg', 'paper, blush and ink'] };

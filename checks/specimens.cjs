@@ -621,6 +621,27 @@ async function paperPolish(page, vp) {
   await closeEsc(page);
 }
 
+async function moonPolish(page, vp) {
+  await page.evaluate(() => openSpec('moon')); await wait(450);
+  const m = await page.evaluate(() => { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14) / 864e5, age = (((Date.now() / 864e5 - ref) % syn) + syn) % syn, lit = Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100);
+    const d = document.querySelector('#spec-body .dash'), sv = d.querySelector('.moonsvg'), arc = d.querySelector('.phasearc');
+    const tiles = [...d.querySelectorAll('.tile:not(.big)')].map(t => { const g = t.querySelector('svg'), r = g && g.getBoundingClientRect(); return !!r && r.width >= 20 && r.height >= 12; });
+    return { lit, frac: age / syn, shownLit: +((d.querySelector('.big .s') || {}).textContent || '').replace(/\D/g, ''), svg: !!sv, arc: arc ? { frac: +arc.dataset.frac, dot: !!arc.querySelector('.now'), x: arc.querySelector('.now') ? (+arc.querySelector('.now').getAttribute('cx') - 12) / 176 : -1 } : null, tiles, cd: (d.querySelector('.countdown') || {}).textContent || '' }; });
+  check(`${vp}: moon phase is real: the tile says the true lit percentage`, m.shownLit === m.lit, JSON.stringify(m));
+  // the arc runs new (left) → full (top) → new (right): today's dot sits at x = (1 − cos πf) / 2 of its width
+  check(`${vp}: moon has a phase arc with today's place on the cycle`, !!m.arc && m.arc.dot && Math.abs(m.arc.frac - m.frac) < .01 && Math.abs(m.arc.x - (1 - Math.cos(Math.PI * m.frac)) / 2) < .03, JSON.stringify(m.arc));
+  let litPx = null;
+  if (m.svg) { const b = await box(page, '#spec-body .moonsvg');
+    litPx = await page.evaluate(async b64 => { const { w, h, d } = await __c.px(b64), cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 2; let n = 0, on = 0;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (Math.hypot(x + .5 - cx, y + .5 - cy) > R) continue; n++; const k = (y * w + x) * 4; if (__c.lum({ r: d[k], g: d[k + 1], b: d[k + 2] }) > .35) on++; }
+      return Math.round(on / n * 100); }, await shot64(page, b)); }
+  check(`${vp}: the drawn moon is lit by the real fraction (${litPx}% of the disc vs ${m.lit}%)`, litPx !== null && Math.abs(litPx - m.lit) <= 12, String(litPx));
+  check(`${vp}: every small moon tile has its own icon or sparkline`, m.tiles.length === 4 && m.tiles.every(Boolean), JSON.stringify(m.tiles));
+  await wait(1200); const cd2 = await page.evaluate(() => (document.querySelector('#spec-body .countdown') || {}).textContent || '');
+  check(`${vp}: moon has a live countdown that ticks`, /\d+h \d{2}m \d{2}s/.test(m.cd) && cd2 !== m.cd && /\d+h \d{2}m \d{2}s/.test(cd2), `${m.cd} / ${cd2}`);
+  await closeEsc(page);
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
@@ -633,6 +654,7 @@ async function polish(page, vp, specs) {
   await moodPolish(page, vp);
   await savingsPolish(page, vp);
   await paperPolish(page, vp);
+  await moonPolish(page, vp);
 }
 
 async function fullPass(browser, vp) {
