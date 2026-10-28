@@ -118,7 +118,7 @@ async function whereNext(page, vp, specs) {
 async function recipeSources(page, vp) {
   const r = await page.evaluate(() => { const g = G.find(g => g.name === SPECS.recipe.garden), low = s => s.toLowerCase().replace(/[“”".]/g, '').trim();
     const ingredients = ['rice', 'eggs', 'spring onions', 'garlic', 'soy sauce', 'sesame oil', 'oil'];
-    return SPECS.recipe.from.map(c => ({ c, ok: !ingredients.includes(low(c)) && g.things.some(th => th.type === 'link' ? c.includes(th.t) && c.includes(th.dom) : th.type === 'note' ? /^Note:/.test(c) && low(th.text).includes(low(c.replace(/^Note:\s*/, ''))) : false) })); });
+    return SPECS.recipe.from.map(f => f.t || f).map(c => ({ c, ok: !ingredients.includes(low(c)) && g.things.some(th => th.type === 'link' ? c.includes(th.t) && c.includes(th.dom) : th.type === 'note' ? /^Note:/.test(c) && low(th.text).includes(low(c.replace(/^Note:\s*/, ''))) : false) })); });
   check(`${vp}: recipe sources are Priya & Sam's kept links and note`, r.length >= 2 && r.every(x => x.ok) && r.some(x => /^Note:/.test(x.c)), JSON.stringify(r));
 }
 
@@ -396,9 +396,26 @@ async function focusRing(page, vp, specs) {
   await closeEsc(page);
 }
 
+// The made line is the signature moment: every source shows an icon and what it became, and the lead sentence is ink, heavier than body text, on its own tint.
+async function madeLine(page, vp, specs) {
+  for (const id of Object.keys(specs)) {
+    await page.evaluate(id => openSpec(id), id); await wait(350);
+    const m = await page.evaluate(id => { const made = document.getElementById('spec-made'), lead = made.querySelector(':scope > span:first-child'), lcs = getComputedStyle(lead), mbg = __c.rgb(getComputedStyle(made).backgroundColor), pbg = __c.rgb(getComputedStyle(document.querySelector('#spec .main')).backgroundColor) || { r: 255, g: 255, b: 255, a: 1 };
+      const panelBg = pbg.a ? pbg : __c.rgb(getComputedStyle(document.querySelector('#spec .panel')).backgroundColor);
+      const chips = [...made.querySelectorAll('.chip')].map((c, i) => { const ic = c.querySelector('.src-ic'), r = ic && ic.getBoundingClientRect(), bc = c.querySelector('.became'), br = bc && bc.getBoundingClientRect();
+        return { i, became: bc ? bc.textContent.trim() : null, want: (SPECS[id].from[i] || {}).became, icon: !!r && r.width >= 24 && r.height >= 24, shown: !!br && br.width > 20 && br.height > 8 }; });
+      return { chips, weight: +lcs.fontWeight, size: parseFloat(lcs.fontSize), ratio: +__c.ratio(__c.over(__c.ink(lead), mbg), mbg).toFixed(2), bgDiff: Math.abs(mbg.r - panelBg.r) + Math.abs(mbg.g - panelBg.g) + Math.abs(mbg.b - panelBg.b) }; }, id);
+    const bad = m.chips.filter(c => !c.want || c.became !== c.want || !c.icon || !c.shown);
+    check(`${vp}: ${id} every source shows an icon and what it became (${m.chips.length})`, m.chips.length === specs[id].from.length && bad.length === 0, JSON.stringify(bad));
+    check(`${vp}: ${id} made lead is ink, weight ≥600, ≥15px, contrast ≥7 on a tint unlike the page`, m.weight >= 600 && m.size >= 15 && m.ratio >= 7 && m.bgDiff >= 12, JSON.stringify({ ...m, chips: undefined }));
+    await closeEsc(page);
+  }
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
+  await madeLine(page, vp, specs);
 }
 
 async function fullPass(browser, vp) {

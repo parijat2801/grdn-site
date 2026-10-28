@@ -29,6 +29,7 @@
     --titan-ridge: #8a4a20; --titan-dune: #6e3a18; --titan-ground: #4f2a12; --titan-ground-hi: #9a6234; --titan-lake: #1e1714; --titan-pad: #b98653;
     --titan-hull: #10243A; --titan-hull-hi: #2b4a6b; --titan-foil: #d9a441; --titan-window: #ffe9c4; --titan-flame: #fff4cf; --titan-flame-2: #ff9a3c; --titan-beacon: #ffcf70;
     --titan-safe: #7fe0cf; --titan-warn: #ffb199; --hud-glass: rgba(30,13,4,.44); --hud-ink: #FFF4E4; --hud-track: rgba(255,244,228,.22); --hud-clear: 84px;
+    --made-bg: #EAF4EF; --made-line: rgba(15,143,128,.20); --made-ring: rgba(15,143,128,.16); --fs-made: 16px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -162,15 +163,19 @@
   @media (hover: hover) { #spec .close:hover { background: var(--ink); color: var(--paper); } }
   #spec .panel:focus { outline: none; } #spec .close:focus:not(:focus-visible) { outline: none; }
   #spec .close:focus-visible, #spec .nx:focus-visible, .lander .again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
-  /* how Grdn made it: the sentence, then the kept things as small tickets */
-  #spec .made { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-5); padding: var(--sp-3) var(--sp-4) var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep);
-    font-size: var(--fs-meta); line-height: 1.35; color: var(--muted); }
-  #spec .made > span:first-child { flex-basis: 100%; margin-bottom: 2px; }
-  #spec .made > span:first-child::before { content: ''; display: inline-block; vertical-align: -4px; width: 18px; height: 18px; margin-right: var(--sp-2); border-radius: 50%; background: var(--teal) var(--seed) center/12px no-repeat; }
-  #spec .made b { color: var(--ink); font-weight: 600; white-space: nowrap; }
-  #spec .chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px 6px 10px; border-radius: var(--r-pill); background: var(--card); border: 1px solid var(--line);
-    color: var(--ink); font-size: var(--fs-tag); font-weight: 600; line-height: 1.2; }
-  #spec .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); opacity: .7; }
+  /* how Grdn made it: the sentence in ink, then each kept thing as a ticket that says what it became */
+  #spec .made { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-5); padding: var(--sp-4); border-radius: var(--r-card);
+    background: var(--made-bg); border: 1px solid var(--made-line); }
+  #spec .made > span:first-child { grid-column: 1 / -1; position: relative; display: block; min-height: 24px; padding: 2px 0 0 36px; margin-bottom: var(--sp-1); font-size: var(--fs-made); font-weight: 650; letter-spacing: -.005em; line-height: 1.3; color: var(--ink); }
+  #spec .made > span:first-child::before { content: ''; position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--teal) var(--seed) center/15px no-repeat; box-shadow: 0 0 0 4px var(--made-ring); }
+  #spec .made > span:first-child b { font-weight: 800; }
+  #spec .chip { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px 11px 10px; border-radius: var(--r-bubble); background: var(--card); border: 1px solid var(--made-line); box-shadow: var(--shadow-card); min-width: 0; }
+  #spec .src-ic { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; background: var(--paper-deep); font-size: 18px; line-height: 1; overflow: hidden; }
+  #spec .src-ic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #spec .src { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  #spec .src b { font-size: var(--fs-tag); font-weight: 650; line-height: 1.25; color: var(--ink); }
+  #spec .became { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); text-wrap: pretty; }
+  #spec .became::before { content: '→ '; font-family: 'Bricolage Grotesque', sans-serif; font-style: normal; font-weight: 700; font-size: var(--fs-tag); color: var(--teal); }
   /* Where next: what to open after this */
   #spec .next { background: var(--bubble); border-left: 1px solid var(--line); padding: var(--sp-6) var(--sp-5) var(--sp-5); overflow: auto; }
   #spec .nx-head { font-size: var(--fs-title); font-weight: 700; letter-spacing: -.01em; padding-right: 44px; }
@@ -193,7 +198,7 @@
     #spec .close { position: sticky; top: var(--sp-3); display: grid; margin: var(--sp-3) var(--sp-3) -52px auto; }
     #spec .main, #spec .next { overflow: visible; } #spec .main { padding: var(--sp-5) var(--sp-4) var(--sp-5); }
     #spec .kicker { padding-right: 48px; } #spec h3 { font-size: var(--fs-spec-title-s); padding-right: 40px; }
-    #spec .made { padding: var(--sp-3) var(--sp-3) var(--sp-3); }
+    #spec .made { padding: var(--sp-3); grid-template-columns: 1fr; }
     #spec .next { border-left: 0; border-top: 1px solid var(--line); padding: var(--sp-5) var(--sp-4) var(--sp-6); }
     #spec .nx-head { padding-right: 0; }
   }
@@ -670,10 +675,10 @@ function moonNow() { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14
   return { face: [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx], name: ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'][idx],
     lit: Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100), full: new Date(Date.now() + toFull * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }; }
 const SPECS = {
-  titan: { act: 'Play', noun: 'game', kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: ['Titan, Saturn’s largest moon', 'Lunar lander physics', 'Leo’s note: “make it hard”'],
+  titan: { act: 'Play', noun: 'game', kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: [{ t: 'Titan, Saturn’s largest moon', icon: '🪐', became: 'the orange haze, the dunes and Saturn' }, { t: 'Lunar lander physics', icon: '🚀', became: 'weak gravity, thick air, a slow fall' }, { t: 'Leo’s note: “make it hard”', icon: '📝', became: 'set the 3 m/s landing limit' }],
     next: [{ t: 'Moon tonight', s: 'Grandpa Tom’s dashboard', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom’s garden', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'tiny games people love', garden: 'Small, opinionated apps' }],
     render: el => lander(el) },
-  moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: ['NASA image of the day', 'What’s up tonight', 'Tom’s note on Saturn'],
+  moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: [{ t: 'NASA image of the day', img: 'nasa-gov-27.jpg', became: 'the night-sky look of every tile' }, { t: 'What’s up tonight', icon: '🔭', became: 'the space station pass and clear hours' }, { t: 'Tom’s note on Saturn', icon: '📝', became: 'the Saturn tile: up after 9pm' }],
     next: [{ t: 'Land on Titan', s: 'Leo’s game, made from his space links', open: 'titan' }, { t: 'Pale Blue Dot', s: 'in Grandpa Tom’s garden', garden: 'Moon & sky' }, { t: 'GPS, explained', s: 'Nico’s garden', garden: 'Things that explain themselves' }],
     render: el => { const m = moonNow();
       el.innerHTML = `<div class="dash"><div class="tile big"><div class="k">Tonight</div><div class="moonface">${m.face}</div><div><div class="v">${m.name}</div><div class="s">${m.lit}% lit</div></div></div>
@@ -681,19 +686,19 @@ const SPECS = {
         <div class="tile"><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
         <div class="tile"><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
         <div class="tile"><div class="k">Space station</div><div class="v">21:14</div><div class="s">4 minutes, west to east</div></div></div>`; } },
-  paper: { act: 'Read', noun: 'paper', verb: 'wrote', kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: ['Nico’s garden', 'Sol’s garden', 'Robin Sloan', 'Grandpa Tom’s garden'],
+  paper: { act: 'Read', noun: 'paper', verb: 'wrote', kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: [{ t: 'Nico’s garden', icon: '⚙️', became: 'the lead: how a watch keeps time' }, { t: 'Sol’s garden', icon: '🌊', became: 'The Great Wave, up close' }, { t: 'Robin Sloan', icon: '🍲', became: 'the home-cooked app story' }, { t: 'Grandpa Tom’s garden', icon: '🌍', became: 'Pale Blue Dot, on the back page' }],
     next: [{ t: 'Café: warm, not cute', s: 'Mo’s moodboard', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico’s garden', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', garden: 'Robin Sloan' }],
     render: el => { el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><span>No. 42 · made every Sunday from the gardens Amara follows</span></div><div class="cols2">
         <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · 5,120 people keep this</small></article>
         <div class="side"><article><h4>The Great Wave, up close</h4><p>Hokusai’s print, and why the boats matter more than the wave.</p><small>from Sol’s garden</small></article>
         <article><h4>An app can be a home-cooked meal</h4><p>Software made for four people, and loved by all four.</p><small>from Robin Sloan’s garden</small></article>
         <article><h4>Pale Blue Dot</h4><p>Everyone you love, on a mote of dust in a sunbeam.</p><small>from Grandpa Tom’s garden</small></article></div></div></div>`; } },
-  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: ['Mo’s palette', 'The Starry Night', 'The Great Wave', 'Mo’s note: one ink, one accent'],
+  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: [{ t: 'Mo’s palette', icon: '🎨', became: 'five warm swatches with their hex' }, { t: 'The Starry Night', img: 'starry-night.jpg', became: 'the deep blue ink and the ochre' }, { t: 'The Great Wave', img: 'great-wave.jpg', became: 'the paper and the one accent' }, { t: 'Mo’s note: one ink, one accent', icon: '📝', became: 'the rule the palette keeps' }],
     next: [{ t: 'Walls I’d hang', s: 'Sol’s garden', garden: 'Walls I’d hang' }, { t: 'The Sunday Garden', s: 'Amara’s weekly paper', open: 'paper' }, { t: 'Type & letters', s: 'Wen’s garden', garden: 'Type & letters' }],
     render: el => { el.innerHTML = `<div class="mood"><img class="first" src="${IMG('starry-night.jpg')}" alt=""><img src="${IMG('great-wave.jpg')}" alt=""><img src="${IMG('weavesilk-com-13.png')}" alt="">
         <div class="swatches" title="tap for another">${['#F3EBDD', '#D8C3A5', '#C46B4E', '#8C9B82', '#263B42'].map(c => `<div style="background:${c}"></div>`).join('')}</div><div class="type">Warm, not cute.</div></div>`;
       const sw = el.querySelector('.swatches'); sw.onclick = () => { const h = 15 + Math.random() * 40; [...sw.children].forEach((c, i) => c.style.background = hsl((h + i * 18) % 360, 30 + i * 8, 88 - i * 16)); }; } },
-  kyoto: { act: 'Try', noun: 'planner', kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: ['Temples we can walk between', 'Their note: Fushimi Inari before 7am', '6 places they kept'],
+  kyoto: { act: 'Try', noun: 'planner', kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: [{ t: 'Temples we can walk between', icon: '🗺️', became: 'the walking times between stops' }, { t: 'Their note: Fushimi Inari before 7am', icon: '📝', became: 'the 6:30 start' }, { t: '6 places they kept', icon: '📍', became: 'the stops, and indoor swaps for rain' }],
     next: [{ t: 'Trip to Kyoto', s: 'Mei & Jo’s garden', garden: 'Trip to Kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'The Sunday Garden', s: 'Amara’s weekly paper', open: 'paper' }],
     render: el => { const days = {
         sun: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20], ['9:30', 'Arashiyama bamboo grove', 'walk the river after', 25], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15], ['15:00', 'Philosopher’s Path', 'two hours, slowly', 10], ['18:30', 'Gion at dusk', 'lanterns come on']],
@@ -702,10 +707,10 @@ const SPECS = {
         el.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); };
       el.innerHTML = `<div class="plan"><div class="toggle"><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div><ol></ol></div>`;
       el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },
-  recipe: { act: 'Try', noun: 'scaler', kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: ['The food lab: eggs · seriouseats.com', 'Egg fried rice · thewoksoflife.com', 'Note: fried, never microwaved'],
+  recipe: { act: 'Try', noun: 'scaler', kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: [{ t: 'The food lab: eggs · seriouseats.com', icon: '🥚', became: 'step 1: soft eggs, taken out' }, { t: 'Egg fried rice · thewoksoflife.com', icon: '🍳', became: 'the amounts for 2 people' }, { t: 'Note: fried, never microwaved', icon: '📝', became: 'step 2: day-old rice, hot and fast' }],
     next: [{ t: 'Day planner, rain or shine', s: 'Mei & Jo’s app for Kyoto', open: 'kyoto' }, { t: 'Kitchen', s: 'Priya & Sam’s garden', garden: 'Kitchen' }, { t: 'Board game night', s: 'the Friday table', garden: 'Board game night' }],
     render: el => recipe(el) },
-  savings: { act: 'Try', noun: 'chart', kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: ['Pocket money jar', 'What compounding looks like'],
+  savings: { act: 'Try', noun: 'chart', kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: [{ t: 'Pocket money jar', icon: '🪙', became: 'the jar and the monthly amount' }, { t: 'What compounding looks like', icon: '📈', became: 'the 4% line that pulls away' }],
     next: [{ t: 'Land on Titan', s: 'Leo’s game, made from his space links', open: 'titan' }, { t: 'Fractions, by hand', s: 'Ms. Rao’s class 4B', garden: 'Fractions, by hand' }, { t: 'Money basics', s: 'the garden it came from', garden: 'Money basics' }],
     render: el => savings(el) },
 };
@@ -881,7 +886,7 @@ function openSpec(id, from) {
   document.getElementById('spec-kind').innerHTML = `<span class="kind">${esc(s.kind)}</span><span class="home">in ${esc(s.garden)}, ${esc(s.owner)}’s garden</span>`; document.getElementById('spec-title').textContent = s.title;
   // Grdn is the maker, the owner is the keeper: "Grdn built this game from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
   const n = s.from.length, what = s.fromWhat || (n === 1 ? 'thing' : 'things'), verb = s.fromVerb || 'kept';
-  document.getElementById('spec-made').innerHTML = `<span>Grdn ${s.verb || 'built'} this ${s.noun} from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:</span>${s.from.map(f => `<span class="chip">${esc(f)}</span>`).join('')}`;
+  document.getElementById('spec-made').innerHTML = `<span>Grdn ${s.verb || 'built'} this ${s.noun} from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:</span>${s.from.map(f => `<span class="chip"><span class="src-ic" aria-hidden="true">${f.img ? `<img src="${IMG(f.img)}" alt="">` : f.icon}</span><span class="src"><b>${esc(f.t)}</b><span class="became">${esc(f.became)}</span></span></span>`).join('')}`;
   // each row says what it does: open another specimen (its verb, ↗) or visit a garden (→)
   document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}"><span><b>${esc(n.t)}</b><small>${esc(n.s)}</small></span>${n.open
     ? `<span class="go open" aria-hidden="true">${SPECS[n.open].act} ↗</span>` : `<span class="go" aria-hidden="true">Visit →</span>`}</button>`).join('');
