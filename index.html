@@ -60,6 +60,10 @@
     --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
     --jar-bg: #F4F6FB; --jar-fill: rgba(15,143,128,.14); --jar-put: rgba(16,36,58,.5); --jar-track: #E3E6EE;
     --moon-dark: #24394F; --moon-lit: #F3E7C8; --moon-crater: rgba(170,150,110,.22);
+    /* Mess around and find out: a night garden of doors. Unopened ground, a glowing edge, lit leaves, a bold bet's amber, scorched ash; one line colour per player */
+    --mf-ground: #16302D; --mf-ground-hi: #1D3C38; --mf-dark: #24463F; --mf-door: #2C5650; --mf-door-hi: #386A62; --mf-edge: #8FD3BE; --mf-lit: #C4E8A4; --mf-lit-deep: #9FD08A; --mf-fresh: #F5EBAF;
+    --mf-bold: #F2B45A; --mf-scorch: #0C1413; --mf-ember: #D2693A; --mf-focus: #FFFFFF;
+    --mf-cautious: #5b6b8c; --mf-boldline: #c4552f; --mf-gardener: #3f7f3a; --mf-cautious-ink: #4a5876; --mf-bold-ink: #a8431f; --mf-gardener-ink: #356c31;
     --card-glass: rgba(250,248,242,.9); --rise: .65s; --peek-h: 56px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
@@ -569,6 +573,131 @@
     .paper .stories { grid-template-columns: 1fr; gap: var(--sp-3); } .paper .stories article { display: grid; grid-template-columns: 120px 1fr; column-gap: var(--sp-4); padding: 0 0 var(--sp-3); }
     .paper .stories article + article { border-left: 0; border-top: 1px solid var(--line); padding-top: var(--sp-3); } .paper .stories img { grid-row: span 3; height: 96px; margin: 0; }
   }
+
+  /* Mess around and find out: four acts down one column. A caption in Nico's voice, then the thing to poke. The gardens are night-dark stages; the readouts sit on paper beside them. */
+  .mx { padding-bottom: var(--sp-2); }
+  .mx-act + .mx-act { margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--line); }
+  .mx-act h4 { display: flex; align-items: center; gap: 10px; font-size: var(--fs-garden); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .mx-act h4 .n { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--mf-ground); color: var(--mf-lit); font-size: var(--fs-meta); font-weight: 800; letter-spacing: 0; }
+  .mx-cap { max-width: 34em; margin-top: var(--sp-3); font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 21px; line-height: 1.45; color: var(--ink); text-wrap: pretty; }
+  .mx-fig { margin-top: var(--sp-5); }
+  .mx-play-area { display: grid; grid-template-columns: minmax(0, 1fr) 252px; gap: var(--sp-4); align-items: stretch; }
+  .mx-stage { position: relative; display: grid; place-items: center; padding: var(--sp-4); border-radius: var(--r-stage); background: radial-gradient(ellipse 70% 80% at 50% 45%, var(--mf-ground-hi), var(--mf-ground)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); }
+  .mx-garden { display: block; width: 100%; height: auto; overflow: visible; -webkit-tap-highlight-color: transparent; }
+  .mx-play-area .mx-garden { max-width: 560px; }
+  /* tiles: a little lighter or darker each, so the ground reads as growth, not a spreadsheet */
+  .mx-t { fill: color-mix(in oklab, var(--mf-dark), var(--mf-ground) calc(var(--v) * 55%)); stroke: transparent; stroke-width: 0; vector-effect: non-scaling-stroke; paint-order: stroke;
+    transform-box: fill-box; transform-origin: center; outline: none; transition: fill .6s var(--ease), stroke-width .25s ease; }
+  .mx-t[data-s="1"] { fill: color-mix(in oklab, var(--mf-lit), var(--mf-lit-deep) calc(var(--v) * 70%)); }
+  .mx-t[data-s="1"].fresh { fill: var(--mf-fresh); }
+  .mx-t[data-s="2"] { fill: var(--mf-scorch); }
+  .mx-t[data-f] { fill: var(--mf-door); stroke: var(--mf-edge); stroke-width: 1.5px; stroke-opacity: .85; cursor: pointer; }
+  .mx-t[data-bold] { stroke: var(--mf-bold); stroke-opacity: 1; stroke-width: 3px; filter: drop-shadow(0 0 5px rgba(242,180,90,.7)); }
+  .mx-t.zone { stroke: var(--mf-bold); stroke-width: 1.5px; stroke-opacity: .9; stroke-dasharray: 3 3; }
+  .mx-t[data-f].zone { stroke-dasharray: none; }
+  @media (hover: hover) { .mx-t[data-f]:hover { fill: var(--mf-door-hi); } }
+  .mx-t:focus-visible { stroke: var(--mf-focus); stroke-opacity: 1; stroke-width: 3px; stroke-dasharray: none; }
+  .mx-m, .mx-home { pointer-events: none; }
+  .mx-m { fill: none; stroke: transparent; stroke-width: 1.2px; vector-effect: non-scaling-stroke; transition: stroke .4s ease; }
+  .mx-t[data-tried] + .mx-m { stroke: rgba(143,211,190,.55); }
+  .mx-t[data-s="2"] + .mx-m { stroke: rgba(210,105,58,.3); }
+  .mx-home { fill: var(--mf-ground); opacity: .78; }
+  /* beside the garden: the reach, its line, the turn, what just happened */
+  .mx-side { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep); }
+  .mx-k { font-size: var(--fs-meta); font-weight: 650; color: var(--muted-strong); line-height: 1.25; }
+  .mx-big { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+  .mx-big b { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+  .mx-big span { font-size: var(--fs-meta); color: var(--muted-strong); }
+  .mx-spark { position: relative; flex: 1 1 auto; min-height: 64px; max-height: 150px; margin: 2px 0 var(--sp-2); }
+  .mx-spark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .mx-turn { font-size: var(--fs-meta); font-weight: 600; color: var(--muted-strong); font-variant-numeric: tabular-nums; }
+  .mx-status { min-height: 2.6em; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); line-height: 1.3; color: var(--ink); text-wrap: pretty; }
+  .mx-btns { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: auto; padding-top: var(--sp-1); }
+  .mx-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; padding: 0 16px; border-radius: var(--r-pill); border: 1px solid var(--seen-line); background: var(--card); color: var(--ink);
+    font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; white-space: nowrap; transition: background-color var(--fade) ease, border-color var(--fade) ease, color var(--fade) ease; }
+  .mx-btn.ink { border-color: transparent; background: var(--ink); color: var(--paper); }
+  @media (hover: hover) { .mx-btn:hover { border-color: var(--ink); } .mx-btn.ink:hover { background: var(--teal-ink); } }
+  .mx-btn:focus-visible, .mx-seg button:focus-visible, .mx input[type=range]:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+  .mx-btn svg { width: 12px; height: 12px; }
+  .mx-legend { display: flex; flex-wrap: wrap; gap: 6px var(--sp-4); margin-top: var(--sp-3); font-size: var(--fs-meta); color: var(--muted-strong); }
+  .mx-legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .mx-legend svg { width: 16px; height: 18px; flex: none; }
+  /* act 3: three players, one garden each, and one chart for all of them */
+  .mx-players { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+  .mx-player { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+  .mx-ph { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; align-items: baseline; }
+  .mx-ph i { width: 10px; height: 10px; border-radius: 50%; background: var(--who); align-self: center; }
+  .mx-ph b { font-size: var(--fs-row); font-weight: 750; color: var(--who-ink); }
+  .mx-ph [data-reach] { font-size: 22px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .mx-ph small { grid-column: 2 / -1; font-size: var(--fs-tag); color: var(--muted-strong); line-height: 1.3; }
+  .mx-player .mx-stage { padding: var(--sp-3); }
+  .mx-player[data-who="cautious"] { --who: var(--mf-cautious); --who-ink: var(--mf-cautious-ink); } .mx-player[data-who="bold"] { --who: var(--mf-boldline); --who-ink: var(--mf-bold-ink); } .mx-player[data-who="gardener"] { --who: var(--mf-gardener); --who-ink: var(--mf-gardener-ink); }
+  .mx-chart { display: grid; grid-template-columns: 34px minmax(0, 1fr) 96px; grid-template-rows: 180px 22px; margin-top: var(--sp-4); padding: var(--sp-3) 0 var(--sp-2); border-radius: 14px; background: var(--paper-deep); }
+  .mx-chart.tall { grid-template-rows: 220px 22px; }
+  .mx-yax, .mx-plot, .mx-ends, .mx-xax { position: relative; }
+  .mx-plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .mx-yt { position: absolute; right: 8px; transform: translateY(-50%); font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); font-variant-numeric: tabular-nums; }
+  .mx-xax { grid-column: 2; } .mx-xt { position: absolute; top: 5px; transform: translateX(-50%); font-size: var(--fs-tag); color: var(--muted-strong); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .mx-xt:first-child { transform: none; } .mx-xt:last-child { transform: translateX(-100%); }
+  .mx-end { position: absolute; left: 10px; transform: translateY(-50%); font-size: var(--fs-tag); font-weight: 700; color: var(--who-ink); white-space: nowrap; font-variant-numeric: tabular-nums; transition: top .25s var(--ease); }
+  .mx-end b { font-size: var(--fs-row); font-weight: 800; color: var(--ink); margin-left: 4px; }
+  .mx-end[data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } .mx-end[data-who="bold"] { --who-ink: var(--mf-bold-ink); } .mx-end[data-who="gardener"] { --who-ink: var(--mf-gardener-ink); }
+  .mx-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-3); }
+  .mx-ctl .mx-meta { font-size: var(--fs-meta); color: var(--muted-strong); font-variant-numeric: tabular-nums; }
+  .mx-ctl .mx-meta b { color: var(--ink); font-weight: 650; }
+  .mx-note { margin-top: var(--sp-2); font-size: var(--fs-meta); color: var(--muted-strong); line-height: 1.4; max-width: 46em; }
+  /* act 4: the dials on the left, what they do on the right */
+  .mx-lab { display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+  .mx-dials { display: flex; flex-direction: column; gap: var(--sp-4); padding: var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep); }
+  .mx-dial { display: block; font-size: var(--fs-meta); font-weight: 600; color: var(--muted-strong); }
+  .mx-dial span { display: flex; justify-content: space-between; gap: var(--sp-2); }
+  .mx-dial output { color: var(--ink); font-weight: 750; font-variant-numeric: tabular-nums; }
+  .mx-dial small { display: block; margin-top: 1px; font-size: var(--fs-tag); font-weight: 500; line-height: 1.3; }
+  .mx input[type=range] { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 28px; margin-top: 4px; background: transparent; cursor: pointer; --p: 50%; }
+  .mx input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--ink) var(--p), var(--jar-track) var(--p)); }
+  .mx input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--ink) var(--p), var(--jar-track) var(--p)); }
+  .mx input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -9px; border-radius: 50%; background: var(--card); border: 3px solid var(--ink); box-shadow: var(--shadow-card); }
+  .mx input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 3px solid var(--ink); }
+  .mx-seg { position: relative; align-self: flex-start; display: inline-flex; padding: 3px; border-radius: var(--r-pill); background: var(--card); border: 1px solid var(--line); }
+  .mx-seg button { border: 0; background: none; height: 34px; padding: 0 14px; border-radius: var(--r-pill); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; color: var(--muted-strong); cursor: pointer; transition: background-color var(--fade) ease, color var(--fade) ease; }
+  .mx-seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .mx-out .mx-chart { margin-top: 0; }
+  .mx-dials .mx-reroll4 { align-self: flex-start; }
+  .mx-verdict { margin-top: var(--sp-3); font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 19px; line-height: 1.4; color: var(--ink); text-wrap: pretty; }
+  .mx-strips { display: grid; grid-template-columns: 84px minmax(0, 1fr) 92px; row-gap: 6px; column-gap: var(--sp-2); align-items: center; margin-top: var(--sp-3); }
+  .mx-strips[hidden] { display: none; }
+  .mx-strip-n { font-size: var(--fs-meta); font-weight: 750; color: var(--who-ink); }
+  .mx-strip { position: relative; height: 26px; border-radius: 7px; background: var(--paper-deep); }
+  .mx-strip svg { display: block; width: 100%; height: 100%; }
+  .mx-strip-m { font-size: var(--fs-tag); color: var(--muted-strong); font-variant-numeric: tabular-nums; } .mx-strip-m b { font-size: var(--fs-row); color: var(--ink); font-weight: 800; }
+  .mx-strip-ax { grid-column: 2; display: flex; justify-content: space-between; font-size: var(--fs-tag); color: var(--muted-strong); }
+  [data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } [data-who="bold"] { --who-ink: var(--mf-bold-ink); } [data-who="gardener"] { --who-ink: var(--mf-gardener-ink); }
+  /* the last word: a small row of tiles, then the line */
+  .mx-coda { margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--line); text-align: center; }
+  .mx-coda svg { width: 64px; height: 22px; }
+  .mx-close { max-width: 18em; margin: var(--sp-3) auto 0; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 30px; font-weight: 500; line-height: 1.2; letter-spacing: -.01em; color: var(--ink); text-wrap: balance; }
+  @media (min-width: 761px) and (max-width: 1127px) { .mx-lab { grid-template-columns: 240px minmax(0, 1fr); gap: var(--sp-4); } .mx-play-area { grid-template-columns: minmax(0, 1fr) 220px; } }
+  @media (max-width: 760px) {
+    .mx-cap { font-size: 19px; }
+    .mx-play-area { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+    .mx-stage { padding: var(--sp-3); }
+    .mx-act { scroll-margin-top: 60px; }
+    .mx-side { padding: var(--sp-3) var(--sp-4); }
+    .mx-side .mx-spark { flex: none; height: 56px; min-height: 0; }
+    .mx-big b { font-size: 38px; }
+    /* the three players become rows: a small garden beside its name */
+    .mx-players { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+    .mx-player { display: grid; grid-template-columns: 46% minmax(0, 1fr); column-gap: var(--sp-3); align-items: center; }
+    .mx-player .mx-stage { grid-column: 1; grid-row: 1; padding: var(--sp-2); }
+    .mx-ph { grid-column: 2; grid-row: 1; grid-template-columns: auto minmax(0, 1fr); row-gap: 2px; }
+    .mx-ph [data-reach] { grid-column: 2; grid-row: 2; font-size: 26px; } .mx-ph small { grid-column: 1 / -1; grid-row: 3; }
+    .mx-chart { grid-template-columns: 30px minmax(0, 1fr) 84px; grid-template-rows: 160px 22px; }
+    .mx-chart.tall { grid-template-rows: 190px 22px; }
+    .mx-lab { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+    .mx-strips { grid-template-columns: 72px minmax(0, 1fr) 76px; }
+    .mx-btn, .mx-seg button { height: 44px; }
+    .mx-close { font-size: 25px; }
+  }
 </style>
 </head>
 <body>
@@ -696,11 +825,13 @@ const G = [
     { type: 'note', text: 'Morning coffee: a window in Reykjavík, radio from Dakar.', kept: 73 },
   ]},
   { name: 'Things that explain themselves', by: 'a garden by Nico', things: [
+    { spec: 'mess', type: 'app', e: '🌱', bg: '#E4F1DC', k: 'Explorable', t: 'Mess around and find out', meta: 'made with Grdn', kept: 1460 },
     { type: 'link', img: 'ciechanow-ski-3.webp', href: 'https://ciechanow.ski/mechanical-watch/', dom: 'ciechanow.ski', t: 'Mechanical Watch', kept: 5120 },
     { type: 'link', img: 'ciechanow-ski-4.webp', href: 'https://ciechanow.ski/gps/', dom: 'ciechanow.ski', t: 'GPS', kept: 3380 },
     { type: 'link', img: 'ncase-me-20.webp', href: 'https://ncase.me/trust/', dom: 'ncase.me', t: 'The Evolution of Trust', kept: 4470 },
     { type: 'link', img: 'ncase-me-6.webp', href: 'https://ncase.me/polygons/', dom: 'ncase.me', t: 'Parable of the Polygons', kept: 2160 },
     { type: 'link', img: 'pudding-cool-16.webp', href: 'https://pudding.cool', dom: 'pudding.cool', t: 'The Pudding', kept: 1210 },
+    { type: 'note', text: 'Mess around in ways that let you mess around better tomorrow.', kept: 88 },
   ]},
   { name: 'Walls I’d hang', by: 'public domain, kept by Sol', things: [
     { type: 'link', img: 'great-wave.webp', href: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa', dom: 'wikipedia.org', t: 'The Great Wave off Kanagawa', kept: 6040 },
@@ -1070,6 +1201,11 @@ const SPECS = {
     from: [{ t: 'Orders sheet', icon: '📋', became: 'the 3 new orders it read' }, { t: 'Arjun’s note: “split anything over 2 items”', icon: '📝', became: 'the rule for which orders to split' }, { t: 'Grdn over MCP', icon: '🔌', became: 'the tools it calls: read_stream, keep, file, create_note' }],
     next: [{ t: 'Lena’s stream', s: 'Lena · stream', why: 'Her Where next: keep a find and the next one builds on it', open: 'stream' }, { t: 'Home lab', s: 'Dev at night', why: 'Another workflow that runs while you sleep', garden: 'Home lab' }, { t: 'Arjun’s orders and notes', s: 'Arjun’s ops', why: 'What the agent kept, and the note it left', garden: 'Small shop, less admin' }],
     render: el => agentRun(el) },
+  // Nico built this one himself, so the made line is in his voice (lead); a long explorable, so its rows read "More to explore", under the view (navBelow)
+  mess: { act: 'Play', noun: 'explorable', kind: 'Explorable', title: 'Mess around and find out', owner: 'Nico', garden: 'Things that explain themselves', lead: '{owner} built this explorable from 3 things he kept:', navBelow: true,
+    from: [{ t: 'The Evolution of Trust', img: 'ncase-me-20.webp', became: 'the three players, side by side' }, { t: 'Parable of the Polygons', img: 'ncase-me-6.webp', became: 'the sliders and the sandbox' }, { t: 'Nico’s note: “mess around in ways that let you mess around better tomorrow”', icon: '📝', became: 'the captions' }],
+    next: [{ t: 'The Evolution of Trust', s: 'Nico', why: 'Where the three players come from', garden: 'Things that explain themselves' }, { t: 'Land on Titan', s: 'Leo, age 11 · game', why: 'Crash, learn, then land softly', open: 'titan' }, { t: 'What the jar grows to', s: 'Dami · chart', why: 'Another slider that changes the ending', open: 'savings' }],
+    render: el => mess(el) },
 };
 // Each specimen card's preview strip: a background, and sometimes a small drawing on it.
 const PEEK = {
@@ -1081,6 +1217,12 @@ const PEEK = {
   recipe: ['linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2))', '<span>🍚</span><span style="left:46px">🥢</span>'],
   stream: ['linear-gradient(var(--t-lena), var(--t-lena))', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice"><g fill="var(--card)"><rect x="56" y="9" width="170" height="16" rx="8"/><rect x="56" y="31" width="150" height="16" rx="8" opacity=".7"/></g><rect x="234" y="9" width="40" height="16" rx="8" fill="var(--ink)"/><rect x="214" y="31" width="40" height="16" rx="8" fill="var(--card)" opacity=".7"/></svg><span>📡</span>'],
   agent: ['var(--paper-deep)', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700"><circle cx="62" cy="18" r="4" fill="var(--teal)"/><text x="72" y="22" fill="var(--teal-ink)">keep</text><text x="104" y="22" fill="var(--muted-strong)" font-weight="500">(…)</text><circle cx="62" cy="38" r="4" fill="var(--teal)"/><text x="72" y="42" fill="var(--teal-ink)">create_note</text><text x="148" y="42" fill="var(--muted-strong)" font-weight="500">(…)</text></svg><span>🤖</span>'],
+  mess: ['var(--mf-ground)', (() => { // a strip of the night garden: a lit patch around a door, its glowing edge, one bold bet in amber, and a scorched corner
+    const H = 'M0 -8.6L7.45 -4.3V4.3L0 8.6L-7.45 4.3V-4.3Z', lit = new Set(['3,1', '4,1', '4,2', '5,1', '3,2', '5,2', '4,0', '2,1']), edge = new Set(['2,2', '6,1', '6,2', '3,0', '5,0', '1,1', '2,0', '6,0']), ash = new Set(['13,0', '14,0', '13,1', '14,1', '15,1', '14,2']);
+    let g = ''; for (let row = 0; row < 3; row++) for (let col = 0; col < 19; col++) { const k = `${col},${row}`, x = col * 15.6 + (row & 1) * 7.8 + 6, y = row * 13.5 + 10;
+      const f = lit.has(k) ? 'var(--mf-lit)' : ash.has(k) ? 'var(--mf-scorch)' : edge.has(k) || k === '10,1' ? 'var(--mf-door)' : 'var(--mf-dark)', st = k === '10,1' ? ' stroke="var(--mf-bold)" stroke-width="2.2"' : edge.has(k) ? ' stroke="var(--mf-edge)" stroke-width="1" stroke-opacity=".8"' : '';
+      g += `<path d="${H}" transform="translate(${x.toFixed(1)} ${y})" fill="${f}"${st}/>`; }
+    return `<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice">${g}<path d="M60.4 26V21.6A2.6 2.6 0 0 1 65.6 21.6V26Z" transform="translate(5.2 2)" fill="var(--mf-ground)" opacity=".8"/></svg>`; })()],
   savings: ['var(--jar-bg)', '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M0 40 L0 36 C30 32 60 24 100 6 L100 40Z" fill="rgba(15,143,128,.18)"/><path d="M0 36 C30 32 60 24 100 6" fill="none" stroke="var(--teal)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path d="M0 36 L100 16" fill="none" stroke="var(--jar-put)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/></svg>'],
 };
 // Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
@@ -1468,6 +1610,267 @@ function agentRun(el) {
     step(); iv = setInterval(() => { const now = performance.now(); clock += now - last; last = now; step(); }, 100); };
   root.querySelector('.ag-again').onclick = play; play();
   return () => clearInterval(iv);
+}
+// Mess around and find out: a garden of doors. Lit tiles are what you can try from; each try is on a dark tile next to them.
+// A try succeeds with that tile's hidden chance (smaller for a bold bet, which stakes a whole patch). A failed try costs the turn; some failures (1 - reversibility) are ruinous and
+// scorch what was staked, for good. Each turn, lit edge tiles nobody has used for a while may fade dark. Nothing is rigged: outcomes come from the dials and a seeded random stream.
+const MX = (() => {
+  const rnd = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const C = 11, R = 9, N = C * R, HOME = (R >> 1) * C + (C >> 1), q = [], r = [], nb = [];
+  for (let i = 0; i < N; i++) { const row = i / C | 0; r[i] = row; q[i] = i % C - (row - (row & 1)) / 2; }
+  for (let i = 0; i < N; i++) { const row = r[i], col = i % C, d = row & 1 ? [[1, 0], [-1, 0], [0, -1], [1, -1], [0, 1], [1, 1]] : [[1, 0], [-1, 0], [-1, -1], [0, -1], [-1, 1], [0, 1]];
+    nb[i] = d.map(([dc, dr]) => [col + dc, row + dr]).filter(([c, rr]) => c >= 0 && c < C && rr >= 0 && rr < R).map(([c, rr]) => rr * C + c); }
+  const dist = (a, b) => { const dq = q[a] - q[b], dr = r[a] - r[b]; return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2; };
+  const near = [0, 1, 2, 3].map(k => Array.from({ length: N }, (_, t) => [...Array(N).keys()].filter(i => dist(i, t) <= k))); // the tiles within k steps of each tile
+  const cache = new Map();
+  // a garden: each tile's hidden chance of opening (smooth, so good ground clusters) and a texture value for drawing
+  function world(seed) {
+    if (cache.has(seed)) return cache.get(seed);
+    const g = rnd(seed * 2654435761 >>> 0); let raw = Array.from({ length: N }, g);
+    for (let k = 0; k < 2; k++) raw = raw.map((v, i) => (v * 2 + nb[i].reduce((s, j) => s + raw[j], 0) / nb[i].length) / 3);
+    const lo = Math.min(...raw), hi = Math.max(...raw), t = rnd(seed ^ 0x2545f491);
+    const W = { seed, p: raw.map(v => .3 + .6 * (v - lo) / (hi - lo)), tex: Array.from({ length: N }, t) };
+    if (cache.size > 400) cache.clear(); cache.set(seed, W); return W;
+  }
+  const lit = s => { let n = 0; for (let i = 0; i < N; i++) n += s[i] === 1; return n; };
+  function start() { const s = new Uint8Array(N); s[HOME] = 1; nb[HOME].slice(0, 3).forEach(j => { s[j] = 1; }); return { s, idle: new Int16Array(N), turn: 0, reach: [lit(s)] }; }
+  const frontier = G => { const out = []; for (let i = 0; i < N; i++) if (G.s[i] === 0 && nb[i].some(j => G.s[j] === 1)) out.push(i); return out; };
+  const stake = (G, t, k) => near[k][t].filter(i => G.s[i] !== 2); // what a try puts at risk: the target and, for a bold bet, everything within k steps
+  // one move (or none), then a turn of time; P: { size, rev, fade }
+  function play(W, G, move, P, rng) {
+    const out = { kind: move ? move.kind : 'wait', ok: null, opened: [], burnt: [], faded: [] };
+    if (move) {
+      const t = move.t, k = move.kind === 'bold' ? P.size : 0, reg = stake(G, t, k);
+      nb[t].forEach(j => { if (G.s[j] === 1) G.idle[j] = 0; }); // using a door keeps it open
+      const roll = rng(), ruin = rng();
+      if (roll < W.p[t] * Math.pow(.72, k)) { reg.forEach(i => { if (G.s[i] === 0) { G.s[i] = 1; G.idle[i] = 0; out.opened.push(i); } }); out.ok = true; }
+      else { out.ok = false; if (ruin >= P.rev) reg.forEach(i => { if (i !== HOME) { G.s[i] = 2; out.burnt.push(i); } }); }
+    }
+    for (let i = 0; i < N; i++) { if (G.s[i] !== 1 || i === HOME) continue; G.idle[i]++; const f = rng(); if (G.idle[i] > 2 && f < P.fade && nb[i].some(j => G.s[j] === 0)) { G.s[i] = 0; out.faded.push(i); } }
+    G.turn++; G.reach.push(lit(G.s)); return out;
+  }
+  // the three players. Ties break on the shared random stream, so a seed always plays the same way.
+  const pick = (f, score, rng) => { let best = -Infinity, ps = []; for (const t of f) { const v = score(t); if (v > best) { best = v; ps = [t]; } else if (v === best) ps.push(t); } return ps[rng() * ps.length | 0]; };
+  const STRATS = {
+    cautious: () => null,
+    bold: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'bold', t: pick(f, t => stake(G, t, P.size).filter(i => G.s[i] === 0).length, rng) } : null; },
+    gardener: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'small', t: pick(f, t => Math.max(...nb[t].filter(j => G.s[j] === 1).map(j => G.idle[j])), rng) } : null; },
+  };
+  const stream = seed => rnd(seed ^ 0x5bd1e995);
+  function run(seed, who, P, keep) { const W = world(seed), G = start(), rng = stream(seed), states = keep ? [G.s.slice()] : null;
+    for (let k = 0; k < P.turns; k++) { play(W, G, STRATS[who](W, G, P, rng), P, rng); if (keep) states.push(G.s.slice()); }
+    return keep ? { reach: G.reach, states } : G.reach; }
+  const live = { raf: 0, obs: 0 }; let frames = 0;
+  return { C, R, N, HOME, nb, dist, near, world, start, frontier, stake, play, STRATS, stream, run, lit, params3: () => ({ size: 2, rev: .5, fade: .04, turns: 40 }),
+    live: () => live.raf + live.obs, _live: live, get frames() { return frames; }, tick() { frames++; } };
+})();
+
+function mess(el) {
+  const calm = still(), WHO = ['cautious', 'bold', 'gardener'], NAME = { cautious: 'Cautious', bold: 'Bold', gardener: 'Gardener' };
+  const DESC = { cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', gardener: 'Small tries that never risk an open door.' };
+  const SIZE_TILES = { 1: 7, 2: 19, 3: 37 }, newSeed = old => { let s; do s = 1000 + (Math.random() * 9000 | 0); while (s === old); return s; };
+  const { C, N, HOME } = MX, HX = Math.sqrt(3) * 10, VW = C * HX + HX / 2, VH = (MX.R - 1) * 15 + 20, f2 = v => v.toFixed(2);
+  const cx = i => (i % C) * HX + ((i / C | 0) & 1) * HX / 2 + HX / 2, cy = i => (i / C | 0) * 15 + 10;
+  // a pointy-top hexagon with softened corners
+  const HEX = (() => { const s = 9.2, k = .2, P = [...Array(6)].map((_, j) => { const a = Math.PI / 180 * (60 * j - 90); return [s * Math.cos(a), s * Math.sin(a)]; }); let d = '';
+    P.forEach((p, j) => { const a = P[(j + 5) % 6], b = P[(j + 1) % 6]; d += `${j ? 'L' : 'M'}${f2(p[0] + (a[0] - p[0]) * k)} ${f2(p[1] + (a[1] - p[1]) * k)}Q${f2(p[0])} ${f2(p[1])} ${f2(p[0] + (b[0] - p[0]) * k)} ${f2(p[1] + (b[1] - p[1]) * k)}`; }); return d + 'Z'; })();
+  const DOOR = 'M-2.6 4V-.4A2.6 2.6 0 0 1 2.6 -.4V4Z', css = getComputedStyle(document.documentElement), K = n => css.getPropertyValue('--mf-' + n).trim(); // keyframes need real colours, not var()
+  const garden = (seed, label) => { const W = MX.world(seed); return `<svg class="mx-garden" viewBox="0 0 ${f2(VW)} ${VH}" data-seed="${seed}" role="group" aria-label="${esc(label)}">${[...Array(N).keys()].map(i =>
+    `<g transform="translate(${f2(cx(i))} ${cy(i)})"><path class="mx-t" d="${HEX}" data-i="${i}" data-s="0" style="--v:${f2(W.tex[i])}" aria-hidden="true"/>${i === HOME ? `<path class="mx-home" d="${DOOR}"/>` : '<circle class="mx-m" r="2"/>'}</g>`).join('')}</svg>`; };
+  const reseed = (svg, seed) => { const W = MX.world(seed); svg.dataset.seed = seed; svg.querySelectorAll('.mx-t').forEach((e, i) => { e.style.setProperty('--v', f2(W.tex[i])); }); };
+  const hexIcon = (fill, stroke = 'none', sw = 0) => `<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="${HEX}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+  // paint a garden from a state: what changed animates (a pop for a tile that opens, rippling out from where you tried; a burn for a scorched one), unless motion is reduced
+  function paint(svg, s, o = {}) {
+    const ts = svg._t || (svg._t = [...svg.querySelectorAll('.mx-t')]);
+    for (let i = 0; i < N; i++) { const e = ts[i], now = String(s[i]);
+      if (e.dataset.s !== now) { const was = e.dataset.s; e.dataset.s = now;
+        if (o.anim && !calm) { const delay = o.from != null ? MX.dist(i, o.from) * 70 : 0;
+          if (now === '1') e.animate([{ transform: 'scale(.35)', fill: K('fresh') }, { transform: 'scale(1.1)', offset: .6 }, { transform: 'scale(1)' }], { duration: 520, delay, easing: EASE, fill: 'backwards' });
+          else if (now === '2') e.animate([{ fill: K(was === '1' ? 'lit' : 'door') }, { fill: K('ember'), offset: .3 }, { fill: K('scorch') }], { duration: 900, delay, easing: 'ease-out', fill: 'backwards' }); } }
+      e.classList.toggle('fresh', !!(o.fresh && o.fresh.has(i)));
+      const f = !!(o.front && o.front.has(i)), b = !!(o.bold && o.bold.includes(i));
+      if (f !== e.hasAttribute('data-f')) e.toggleAttribute('data-f', f); if (b !== e.hasAttribute('data-bold')) e.toggleAttribute('data-bold', b);
+      if (o.tried) { const t = o.tried.has(i) && s[i] === 0; if (t !== e.hasAttribute('data-tried')) e.toggleAttribute('data-tried', t); } }
+  }
+  // a line of reach over turns, in a 600×200 box (or the sparkline's 200×60), from 0 to top
+  const lineD = (pts, turns, top, w = 600, h = 200) => pts.map((v, i) => `${i ? 'L' : 'M'}${f2(i / Math.max(1, turns) * w)} ${f2(h - v / top * h)}`).join('');
+  const niceTop = m => [10, 20, 30, 40, 50, 60, 80, 100].find(v => v >= m * 1.08) || 100;
+
+  el.innerHTML = `<div class="mx">
+    <section class="mx-act" data-act="1"><h4><span class="n">1</span>Mess around</h4><p class="mx-cap">Mess around and find out is how anything gets better. Every experiment teaches you something.</p>
+      <div class="mx-fig mx-play-area"><div class="mx-stage">${garden(1, 'Your garden')}</div>
+        <div class="mx-side"><span class="mx-k">Room to experiment tomorrow</span><div class="mx-big"><b data-reach></b><span>doors open</span></div>
+          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
+          <span class="mx-turn" data-turn="0"></span><p class="mx-status" aria-live="polite"></p><div class="mx-btns"><button type="button" class="mx-btn mx-again">Start over</button></div></div></div></section>
+    <section class="mx-act" data-act="2"><h4><span class="n">2</span>Find out</h4><p class="mx-cap">Experiments create knowledge, skills and chances. They can also destroy them.</p>
+      <div class="mx-fig mx-play-area"><div class="mx-stage">${garden(2, 'Your second garden, with bold bets')}</div>
+        <div class="mx-side"><span class="mx-k">Room to experiment tomorrow</span><div class="mx-big"><b data-reach></b><span>doors open</span></div>
+          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
+          <span class="mx-turn" data-turn="0"></span><p class="mx-status" aria-live="polite"></p><div class="mx-btns"><button type="button" class="mx-btn mx-wait">Wait a turn</button><button type="button" class="mx-btn mx-again">Start over</button></div></div></div>
+      <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A small try: one tile</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Scorched: closed for good</span></div></section>
+    <section class="mx-act" data-act="3"><h4><span class="n">3</span>The real variable</h4><p class="mx-cap">What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.</p>
+      <div class="mx-fig"><div class="mx-players">${WHO.map(w => `<div class="mx-player" data-who="${w}"><div class="mx-ph"><i aria-hidden="true"></i><b>${NAME[w]}</b><span data-reach></span><small>${DESC[w]}</small></div><div class="mx-stage">${garden(1, NAME[w] + '’s garden')}</div></div>`).join('')}</div>
+        <div class="mx-chart" role="img" aria-label="Doors open over the turns, for each player"><div class="mx-yax"></div><div class="mx-plot"><svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g>${WHO.map(w => `<path data-line="${w}" fill="none" stroke="var(--mf-${w === 'bold' ? 'boldline' : w})" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')}</svg></div><div class="mx-ends"></div><div class="mx-xax"></div></div>
+        <div class="mx-ctl"><button type="button" class="mx-btn ink mx-play" aria-pressed="false"></button><button type="button" class="mx-btn mx-reroll">Re-roll</button><span class="mx-meta"><b data-seed-out></b> · <span data-turn="0"></span></span></div>
+        <p class="mx-note">All three start from the same garden and the same dice. Whatever happens, happens: re-roll and it may go the other way.</p></div></section>
+    <section class="mx-act" data-act="4"><h4><span class="n">4</span>Your turn</h4><p class="mx-cap">So the goal isn’t to avoid risk, or to chase every discovery. It’s to keep growing your room to experiment, without breaking what makes it possible.</p>
+      <div class="mx-fig mx-lab"><div class="mx-dials">
+          <div class="mx-dial"><span><label for="mx-k-size">Size of a bold bet</label><output data-o="size" for="mx-k-size"></output></span><input type="range" id="mx-k-size" data-k="size" min="1" max="3" step="1" value="2" aria-describedby="mx-d-size"><small id="mx-d-size">what Bold stakes, and can win, at once</small></div>
+          <div class="mx-dial"><span><label for="mx-k-rev">Failures you can undo</label><output data-o="rev" for="mx-k-rev"></output></span><input type="range" id="mx-k-rev" data-k="rev" min="0" max="100" step="10" value="50" aria-describedby="mx-d-rev"><small id="mx-d-rev">the rest scorch what was staked</small></div>
+          <div class="mx-dial"><span><label for="mx-k-turns">Patience</label><output data-o="turns" for="mx-k-turns"></output></span><input type="range" id="mx-k-turns" data-k="turns" min="10" max="80" step="5" value="40" aria-describedby="mx-d-turns"><small id="mx-d-turns">how long you keep at it</small></div>
+          <div class="mx-dial"><span><label for="mx-k-fade">Unused doors close</label><output data-o="fade" for="mx-k-fade"></output></span><input type="range" id="mx-k-fade" data-k="fade" min="0" max="15" step="1" value="4" aria-describedby="mx-d-fade"><small id="mx-d-fade">the chance, each turn, for a door left alone</small></div>
+          <div class="mx-seg" role="group" aria-label="How many runs"><button type="button" data-mode="one" aria-pressed="true">One run</button><button type="button" data-mode="many" aria-pressed="false">100 runs</button></div>
+          <button type="button" class="mx-btn mx-reroll4">Re-roll</button></div>
+        <div class="mx-out"><div class="mx-chart tall" role="img" aria-label="Doors open over the turns, for each strategy"><div class="mx-yax"></div><div class="mx-plot"><svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g><g class="runs"></g></svg></div><div class="mx-ends"></div><div class="mx-xax"></div></div>
+          <p class="mx-verdict" aria-live="polite"></p>
+          <div class="mx-strips" hidden>${WHO.map(w => `<span class="mx-strip-n" data-who="${w}">${NAME[w]}</span><div class="mx-strip" data-who="${w}"><svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg></div><span class="mx-strip-m"></span>`).join('')}<div class="mx-strip-ax"><span>0</span><span>doors open at the end</span><span>${N}</span></div></div>
+          <p class="mx-note" data-explain></p></div></div>
+      <div class="mx-coda"><svg viewBox="0 0 64 22" aria-hidden="true">${[0, 1, 2].map(k => `<path d="${HEX}" transform="translate(${12 + k * 20} 11)" fill="${['var(--mf-lit)', 'var(--mf-lit-deep)', 'var(--mf-door)'][k]}" ${k === 2 ? 'stroke="var(--mf-edge)" stroke-width="1.4"' : ''}/>`).join('')}</svg><p class="mx-close">Mess around in ways that let you mess around better tomorrow.</p></div></section></div>`;
+  const $ = (q, r = el) => r.querySelector(q), acts = [1, 2, 3, 4].map(k => $(`[data-act="${k}"]`));
+  let gone = false; const later = new Set(); // one-shot frames, cancelled on close
+
+  // a chart's axes: ticks on the left, turns underneath
+  function axes(box, top, turns) {
+    $('.grid', box).innerHTML = [0, top / 2, top].map(v => `<line x1="0" x2="600" y1="${f2(200 - v / top * 200)}" y2="${f2(200 - v / top * 200)}" stroke="var(--ink)" stroke-opacity="${v ? .08 : .25}" vector-effect="non-scaling-stroke"/>`).join('');
+    $('.mx-yax', box).innerHTML = [0, Math.round(top / 2), top].map(v => `<span class="mx-yt" style="top:${f2(100 - v / top * 100)}%">${v}</span>`).join('');
+    const step = turns <= 20 ? 5 : turns <= 50 ? 10 : 20, xs = []; for (let t = 0; t < turns; t += step) xs.push(t); xs.push(turns);
+    $('.mx-xax', box).innerHTML = xs.map(t => `<span class="mx-xt" style="left:${f2(t / turns * 100)}%">${t === 0 ? 'turn 0' : t}</span>`).join('');
+  }
+  // end labels beside the plot, nudged apart so they never overlap
+  function ends(box, items, top) {
+    const gap = 9.5, ys = items.map(it => ({ ...it, y: 100 - it.v / top * 100 })).sort((a, b) => a.y - b.y);
+    for (let k = 1; k < ys.length; k++) if (ys[k].y - ys[k - 1].y < gap) ys[k].y = ys[k - 1].y + gap;
+    const over = ys.length ? ys[ys.length - 1].y - 100 : 0; if (over > 0) ys.forEach(it => { it.y -= over; });
+    $('.mx-ends', box).innerHTML = ys.map(it => `<span class="mx-end" data-who="${it.who}" style="top:${f2(it.y)}%">${it.label}<b>${it.v}</b></span>`).join('');
+  }
+
+  // ----- acts 1 and 2: your own garden -----
+  function playable(act, P, bold) {
+    const svg = $('.mx-garden', act), reachEl = $('[data-reach]', act), turnEl = $('[data-turn]', act), statusEl = $('.mx-status', act), line = $('path[data-line]', act), area = $('path.area', act);
+    let W, G, rng, tried, boldNow = [], front = new Set(), focusI = null;
+    const HELLO = bold ? 'Gold rings are bold bets: up to 19 tiles at once, won or lost together.' : 'Tap a glowing tile to try the door next to what you know.';
+    const boldPicks = f => { if (!bold) return []; const sc = f.map(t => [t, MX.stake(G, t, P.size).filter(i => G.s[i] === 0).length]).filter(x => x[1] >= 6).sort((a, b) => b[1] - a[1] || a[0] - b[0]), out = [];
+      for (const [t] of sc) { if (out.length < 3 && out.every(o => MX.dist(o, t) >= 3)) out.push(t); } return out; };
+    const draw = (o = {}) => {
+      const f = MX.frontier(G); front = new Set(f); boldNow = boldPicks(f);
+      paint(svg, G.s, { ...o, front, bold: boldNow, tried });
+      // one edge tile is in the Tab order at a time; arrows move between them
+      if (!front.has(focusI)) focusI = f.length ? f.reduce((a, b) => (MX.dist(b, focusI ?? HOME) < MX.dist(a, focusI ?? HOME) ? b : a)) : null;
+      svg._t.forEach((e, i) => { const fr = front.has(i); e.tabIndex = fr ? (i === focusI ? 0 : -1) : -1; if (!fr) e.removeAttribute('tabindex');
+        if (fr) { e.setAttribute('role', 'button'); e.removeAttribute('aria-hidden'); e.setAttribute('aria-label', `${boldNow.includes(i) ? `Bold bet, ${MX.stake(G, i, P.size).length} tiles` : 'Try the door'} at row ${(i / C | 0) + 1}, column ${i % C + 1}`); }
+        else { e.removeAttribute('role'); e.removeAttribute('aria-label'); e.setAttribute('aria-hidden', 'true'); } });
+      const n = MX.lit(G.s); reachEl.textContent = n; turnEl.dataset.turn = G.turn; turnEl.textContent = G.turn ? `Turn ${G.turn}` : 'Turn 0: nothing tried yet';
+      svg.setAttribute('aria-label', `${bold ? 'Your second garden' : 'Your garden'}: ${n} door${n === 1 ? '' : 's'} open`);
+      const top = niceTop(Math.max(...G.reach)), turns = Math.max(20, G.turn); line.dataset.pts = G.reach.join(); const d = lineD(G.reach, turns, top, 200, 60);
+      line.setAttribute('d', d); area.setAttribute('d', `${d}L${f2(G.turn / turns * 200)} 60L0 60Z`);
+    };
+    const reset = seed => { W = MX.world(seed); reseed(svg, seed); G = MX.start(); rng = MX.stream(seed); tried = new Set(); focusI = null; statusEl.textContent = HELLO; draw(); };
+    const say = (out, n) => { const k = out.kind;
+      if (k === 'wait') return out.faded.length ? `A turn passes. ${out.faded.length} unused door${out.faded.length === 1 ? '' : 's'} closed.` : 'A turn passes. Nothing changes, yet.';
+      if (out.ok) return k === 'bold' ? `It worked: ${out.opened.length} doors opened at once.` : 'It worked. A new door is open.';
+      if (out.burnt.length) return k === 'bold' ? `It burned: ${out.burnt.length} tiles closed for good.` : 'That door closed for good.';
+      return k === 'bold' ? 'It didn’t work, but nothing broke. You can try again.' : 'Nothing this time. That door stays shut for now.'; };
+    const act1 = (move) => {
+      const hadFocus = svg.contains(document.activeElement), out = MX.play(W, G, move, P, rng);
+      if (move && !out.ok && !out.burnt.length) tried.add(move.t);
+      if (move && !out.ok && !out.burnt.length && !calm) svg._t[move.t].animate([{ transform: 'none' }, { transform: 'translateX(-1.4px)' }, { transform: 'translateX(1.2px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-in-out' });
+      draw({ anim: true, from: move ? move.t : null, fresh: new Set(out.opened) }); statusEl.textContent = say(out);
+      if (hadFocus && focusI != null) svg._t[focusI].focus({ preventScroll: true });
+    };
+    const tryAt = i => { if (!front.has(i)) return; focusI = i; act1({ kind: boldNow.includes(i) ? 'bold' : 'small', t: i }); };
+    svg.addEventListener('click', e => { const t = e.target.closest('.mx-t[data-f]'); if (t) tryAt(+t.dataset.i); });
+    // a bold bet shows what it stakes while you point at it or focus it
+    const zone = i => { svg._t.forEach(e => e.classList.remove('zone')); if (i != null && boldNow.includes(i)) MX.stake(G, i, P.size).forEach(j => svg._t[j].classList.add('zone')); };
+    svg.addEventListener('pointerover', e => { const t = e.target.closest('.mx-t[data-bold]'); zone(t ? +t.dataset.i : null); });
+    svg.addEventListener('pointerleave', () => zone(null));
+    svg.addEventListener('focusin', e => { const t = e.target.closest('.mx-t'); if (t) { focusI = +t.dataset.i; zone(focusI); } });
+    svg.addEventListener('focusout', () => zone(null));
+    svg.addEventListener('keydown', e => {
+      const i = focusI; if (i == null) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tryAt(i); return; }
+      const dir = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[e.key]; if (!dir) return; e.preventDefault();
+      let best = null, bd = Infinity; front.forEach(j => { if (j === i) return; const dx = cx(j) - cx(i), dy = cy(j) - cy(i), along = dx * dir[0] + dy * dir[1], off = Math.abs(dx * dir[1]) + Math.abs(dy * dir[0]);
+        if (along <= 0) return; const d = along + off * 2; if (d < bd) { bd = d; best = j; } });
+      if (best != null) { svg._t[i].tabIndex = -1; focusI = best; svg._t[best].tabIndex = 0; svg._t[best].focus({ preventScroll: false }); }
+    });
+    $('.mx-again', act).onclick = () => reset(newSeed(W && W.seed));
+    const w = $('.mx-wait', act); if (w) w.onclick = () => act1(null);
+    reset(newSeed());
+  }
+  playable(acts[0], { size: 0, rev: 1, fade: 0 }, false);
+  playable(acts[1], { size: 2, rev: .5, fade: .04 }, true);
+
+  // ----- act 3: three players, one seed, played out turn by turn -----
+  const A3 = acts[2], P3 = MX.params3(), STEP = 220, svgs3 = Object.fromEntries(WHO.map(w => [w, $(`.mx-player[data-who="${w}"] .mx-garden`, A3)]));
+  const playBtn = $('.mx-play', A3), turn3 = $('[data-turn]', A3), chart3 = $('.mx-chart', A3);
+  let seed3, runs3, top3, k3 = 0, playing = false, visible = false, started = false, raf = 0, last = 0, acc = 0;
+  A3.dataset.turns = P3.turns;
+  const label3 = () => { playBtn.innerHTML = playing ? '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5h2.4v9H2.5zM7.1 1.5h2.4v9H7.1z" fill="currentColor"/></svg>Pause' : `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.4l7.4 4.6L3 10.6z" fill="currentColor"/></svg>${k3 >= P3.turns ? 'Play again' : k3 ? 'Play' : 'Play'}`;
+    playBtn.setAttribute('aria-pressed', String(playing)); };
+  const show3 = (k, anim) => { const prev = k3; k3 = k;
+    WHO.forEach(w => { const R3 = runs3[w], fresh = new Set(); if (anim) for (let i = 0; i < N; i++) if (R3.states[k][i] === 1 && R3.states[prev] && R3.states[prev][i] !== 1) fresh.add(i);
+      paint(svgs3[w], R3.states[k], { anim, fresh }); $(`.mx-player[data-who="${w}"] [data-reach]`, A3).textContent = R3.reach[k];
+      const pts = R3.reach.slice(0, k + 1), path = $(`path[data-line="${w}"]`, A3); path.dataset.pts = pts.join(); path.setAttribute('d', lineD(pts, P3.turns, top3)); });
+    ends(chart3, WHO.map(w => ({ who: w, label: NAME[w], v: runs3[w].reach[k] })), top3);
+    turn3.dataset.turn = k; turn3.textContent = `turn ${k} of ${P3.turns}`; label3(); };
+  const reset3 = seed => { seed3 = seed; runs3 = Object.fromEntries(WHO.map(w => [w, MX.run(seed, w, P3, true)])); top3 = niceTop(Math.max(...WHO.flatMap(w => runs3[w].reach)));
+    WHO.forEach(w => reseed(svgs3[w], seed)); $('[data-seed-out]', A3).textContent = `Garden #${seed}`; axes(chart3, top3, P3.turns); k3 = 0; show3(0, false); };
+  const stopLoop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; MX._live.raf = 0; };
+  const frame = now => { raf = 0; MX._live.raf = 0; if (gone) return; MX.tick(); if (!playing || !visible) return;
+    acc += Math.min(200, now - last); last = now; let moved = false; while (acc >= STEP && k3 < P3.turns) { acc -= STEP; k3++; moved = true; }
+    if (moved) show3(k3, true); if (k3 >= P3.turns) { playing = false; label3(); return; }
+    raf = requestAnimationFrame(frame); MX._live.raf = 1; };
+  const loop = () => { if (raf || gone || !playing || !visible || calm) return; last = performance.now(); acc = 0; raf = requestAnimationFrame(frame); MX._live.raf = 1; };
+  const play3 = () => { if (k3 >= P3.turns) show3(0, false); if (calm) { show3(P3.turns, false); return; } playing = true; started = true; label3(); loop(); };
+  playBtn.onclick = () => { if (playing) { playing = false; stopLoop(); label3(); } else play3(); };
+  $('.mx-reroll', A3).onclick = () => { stopLoop(); playing = false; reset3(newSeed(seed3)); if (!calm) play3(); };
+  // it plays by itself the first time it comes into view, and only while it is in view
+  const io = new IntersectionObserver(es => { const e = es[es.length - 1]; visible = e.isIntersecting && e.intersectionRatio >= .2;
+    if (visible && !started && !calm) play3(); else if (visible) loop(); else stopLoop(); }, { threshold: [0, .2, .5] });
+  io.observe($('.mx-fig', A3)); MX._live.obs = 1;
+  reset3(newSeed());
+
+  // ----- act 4: the dials, once or a hundred times -----
+  const A4 = acts[3], chart4 = $('.mx-chart', A4), P4 = { size: 2, rev: .5, turns: 40, fade: .04 }; let mode = 'one', seed4 = newSeed(), pend = 0;
+  const COL = { cautious: 'var(--mf-cautious)', bold: 'var(--mf-boldline)', gardener: 'var(--mf-gardener)' }, med = a => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
+  const outs = () => { const o = k => $(`[data-o="${k}"]`, A4); o('size').textContent = `${SIZE_TILES[P4.size]} tiles`; o('rev').textContent = `${Math.round(P4.rev * 100)}%`; o('turns').textContent = `${P4.turns} turns`; o('fade').textContent = `${Math.round(P4.fade * 100)}% a turn`;
+    A4.querySelectorAll('input[type=range]').forEach(i => i.style.setProperty('--p', ((i.value - i.min) / (i.max - i.min) * 100) + '%')); };
+  function compute() {
+    pend = 0; const runsG = $('.runs', A4), strips = $('.mx-strips', A4), verdict = $('.mx-verdict', A4), explain = $('[data-explain]', A4);
+    if (mode === 'one') {
+      const rs = Object.fromEntries(WHO.map(w => [w, MX.run(seed4, w, P4)])), top = niceTop(Math.max(...WHO.flatMap(w => rs[w])));
+      axes(chart4, top, P4.turns);
+      runsG.innerHTML = WHO.map(w => `<path data-line="${w}" data-pts="${rs[w].join()}" d="${lineD(rs[w], P4.turns, top)}" fill="none" stroke="${COL[w]}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('');
+      ends(chart4, WHO.map(w => ({ who: w, label: NAME[w], v: rs[w][P4.turns] })), top);
+      const fin = WHO.map(w => [w, rs[w][P4.turns]]).sort((a, b) => b[1] - a[1]);
+      verdict.textContent = fin[0][1] === fin[1][1] ? `In garden #${seed4}, ${NAME[fin[0][0]]} and ${NAME[fin[1][0]]} tie with ${fin[0][1]} doors open.` : `In garden #${seed4}, ${NAME[fin[0][0]]} ends with the most room: ${fin[0][1]} doors open. One run proves little; try 100.`;
+      strips.hidden = true; explain.textContent = 'One garden, one roll of the dice. Re-roll, or run it 100 times to see the spread.';
+      return;
+    }
+    const all = Object.fromEntries(WHO.map(w => [w, Array.from({ length: 100 }, (_, k) => MX.run((seed4 * 101 + k) >>> 0, w, P4))]));
+    const top = niceTop(Math.max(...WHO.flatMap(w => all[w].flat()))); axes(chart4, top, P4.turns);
+    const medLine = w => Array.from({ length: P4.turns + 1 }, (_, t) => med(all[w].map(r => r[t])));
+    runsG.innerHTML = WHO.map(w => `<g data-who="${w}" stroke="${COL[w]}" fill="none" vector-effect="non-scaling-stroke">${all[w].map((r, k) => `<path data-run="${k}" data-who="${w}" d="${lineD(r, P4.turns, top)}" stroke-opacity=".07" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`).join('')}</g>`).join('')
+      + WHO.map(w => { const m = medLine(w); return `<path data-median-line="${w}" d="${lineD(m, P4.turns, top)}" fill="none" stroke="${COL[w]}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`; }).join('');
+    const fin = Object.fromEntries(WHO.map(w => [w, all[w].map(r => r[P4.turns])])), M = Object.fromEntries(WHO.map(w => [w, med(fin[w])]));
+    ends(chart4, WHO.map(w => ({ who: w, label: NAME[w], v: M[w] })), top);
+    WHO.forEach(w => { const st = $(`.mx-strip[data-who="${w}"]`, A4); st.dataset.median = M[w];
+      st.querySelector('svg').innerHTML = fin[w].map(v => `<line data-end="${v}" x1="${f2(v / N * 100)}" x2="${f2(v / N * 100)}" y1="5" y2="21" stroke="${COL[w]}" stroke-opacity=".28" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('')
+        + `<line x1="${f2(M[w] / N * 100)}" x2="${f2(M[w] / N * 100)}" y1="1" y2="25" stroke="var(--ink)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
+      st.nextElementSibling.innerHTML = `middle <b>${M[w]}</b>`; });
+    const wins = { cautious: 0, bold: 0, gardener: 0 }; let ties = 0;
+    for (let k = 0; k < 100; k++) { const e = WHO.map(w => [w, fin[w][k]]).sort((a, b) => b[1] - a[1]); if (e[0][1] === e[1][1]) ties++; else wins[e[0][0]]++; }
+    const order = [...WHO].sort((a, b) => wins[b] - wins[a]);
+    verdict.textContent = `Across 100 gardens, ${NAME[order[0]]} ended with the most room ${wins[order[0]]} times, ${NAME[order[1]]} ${wins[order[1]]}, ${NAME[order[2]]} ${wins[order[2]]}${ties ? `, with ${ties} ties` : ''}.`;
+    strips.hidden = false; explain.textContent = 'Each faint line is one garden; the strong line is the middle of the hundred. Below, each tick is where one run ended.';
+  }
+  const soon = () => { if (pend || gone) return; pend = requestAnimationFrame(() => { later.delete(pend); compute(); }); later.add(pend); };
+  A4.querySelectorAll('input[type=range]').forEach(i => i.oninput = () => { const k = i.dataset.k, v = +i.value; P4[k] = k === 'rev' || k === 'fade' ? v / 100 : v; outs(); if (calm) compute(); else soon(); });
+  A4.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; A4.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); compute(); });
+  $('.mx-reroll4', A4).onclick = () => { seed4 = newSeed(seed4); compute(); };
+  outs(); compute();
+
+  return () => { gone = true; stopLoop(); io.disconnect(); MX._live.obs = 0; later.forEach(id => cancelAnimationFrame(id)); later.clear(); if (pend) cancelAnimationFrame(pend); pend = 0; };
 }
 const specEl = document.getElementById('spec'), panel = specEl.querySelector('.panel'), closeBtn = specEl.querySelector('.close'), dimEl = specEl.querySelector('.dim');
 const EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';
