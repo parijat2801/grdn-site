@@ -801,6 +801,15 @@ document.getElementById('explore').onclick = () => { card.classList.add('away');
   // a keyboard visitor lands on the specimen nearest the middle of the screen
   if (keyNav) { let best = null, bd = Infinity; world.querySelectorAll('.thing.spec').forEach(el => { const r = onScreen(el); if (!r) return; const d = Math.hypot(r.left + r.width / 2 - innerWidth / 2, r.top + r.height / 2 - innerHeight / 2); if (d < bd) { bd = d; best = el; } });
     if (best) best.focus({ preventScroll: true }); } };
+// A tap or click anywhere outside the opening card does the same as Explore. A press that starts in the card, a drag (the canvas pans) and a key press do not;
+// the tap itself is swallowed, so it opens no specimen and follows no link.
+let downAt = null;
+addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY, inCard: !!e.target.closest('#card') }; }, true);
+document.addEventListener('click', e => {
+  const d = downAt; downAt = null;
+  if (card.classList.contains('away') || e.detail === 0 || !d || d.inCard || e.target.closest('#card') || justDragged || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return;
+  e.preventDefault(); e.stopPropagation(); document.getElementById('explore').click();
+}, true);
 pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); pillbar.classList.remove('show'); canvasKeys(false);
   if (keyNav) card.querySelector('input[type=email]').focus({ preventScroll: true }); };
 // Same-origin under grdn.page: the app's /api/waitlist answers 202 for every valid email.

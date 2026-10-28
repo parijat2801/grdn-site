@@ -1001,8 +1001,73 @@ async function reassureCentred(browser) {
   }
 }
 
+// A point on empty canvas, away from the card, any specimen and the screen edges.
+const emptyPoint = page => page.evaluate(() => { const c = document.getElementById('card').getBoundingClientRect();
+  for (let y = 30; y < innerHeight - 120; y += 17) for (let x = 12; x < innerWidth - 12; x += 17) {
+    if (x > c.left - 8 && x < c.right + 8 && y > c.top - 8 && y < c.bottom + 8) continue;
+    const h = document.elementFromPoint(x, y); if (h && (h.id === 'view' || h.id === 'world' || h.classList.contains('garden'))) return { x, y }; }
+  return null; });
+const cardState = page => page.evaluate(() => ({ away: document.getElementById('card').classList.contains('away'), pill: document.getElementById('pill').classList.contains('show'), open: !document.getElementById('spec').hidden, url: location.href }));
+
+// A tap or click outside the opening card starts wander mode, the same as Explore; taps inside the card, drags and keys do not; the first tap opens nothing.
+async function tapOut(browser) {
+  for (const vp of ['desktop', 'phone']) {
+    const { ctx, page, errors } = await newPage(browser, vp); await wait(600);
+    const c = await page.evaluate(() => { const r = document.getElementById('card').getBoundingClientRect(), h = document.querySelector('#card h1').getBoundingClientRect(); return { h1: { x: h.left + 10, y: h.top + h.height / 2 }, pad: { x: r.left + 12, y: r.top + 12 } }; });
+    await page.mouse.click(c.h1.x, c.h1.y); await page.mouse.click(c.pad.x, c.pad.y); await page.click('#f input[type=email]'); await wait(300);
+    const inside = await cardState(page);
+    check(`${vp}: clicks inside the card (headline, padding, email field) keep the card`, !inside.away && !inside.pill, JSON.stringify(inside));
+    await page.keyboard.press('Escape'); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab'); await wait(200);
+    const keys = await cardState(page);
+    check(`${vp}: keys do not dismiss the card`, !keys.away, JSON.stringify(keys));
+    const p = await emptyPoint(page);
+    const pxBefore = await page.evaluate(() => px);
+    await page.mouse.move(p.x, p.y); await page.mouse.down(); await page.mouse.move(p.x + 30, p.y + 20, { steps: 5 }); await page.mouse.move(p.x + 60, p.y + 40, { steps: 5 }); await page.mouse.up(); await wait(300);
+    const dragged = await cardState(page), pxAfter = await page.evaluate(() => px);
+    check(`${vp}: a drag on the canvas pans and keeps the card`, !dragged.away && pxAfter !== pxBefore, JSON.stringify({ ...dragged, pxBefore, pxAfter }));
+    const p2 = await emptyPoint(page);
+    if (vp === 'phone') await page.touchscreen.tap(p2.x, p2.y); else await page.mouse.click(p2.x, p2.y);
+    await wait(700);
+    const out = await cardState(page);
+    check(`${vp}: a ${vp === 'phone' ? 'tap' : 'click'} on empty canvas dismisses the card and shows the pill`, out.away && out.pill && !out.open, JSON.stringify(out));
+    check(`${vp}: after tap-out the canvas is in the tab order and the card is not`, await page.evaluate(() => document.getElementById('card').inert && !document.getElementById('pill').inert && [...document.querySelectorAll('[data-spec]')].every(c => c.tabIndex === 0)));
+    // the first tap on a specimen only dismisses the card; it opens nothing
+    await page.evaluate(() => document.getElementById('pill').click()); await wait(700);
+    const findSpec = () => page.evaluate(() => { const c = document.getElementById('card').getBoundingClientRect();
+      for (let y = 30; y < innerHeight - 120; y += 13) for (let x = 12; x < innerWidth - 12; x += 13) {
+        if (x > c.left - 8 && x < c.right + 8 && y > c.top - 8 && y < c.bottom + 8) continue;
+        const h = document.elementFromPoint(x, y), t = h && h.closest('.thing.spec'); if (t && !h.closest('button, a, path, [data-pal]')) return { x, y, id: t.dataset.spec }; }
+      return null; });
+    let s = await findSpec();
+    // a phone card covers most of the screen: pan a specimen's garden into view (the card stays up) until one sits beside the card
+    for (const g of s ? [] : await page.evaluate(() => [...new Set(Object.values(SPECS).map(x => x.garden))])) { await page.evaluate(g => goGarden(g), g); await wait(900); s = await findSpec(); if (s) break; }
+    if (s) { await page.mouse.click(s.x, s.y); await wait(700); const t = await cardState(page);
+      check(`${vp}: the first tap on a specimen behind the card dismisses the card and does not open it`, t.away && !t.open, JSON.stringify({ ...t, s }));
+      await page.mouse.click(s.x, s.y); await wait(700);
+      check(`${vp}: after dismissal a tap on a specimen opens it as before`, await isOpen(page), JSON.stringify(s));
+      await closeEsc(page);
+    } else check(`${vp}: found a specimen beside the card to tap`, false);
+    await page.evaluate(() => document.getElementById('pill').click()); await wait(700);
+    const findLink = () => page.evaluate(() => { const c = document.getElementById('card').getBoundingClientRect();
+      for (let y = 30; y < innerHeight - 120; y += 7) for (let x = 12; x < innerWidth - 12; x += 7) {
+        if (x > c.left - 8 && x < c.right + 8 && y > c.top - 8 && y < c.bottom + 8) continue;
+        const h = document.elementFromPoint(x, y); if (h && h.closest('#world a[href]')) return { x, y }; }
+      return null; });
+    let a = await findLink();
+    for (const g of a ? [] : await page.evaluate(() => [...new Set(G.map(g => g.name))])) { await page.evaluate(g => goGarden(g), g); await wait(900); a = await findLink(); if (a) break; }
+    check(`${vp}: found a link beside the card to tap`, !!a);
+    if (a) { const before = page.url(), pages = ctx.pages().length;
+      await page.mouse.click(a.x, a.y); await wait(500); const t = await cardState(page);
+      check(`${vp}: the first tap on a link behind the card dismisses the card and does not follow the link`, t.away && page.url() === before && ctx.pages().length === pages, JSON.stringify({ ...t, pages: ctx.pages().length }));
+    }
+    check(`${vp}: no errors in the tap-out pass`, errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+}
+
 async function audit(browser) {
   await reassureCentred(browser);
+  await tapOut(browser);
   await tabletDialog(browser);
   await tabOrder(browser);
   await emailFocus(browser);
@@ -1049,7 +1114,7 @@ async function fullPass(browser, vp) {
         check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); await openingPolish(browser, vp); }
       throw 'only';
     }
-    if (process.env.ONLY === 'card') { await reassureCentred(browser); throw 'only'; }
+    if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
