@@ -67,7 +67,7 @@ async function openingCard(page, vp) {
 // The made line names Grdn as the maker and the owner as the keeper; possessives and plurals read right for every owner.
 const MADE = { titan: 'Grdn built this game from 3 things Leo kept:', moon: 'Grdn built this dashboard from 3 things Grandpa Tom kept:', paper: 'Grdn wrote this paper from 4 gardens Amara follows:',
   mood: 'Grdn built this moodboard from 4 things Mo kept:', kyoto: 'Grdn built this planner from 3 things Mei & Jo kept:', recipe: 'Grdn built this scaler from 3 things Priya & Sam kept:', savings: 'Grdn built this chart from 2 things Dami kept:',
-  stream: 'This stream follows 3 feeds and what Lena kept last week:', agent: 'Arjun’s agent tends this garden with him, through Grdn’s MCP tools:' };
+  stream: 'Lena’s stream reads her garden, her feeds and her rules.', agent: 'Arjun’s agent tends this garden with him, through Grdn’s MCP tools:' };
 // The badge on each specimen card names what you do with it.
 const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try', stream: 'Try', agent: 'Watch' };
 async function badges(page, vp) {
@@ -79,7 +79,7 @@ async function everyCardOpens(page, vp, specs) {
   for (const [id, s] of Object.entries(specs)) {
     const o = await openViaCard(page, id, s);
     if (!o.ok) { check(`${vp}: card ${id} opens on click`, false, o.why); continue; }
-    const v = await page.evaluate(() => ({ title: document.getElementById('spec-title').textContent, lead: document.querySelector('#spec-made > span:first-child')?.textContent.trim(), chips: document.querySelectorAll('#spec-made .chip').length }));
+    const v = await page.evaluate(() => ({ title: document.getElementById('spec-title').textContent, lead: document.querySelector('#spec-made > span:first-child')?.textContent.replace(/\s+/g, ' ').trim(), chips: document.querySelectorAll('#spec-made .chip').length }));
     check(`${vp}: card ${id} opens on click, title "${s.title}"`, v.title === s.title, v.title);
     check(`${vp}: ${id} made line reads "${MADE[id]}" with ${s.from.length} chips`, v.lead === MADE[id] && v.chips === s.from.length, `${v.lead} / ${v.chips}`);
     const shown = await page.evaluate(t => [...document.querySelectorAll('#spec .panel *')].filter(e => e.children.length === 0 && e.textContent.trim() === t && e.getClientRects().length && e.getBoundingClientRect().width > 2).length, s.title);
@@ -348,76 +348,108 @@ async function pulse(browser, vp, long) {
 }
 
 
-// ---------- the stream and the agent: new finds come to you, and your agents work in your garden ----------
+// ---------- Lena's stream: her garden beside her Where next; Keep, Add a feed and her rules change what comes next ----------
 const streamState = page => page.evaluate(() => { const r = document.querySelector('#spec-body .stream'); if (!r) return null;
-  const items = [...r.querySelectorAll('.st-item:not(.gone)')], end = r.querySelector('.st-end');
-  return { arrived: +r.dataset.arrived, done: r.dataset.done === 'true', paused: r.dataset.paused === 'true', ids: items.map(i => +i.dataset.i),
-    items: items.map(i => ({ src: (i.querySelector('.st-src') || {}).textContent?.trim() || '', t: (i.querySelector('.st-t') || {}).textContent?.trim() || '', why: (i.querySelector('.st-why') || {}).textContent?.trim() || '', keep: !!i.querySelector('button.st-keep'), skip: !!i.querySelector('button.st-skip') })),
-    count: +((r.querySelector('.mg-count') || {}).textContent || '').replace(/\D/g, '') || NaN, things: [...r.querySelectorAll('.mg-thing')].map(t => (t.querySelector('.mg-t') || {}).textContent?.trim()),
-    end: end && end.getClientRects().length && getComputedStyle(end).visibility !== 'hidden' && +getComputedStyle(end).opacity > .5 ? end.textContent.trim() : '' }; });
-// nothing in the open view is wider than the panel, and the page itself never scrolls sideways
+  const tx = e => (e || {}).textContent?.replace(/\s+/g, ' ').trim() || '', shown = e => !!e && !!e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > .5;
+  const items = [...r.querySelectorAll('.st-item:not(.gone)')];
+  return { items: items.map(i => ({ t: tx(i.querySelector('.st-t')), src: tx(i.querySelector('.st-src')), why: tx(i.querySelector('.st-why')), keep: !!i.querySelector('button.st-keep'), research: i.dataset.research !== 'false' })),
+    count: +tx(r.querySelector('.st-count')).replace(/\D/g, '') || NaN, things: [...r.querySelectorAll('.st-thing')].map(t => tx(t.querySelector('.st-tt'))),
+    feeds: [...r.querySelectorAll('.st-feed')].map(tx), rules: [...r.querySelectorAll('.st-rule')].map(b => ({ t: tx(b), on: b.getAttribute('aria-pressed') === 'true' })),
+    note: shown(r.querySelector('.st-note')) ? tx(r.querySelector('.st-note')) : '', end: shown(r.querySelector('.st-end')) ? tx(r.querySelector('.st-end')) : '' }; });
+// nothing in the open view is wider than the panel, and the page itself never scrolls sideways (a horizontal strip may scroll inside itself, if the strip fits)
 const overflow = page => page.evaluate(() => { const P = document.querySelector('#spec .panel'), p = P.getBoundingClientRect(), m = document.querySelector('#spec .main');
-  const wide = [...P.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > p.right + 1 || b.left < p.left - 1); }).map(e => e.className || e.tagName).slice(0, 4);
+  const inStrip = e => { const s = e.parentElement && e.parentElement.closest('.st-kept'); return !!s && getComputedStyle(s).overflowX !== 'visible'; };
+  const wide = [...P.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > p.right + 1 || b.left < p.left - 1) && !inStrip(e); }).map(e => e.className || e.tagName).slice(0, 4);
   return { docOver: document.documentElement.scrollWidth - innerWidth, panelOver: P.scrollWidth - P.clientWidth, mainOver: m.scrollWidth - m.clientWidth, wide }; });
 const noOverflow = o => o.docOver <= 0 && o.panelOver <= 1 && o.mainOver <= 1 && o.wide.length === 0;
+// the view's layout: column tops, empty space in each column, italic text, and how many things are titled "Where next"
+const streamLayout = page => page.evaluate(() => { const r = document.querySelector('#spec-body .stream'), P = document.querySelector('#spec .panel');
+  const cols = [...r.querySelectorAll(':scope > .st-col')].map(c => { const b = c.getBoundingClientRect(), kids = [...c.children].filter(k => k.getClientRects().length);
+    const used = kids.length ? Math.max(...kids.map(k => k.getBoundingClientRect().bottom)) - b.top : 0; return { cls: c.className, top: Math.round(b.top), left: Math.round(b.left), h: Math.round(b.height), empty: b.height ? +((b.height - used) / b.height).toFixed(2) : 1 }; });
+  const rb = r.getBoundingClientRect(), lastCol = Math.max(...cols.map(c => c.top + c.h));
+  const italic = [...r.querySelectorAll('*')].filter(e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.getClientRects().length && getComputedStyle(e).fontStyle === 'italic').map(e => e.className);
+  const leaves = t => [...P.querySelectorAll('*')].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.textContent.replace(/\s+/g, ' ').trim() === t);
+  const main = document.querySelector('#spec .main').getBoundingClientRect(), nx = document.querySelector('#spec .next').getBoundingClientRect();
+  return { cols, rootEmpty: rb.height ? +((rb.bottom - lastCol) / rb.height).toFixed(2) : 1, italic, whereNext: leaves('Where next').length, whereNextInBody: leaves('Where next').filter(e => e.closest('#spec-body')).length,
+    navHead: (document.querySelector('#spec .nx-head') || {}).textContent, navRows: document.querySelectorAll('#spec-next .nx').length, navBelow: nx.top >= main.bottom - 1, navSub: !!document.querySelector('#spec .next .sub') && !!document.querySelector('#spec .next .sub').getClientRects().length }; });
 
-async function streamCheck(page, vp, long) {
-  await page.mouse.move(2, 2); // off the stream, so it does not pause
-  await page.evaluate(() => openSpec('stream')); await wait(300);
-  const a = await streamState(page); await wait(3300);
-  const b = await streamState(page);
-  check(`${vp}: stream: items arrive one at a time over time (${a && a.arrived} → ${b && b.arrived})`, !!a && !!b && a.arrived <= 1 && b.arrived > a.arrived && b.arrived - a.arrived <= 2 && b.items.length === b.arrived, JSON.stringify({ a, b }));
-  check(`${vp}: stream: newest on top`, !!b && b.ids.length >= 2 && b.ids.every((v, i) => !i || v < b.ids[i - 1]), JSON.stringify(b && b.ids));
-  check(`${vp}: stream: each item shows its source, title, why it came, Keep and Skip`, !!b && b.items.length >= 1 && b.items.every(i => /arXiv|blog|video/i.test(i.src) && i.t.length > 8 && /follows|because/i.test(i.why) && i.keep && i.skip), JSON.stringify(b && b.items));
+async function streamCheck(page, vp) {
+  const phone = VIEWPORTS[vp].viewport.width <= 760;
+  await page.evaluate(() => openSpec('stream')); await wait(400);
+  const a = await streamState(page), L = await streamLayout(page);
+  const title = await page.evaluate(() => [document.getElementById('spec-title').textContent, document.querySelector('#spec-kind .kind').textContent, document.querySelector('#spec-kind .home').textContent]);
+  check(`${vp}: stream: titled "Lena’s stream", kind Stream, in Robotics, new this week, Lena’s garden`, title[0] === 'Lena’s stream' && title[1] === 'Stream' && title[2] === 'in Robotics, new this week, Lena’s garden', JSON.stringify(title));
+  check(`${vp}: stream: her garden shows 5 things with a count, and her feed list starts with arXiv cs.RO`, !!a && a.count === 5 && a.things.length === 5 && a.feeds.length === 1 && /arXiv cs\.RO/.test(a.feeds[0]), JSON.stringify(a && { count: a.count, things: a.things, feeds: a.feeds }));
+  check(`${vp}: stream: her rules are two chips, both on: Research sites only, Robots that touch`, !!a && a.rules.length === 2 && /Research sites only/.test(a.rules[0].t) && /Robots that touch/.test(a.rules[1].t) && a.rules.every(r => r.on), JSON.stringify(a && a.rules));
+  check(`${vp}: stream: Where next shows 3–4 suggestions, each with a title, source, reason and Keep`, !!a && a.items.length >= 3 && a.items.length <= 4 && a.items.every(i => i.t.length > 8 && i.src.length > 3 && /^(because you kept .+|new today · .+)$/.test(i.why) && i.keep), JSON.stringify(a && a.items));
+  check(`${vp}: stream: the first suggestion builds on something she kept ("because you kept Tactile SLAM")`, !!a && !!a.items[0] && a.items[0].why === 'because you kept Tactile SLAM', JSON.stringify(a && a.items[0]));
+  if (!a || !a.items.length) { await closeEsc(page); return; }
+  check(`${vp}: stream: "Where next" names her suggestions once; the page's own rows read "More to explore", sit under the view, compact (no sub line)`, L.whereNext === 1 && L.whereNextInBody === 1 && L.navHead === 'More to explore' && L.navRows === 3 && L.navBelow && !L.navSub, JSON.stringify(L));
+  check(`${vp}: stream: italic serif only on the reason lines`, L.italic.length > 0 && L.italic.every(c => /\bst-why\b/.test(c)), JSON.stringify(L.italic));
+  check(`${vp}: stream: no column has more than 25% empty space, and the view ends with its columns`, L.cols.length === 2 && L.cols.every(c => c.empty <= .25) && L.rootEmpty <= .05, JSON.stringify(L));
+  if (!phone) check(`${vp}: stream: the two columns sit side by side with tops aligned (within 2px)`, Math.abs(L.cols[0].top - L.cols[1].top) <= 2 && L.cols[1].left > L.cols[0].left, JSON.stringify(L.cols));
+  else {
+    const s = await page.evaluate(() => { const k = document.querySelector('#spec-body .st-kept'), cs = getComputedStyle(k), t = [...k.querySelectorAll('.st-thing')].map(e => Math.round(e.getBoundingClientRect().top)), g = document.querySelector('#spec-body .st-garden').getBoundingClientRect(), n = document.querySelector('#spec-body .st-where').getBoundingClientRect();
+      const taps = [...document.querySelectorAll('#spec-body button')].filter(b => b.getClientRects().length).map(b => [b.className, Math.round(b.getBoundingClientRect().height)]);
+      return { scroll: cs.overflowX, oneRow: new Set(t).size === 1, gardenAbove: g.bottom <= n.top + 1, taps }; });
+    check(`${vp}: stream: on a phone her garden is one horizontal strip above Where next`, s.scroll === 'auto' && s.oneRow && s.gardenAbove, JSON.stringify(s));
+    check(`${vp}: stream: every control is a ≥44px tap target on a phone`, s.taps.length >= 4 && s.taps.every(t => t[1] >= 44), JSON.stringify(s.taps));
+  }
   const o = await overflow(page);
   check(`${vp}: stream view has no horizontal overflow`, noOverflow(o), JSON.stringify(o));
-  if (vp !== 'desktop') { const t = await page.evaluate(() => [...document.querySelectorAll('#spec-body .st-item button')].map(e => Math.round(e.getBoundingClientRect().height)));
-    check(`${vp}: stream Keep and Skip are ≥44px tall on a phone`, t.length >= 2 && t.every(h => h >= 44), JSON.stringify(t)); }
-  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-mid.png` });
-  // Keep: the item flies into the garden, which grows by one with it on top
-  const k0 = await streamState(page), top = k0.items[0];
-  await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click();
-  const flying = await page.evaluate(() => { const f = document.querySelector('.st-fly'); return !!f && f.getAnimations().some(a => a.playState === 'running'); });
-  await wait(1000);
-  const k1 = await streamState(page);
-  check(`${vp}: stream: Keep puts the item in the garden (count ${k0.count} → ${k1.count}) and takes it out of the stream`, k1.count === k0.count + 1 && k1.things.length === k1.count && k1.things[0] === top.t && !k1.items.some(i => i.t === top.t), JSON.stringify({ top: top.t, k0: k0.count, k1: k1.count, first: k1.things[0] }));
-  check(`${vp}: stream: the kept item flies to the garden`, flying);
-  // Skip: the item fades out, the garden stays the same
-  await page.mouse.move(2, 2); for (let t = 0; t < 40 && !(await streamState(page)).items.length; t++) await wait(100);
-  const s0 = await streamState(page), sk = s0.items[0];
-  if (sk) await page.locator('#spec-body .st-item:not(.gone) .st-skip').first().click();
-  await wait(600);
-  const s1 = await streamState(page);
-  check(`${vp}: stream: Skip removes the item and leaves the garden as it was`, !!sk && !s1.items.some(i => i.t === sk.t) && s1.count === s0.count && !s1.things.includes(sk.t), JSON.stringify({ sk: sk && sk.t, s0: s0.count, s1: s1.count }));
-  // hovering the stream pauses arrivals; leaving it lets them come again
-  await page.mouse.move(2, 2); await wait(200);
-  const fb = await page.locator('#spec-body .st-feed').boundingBox();
-  await page.mouse.move(fb.x + fb.width / 2, fb.y + Math.min(60, fb.height / 2)); await wait(150);
-  const h0 = await streamState(page); await wait(3500);
-  const h1 = await streamState(page);
-  await page.mouse.move(2, 2); await wait(3500);
-  const h2 = await streamState(page);
-  check(`${vp}: stream: hovering pauses arrivals (${h0.arrived} → ${h1.arrived}) and leaving resumes them (→ ${h2.arrived})`, h0.paused && h1.arrived === h0.arrived && !h2.paused && h2.arrived > h1.arrived, JSON.stringify({ h0: [h0.arrived, h0.paused], h1: h1.arrived, h2: [h2.arrived, h2.paused] }));
-  const fz = await page.evaluate(() => { const b = document.querySelector('#spec-body .st-item:not(.gone) button'); if (!b) return null; b.focus(); const p = document.querySelector('#spec-body .stream').dataset.paused; b.blur(); return { on: p, off: document.querySelector('#spec-body .stream').dataset.paused }; });
-  check(`${vp}: stream: focus inside the stream pauses it too`, !!fz && fz.on === 'true' && fz.off === 'false', JSON.stringify(fz));
-  await closeEsc(page);
-  // closing stops the stream: nothing more arrives in the closed view
-  const c0 = await streamState(page); await wait(3000); const c1 = await streamState(page);
-  check(`${vp}: stream: nothing arrives after the view closes`, !!c0 && c1.arrived === c0.arrived, `${c0 && c0.arrived} / ${c1 && c1.arrived}`);
-  if (long) {
-    // left alone, the stream brings 8 items, shows at most 5, then says it is done and stops
-    await page.evaluate(() => openSpec('stream')); const t0 = Date.now(); let d = null;
-    for (let t = 0; t < 300; t++) { d = await streamState(page); if (d.done) break; await wait(100); }
-    const secs = (Date.now() - t0) / 1000; await wait(700); d = await streamState(page); // the closing line fades in
-    check(`${vp}: stream: stops after 8 items with "That’s this week’s stream." (${secs.toFixed(1)} s)`, d.done && d.arrived === 8 && d.end === 'That’s this week’s stream.' && secs >= 16 && secs <= 28, JSON.stringify({ secs, ...d, items: d.items.length }));
-    check(`${vp}: stream: at most 5 items show at once`, d.items.length <= 5 && d.items.length >= 3, String(d.items.length));
-    if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-done.png` });
-    await wait(3000); const e = await streamState(page);
-    check(`${vp}: stream: nothing more arrives once it is done`, e.arrived === 8, String(e.arrived));
-    await closeEsc(page);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-initial.png` });
+  // Keep: the suggestion moves into her garden (it flies there), the count goes up, and the next top suggestion builds on it
+  let prev = a, flew = false;
+  for (let k = 1; k <= 4; k++) {
+    const top = prev.items[0];
+    await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click();
+    if (k === 1) flew = await page.evaluate(() => { const f = document.querySelector('.st-fly'); return !!f && f.getAnimations().some(a => a.playState === 'running'); });
+    await wait(700);
+    const b = await streamState(page);
+    const vis = await page.evaluate(() => { const t = document.querySelector('#spec-body .st-thing'), r = t.getBoundingClientRect(), k = t.closest('.st-kept').getBoundingClientRect(); return r.left >= k.left - 1 && r.right <= k.right + 1 && r.width > 40; });
+    check(`${vp}: stream: Keep ${k} moves "${top.t}" into her garden (count ${prev.count} → ${b.count}), first in view, out of Where next`, b.count === prev.count + 1 && b.things[0] === top.t && vis && !b.items.some(i => i.t === top.t), JSON.stringify({ top: top.t, count: b.count, first: b.things[0], vis }));
+    check(`${vp}: stream: after Keep ${k} Where next is never empty (${b.items.length}), and ${k < 4 ? 'its new top builds on the item just kept' : 'it says the stream will bring more tomorrow'}`, b.items.length >= 3 && (k < 4 ? b.items[0].why === `because you kept ${top.t}` : b.end === 'Lena’s stream will bring more tomorrow.'), JSON.stringify({ items: b.items.map(i => i.t + ' | ' + i.why), end: b.end }));
+    if (k < 4) check(`${vp}: stream: no closing line before the chain ends (keep ${k})`, b.end === '', b.end);
+    if (SHOTS && k === 2) await page.screenshot({ path: `${SHOTS}/${vp}-stream-kept2.png` });
+    prev = b;
   }
+  check(`${vp}: stream: the kept item flies into the garden`, flew);
+  const L2 = await streamLayout(page);
+  check(`${vp}: stream: after 4 keeps, still no column with more than 25% empty space`, L2.cols.every(c => c.empty <= .25) && L2.rootEmpty <= .05, JSON.stringify(L2.cols));
+  await closeEsc(page);
+  // Add a feed: one ready pick, no typing; it joins her feeds and brings two new posts
+  await page.evaluate(() => openSpec('stream')); await wait(400);
+  await page.locator('#spec-body .st-add').click(); await wait(150);
+  const offer = await page.evaluate(() => [...document.querySelectorAll('#spec-body .st-pick')].filter(b => b.getClientRects().length).map(b => b.textContent.replace(/\s+/g, ' ').trim()));
+  check(`${vp}: stream: + Add a feed offers one ready pick, Gripper Notes (blog), with no typing`, offer.length === 1 && /Gripper Notes \(blog\)/.test(offer[0]) && !(await page.evaluate(() => !!document.querySelector('#spec-body input'))), JSON.stringify(offer));
+  await page.locator('#spec-body .st-pick').click(); await wait(500);
+  const f = await streamState(page);
+  const gn = f.items.filter(i => i.why === 'new · Gripper Notes');
+  check(`${vp}: stream: Gripper Notes joins her feeds and ≥2 "new · Gripper Notes" posts show in Where next`, f.feeds.length === 2 && f.feeds.some(x => /Gripper Notes/.test(x)) && gn.length >= 2 && f.items.length >= 3, JSON.stringify({ feeds: f.feeds, items: f.items.map(i => i.t + ' | ' + i.why) }));
+  check(`${vp}: stream: once added, the feed is not offered again`, !(await page.evaluate(() => [...document.querySelectorAll('#spec-body .st-add, #spec-body .st-pick')].some(b => b.getClientRects().length))));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-feed.png` });
+  const of = await overflow(page);
+  check(`${vp}: stream with two feeds has no horizontal overflow`, noOverflow(of), JSON.stringify(of));
+  await closeEsc(page);
+  // Rules: Research sites only off lets a blog post and a talk in; back on takes them out with a short note
+  await page.evaluate(() => openSpec('stream')); await wait(400);
+  const r0 = await streamState(page);
+  await page.locator('#spec-body .st-rule').first().click(); await wait(500);
+  const r1 = await streamState(page), nr = r1.items.filter(i => !i.research);
+  check(`${vp}: stream: Research sites only off lets in a blog post and a YouTube talk`, !r1.rules[0].on && nr.length >= 2 && nr.some(i => /blog/i.test(i.src)) && nr.some(i => /youtube/i.test(i.src)) && r1.items.length >= 3, JSON.stringify(r1.items));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-rule-off.png` });
+  await page.locator('#spec-body .st-rule').first().click(); await wait(500);
+  const r2 = await streamState(page);
+  check(`${vp}: stream: back on, they leave with the note "hidden: not a research site"`, r2.rules[0].on && r2.items.every(i => i.research) && /hidden: not a research site/.test(r2.note) && r2.items.length >= 3 && r0.note === '', JSON.stringify({ items: r2.items, note: r2.note }));
+  await page.locator('#spec-body .st-rule').nth(1).click(); await wait(500);
+  const r3 = await streamState(page);
+  check(`${vp}: stream: Robots that touch off lets in robotics that is not about touch; the list stays 3–4 long`, !r3.rules[1].on && r3.items.length >= 3 && r3.items.length <= 4 && r3.items.some(i => !r2.items.some(j => j.t === i.t)), JSON.stringify(r3.items));
+  // closing mid-flight leaves nothing behind
+  await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click(); await closeEsc(page);
+  check(`${vp}: stream: closing mid-Keep leaves no flying copy behind`, !(await page.evaluate(() => !!document.querySelector('.st-fly'))));
 }
 
+// ---------- the agent: your agents work in your garden ----------
 const AG_TOOLS = ['read_stream', 'keep', 'keep', 'keep', 'file', 'create_note'];
 const AG_NOTE = '2 orders need splitting before the 11am pickup.';
 const agentState = page => page.evaluate(() => { const r = document.querySelector('#spec-body .agent'); if (!r) return null; const tx = e => (e || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
@@ -528,9 +560,13 @@ async function madeLine(page, vp, specs) {
       const panelBg = pbg.a ? pbg : __c.rgb(getComputedStyle(document.querySelector('#spec .panel')).backgroundColor);
       const chips = [...made.querySelectorAll('.chip')].map((c, i) => { const ic = c.querySelector('.src-ic'), r = ic && ic.getBoundingClientRect(), bc = c.querySelector('.became'), br = bc && bc.getBoundingClientRect();
         return { i, became: bc ? bc.textContent.trim() : null, want: (SPECS[id].from[i] || {}).became, icon: !!r && r.width >= 24 && r.height >= 24, shown: !!br && br.width > 20 && br.height > 8 }; });
-      return { chips, weight: +lcs.fontWeight, size: parseFloat(lcs.fontSize), ratio: +__c.ratio(__c.over(__c.ink(lead), mbg), mbg).toFixed(2), bgDiff: Math.abs(mbg.r - panelBg.r) + Math.abs(mbg.g - panelBg.g) + Math.abs(mbg.b - panelBg.b) }; }, id);
+      const inline = made.classList.contains('inline') ? [...made.querySelectorAll('.chip')].map(c => ({ inLead: lead.contains(c), icon: getComputedStyle(c, '::before').content.length > 2, h: Math.round(c.getBoundingClientRect().height), display: getComputedStyle(c).display })) : null;
+      return { inline, chips, weight: +lcs.fontWeight, size: parseFloat(lcs.fontSize), ratio: +__c.ratio(__c.over(__c.ink(lead), mbg), mbg).toFixed(2), bgDiff: Math.abs(mbg.r - panelBg.r) + Math.abs(mbg.g - panelBg.g) + Math.abs(mbg.b - panelBg.b) }; }, id);
+    if (m.inline) { // one sentence with its sources as small inline chips (icon and name), not cards
+      check(`${vp}: ${id} made line is one sentence with ${m.inline.length} inline source chips, each with an icon`, m.inline.length === specs[id].from.length && m.inline.every(c => c.inLead && c.icon && c.h <= 30 && /^inline/.test(c.display)) && m.chips.length === m.inline.length, JSON.stringify(m.inline));
+    } else {
     const bad = m.chips.filter(c => !c.want || c.became !== c.want || !c.icon || !c.shown);
-    check(`${vp}: ${id} every source shows an icon and what it became (${m.chips.length})`, m.chips.length === specs[id].from.length && bad.length === 0, JSON.stringify(bad));
+    check(`${vp}: ${id} every source shows an icon and what it became (${m.chips.length})`, m.chips.length === specs[id].from.length && bad.length === 0, JSON.stringify(bad)); }
     check(`${vp}: ${id} made lead is ink, weight ≥600, ≥15px, contrast ≥7 on a tint unlike the page`, m.weight >= 600 && m.size >= 15 && m.ratio >= 7 && m.bgDiff >= 12, JSON.stringify({ ...m, chips: undefined }));
     await closeEsc(page);
   }
@@ -664,17 +700,16 @@ async function reducedMore2(page, vp) {
   await reducedMore3(page, vp);
 }
 async function reducedMore3(page, vp) {
-  // the stream: items still arrive, but with no slide; Keep moves the item at once, with no flight
-  await page.mouse.move(2, 2);
-  await page.evaluate(() => openSpec('stream')); await wait(3300);
+  // the stream: Keep moves the item into her garden at once, with no flight and nothing animating; a rule toggle changes the list at once too
+  await page.evaluate(() => openSpec('stream')); await wait(300);
   const a = await streamState(page);
-  let k = null;
-  if (a && a.items.length) {
-    await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click(); await wait(60);
-    k = await page.evaluate(() => ({ fly: !!document.querySelector('.st-fly'), n: [...document.querySelectorAll('#spec-body *')].reduce((n, e) => n + e.getAnimations().filter(a => a.playState === 'running').length, 0) }));
-  }
+  await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click(); await wait(60);
+  const k = await page.evaluate(() => ({ fly: !!document.querySelector('.st-fly'), n: [...document.querySelectorAll('#spec *')].reduce((n, e) => n + e.getAnimations().filter(a => a.playState === 'running').length, 0) }));
   const b = await streamState(page);
-  check(`${vp}: reduced motion: stream items arrive, and Keep moves one into the garden at once with no flight or animation`, !!a && a.arrived >= 1 && !!k && !k.fly && k.n === 0 && b.count === a.count + 1 && b.things[0] === a.items[0].t, JSON.stringify({ a: a && { arrived: a.arrived, count: a.count }, k, b: b && { count: b.count, first: b.things[0] } }));
+  check(`${vp}: reduced motion: stream Keep moves the item into her garden at once, with no flight or animation, and the next builds on it`, !!a && !k.fly && k.n === 0 && b.count === a.count + 1 && b.things[0] === a.items[0].t && b.items[0].why === `because you kept ${a.items[0].t}`, JSON.stringify({ k, a: a && a.count, b: b && { count: b.count, first: b.things[0], top: b.items[0] } }));
+  await page.locator('#spec-body .st-rule').first().click(); await wait(60);
+  const n = await bodyAnims(page, '#spec *'), c = await streamState(page);
+  check(`${vp}: reduced motion: a rule toggle changes Where next with no animation`, n === 0 && c.items.some(i => !i.research), JSON.stringify({ n, items: c.items.length }));
   await closeEsc(page);
   await reducedAgent(page, vp);
 }
@@ -876,7 +911,7 @@ async function specCleanup(page, vp, specs) {
     check(`${vp}: ${id} stops its timers and window listeners on close and when ${other} replaces it (started ${JSON.stringify(started[id])})`, closed === 0 && swapped === 0, JSON.stringify({ closed, swapped }));
   }
   check(`${vp}: the moon and Titan register something to clean up (the hook sees them)`, started.moon && started.moon.iv >= 1 && started.titan && started.titan.ls >= 1, JSON.stringify(started));
-  check(`${vp}: the stream and the agent run on a timer the hook sees (and stops)`, started.stream && started.stream.iv >= 1 && started.agent && started.agent.iv >= 1, JSON.stringify({ stream: started.stream, agent: started.agent }));
+  check(`${vp}: the agent runs on a timer the hook sees (and stops); the stream starts no timer or window listener`, started.agent && started.agent.iv >= 1 && started.stream && started.stream.iv === 0 && started.stream.ls === 0, JSON.stringify({ stream: started.stream, agent: started.agent }));
   // the moon's countdown no longer ticks once its view is closed
   await page.evaluate(() => openSpec('moon')); await wait(400); await closeEsc(page);
   const c0 = await page.evaluate(() => document.querySelector('#spec-body .countdown')?.textContent ?? null); await wait(2500);
@@ -948,9 +983,12 @@ async function tabletDialog(browser) {
         const bad = lines.filter(l => l.tag === 'SPAN' ? l.lines > 1 : l.tag === 'P' ? l.perLine < 4 : l.words > 3 && l.perLine < 2.5);
         check(`${vp}: paper text reads in real lines (paragraphs ≥4 words a line, headlines ≥2.5, dateline on one line)`, lines.length >= 8 && bad.length === 0, JSON.stringify(bad.length ? bad : lines.slice(0, 3)));
       }
-      if (SHOTS && ['paper', 'titan', 'kyoto'].includes(id)) await page.screenshot({ path: `${SHOTS}/${vp}-${id}.png` });
+      if (id === 'stream') { const L = await streamLayout(page);
+        check(`${vp}: stream columns side by side, tops aligned within 2px, none more than 25% empty`, L.cols.length === 2 && Math.abs(L.cols[0].top - L.cols[1].top) <= 2 && L.cols[1].left > L.cols[0].left && L.cols.every(c => c.empty <= .25), JSON.stringify(L.cols)); }
+      if (SHOTS && ['paper', 'titan', 'kyoto', 'stream'].includes(id)) await page.screenshot({ path: `${SHOTS}/${vp}-${id}.png` });
       await closeEsc(page);
     }
+    if (vp !== 'mid') await streamCheck(page, vp);
     check(`${vp}: no errors in the tablet dialog pass`, errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
@@ -1393,7 +1431,7 @@ async function fullPass(browser, vp) {
   await whereNext(page, vp, specs);
   if (specs.recipe && specs.savings) await recipeAndSavings(page, vp);
   await landerCheck(page, vp);
-  await streamCheck(page, vp, vp === 'desktop');
+  await streamCheck(page, vp);
   await agentCheck(page, vp);
   await frame(page, vp, specs);
   await keyboard(page, vp, specs);
@@ -1420,7 +1458,7 @@ async function fullPass(browser, vp) {
     if (process.env.ONLY === 'speed') { await loadSpeed(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     if (process.env.ONLY === 'new') { // quick loop while building the stream and agent specimens
-      for (const vp of ['desktop', 'phone']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); await streamCheck(page, vp, vp === 'desktop' && !process.env.SHORT); if (!process.env.NOAGENT) await agentCheck(page, vp);
+      for (const vp of ['desktop', 'phone', 'tablet', 'laptop', 'small']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); await streamCheck(page, vp); if (!process.env.NOAGENT) await agentCheck(page, vp);
         check(`${vp}: no errors in the new pass`, errors.length === 0, errors.join(' | ')); await ctx.close();
         const rm = await newPage(browser, vp, { reducedMotion: 'reduce' }); await explore(rm.page); await reducedMore3(rm.page, vp); check(`${vp}: no errors in the reduced new pass`, rm.errors.length === 0, rm.errors.join(' | ')); await rm.ctx.close(); }
       throw 'only';
@@ -1429,6 +1467,8 @@ async function fullPass(browser, vp) {
     await fullPass(browser, 'phone');
     // small phone: sheet behaviour only
     { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
+      await page.evaluate(() => openSpec('stream')); await wait(400); { const o = await overflow(page); check('small: stream view has no horizontal overflow', noOverflow(o), JSON.stringify(o)); }
+      if (SHOTS) await page.screenshot({ path: `${SHOTS}/small-stream-initial.png` }); await closeEsc(page);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
     await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone'); await openingPolish(browser, 'desktop'); await openingPolish(browser, 'phone');
     await motion(browser, 'desktop', specs);
