@@ -916,7 +916,7 @@ async function imagesLoad(page, vp, specs) {
   }
   const urls = await page.evaluate(() => { const out = new Set();
     for (const el of document.querySelectorAll('#world *, #spec *')) for (const m of getComputedStyle(el).backgroundImage.matchAll(/url\("?([^")]+)"?\)/g)) out.add(new URL(m[1], location.href).href);
-    const bg = out.size; document.querySelectorAll('#world img').forEach(i => out.add(new URL(i.getAttribute('src'), location.href).href)); return { all: [...out], bg }; });
+    const bg = out.size; document.querySelectorAll('#world img').forEach(i => out.add(new URL(i.getAttribute('src') || i.dataset.src, location.href).href)); /* canvas pictures wait in data-src until they near the view */ return { all: [...out], bg }; });
   const failed = [];
   for (const u of urls.all) { const res = await page.request.get(u).catch(e => ({ status: () => String(e.message).slice(0, 60) })); if (res.status() !== 200) failed.push(`${u} → ${res.status()}`); }
   check(`${vp}: every canvas image and CSS background URL answers 200 (${urls.all.length}, ${urls.bg} backgrounds)`, urls.bg >= 1 && urls.all.length > urls.bg && failed.length === 0, failed.join(', '));
@@ -1085,16 +1085,18 @@ const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
 async function videosAndWords(browser) {
   const { ctx, page, errors } = await newPage(browser, 'desktop'); await explore(page);
+  // each video's garden is brought into view first: canvas pictures load only near the view
+  for (const g of await page.evaluate(() => [...new Set([...document.querySelectorAll('.thing.video')].map(c => c.closest('.garden').querySelector('h2').textContent))])) { await page.evaluate(g => goGarden(g), g); await wait(900); }
   const v = await page.evaluate(() => Promise.all([...document.querySelectorAll('.thing.video')].map(async c => { const img = c.querySelector('.thumb img'), svg = c.querySelector('.thumb svg');
-    if (img) { if (!img.complete) await new Promise(r => { img.onload = img.onerror = r; setTimeout(r, 8000); }); }
+    if (img) { if (!img.complete || !img.getAttribute('src')) await new Promise(r => { img.onload = img.onerror = r; setTimeout(r, 8000); }); }
     return { t: c.querySelector('.t').textContent, img: img ? img.getAttribute('src') : null, ok: img ? img.naturalWidth > 0 : !!svg && svg.querySelectorAll('path, line, rect, circle, polyline, polygon').length >= 5 }; })));
-  const missing = v.filter(x => !x.ok || (x.img && !fs.existsSync(path.join(ROOT, 'web', x.img.replace(/^https:\/\/grdn-site\.vercel\.app\/web\//, '')))));
+  const missing = v.filter(x => !x.ok || (x.img && !fs.existsSync(path.join(ROOT, 'web', x.img.replace(/^.*\/web\//, '')))));
   check(`desktop: every video card shows a real frame (${v.length})`, v.length >= 3 && missing.length === 0, JSON.stringify(missing.length ? missing : v));
   const texts = [await page.evaluate(() => document.body.innerText)];
   for (const id of await page.evaluate(() => Object.keys(SPECS))) { await page.evaluate(id => openSpec(id), id); await wait(150); texts.push(await page.evaluate(() => document.getElementById('spec').innerText)); await closeEsc(page); }
   const hits = texts.flatMap(t => t.match(/[^\n]*(\bnode\b|Veo)[^\n]*/gi) || []);
   check('desktop: no rendered text says "node" or "Veo"', hits.length === 0, hits.slice(0, 4).join(' | '));
-  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), refs = [...new Set([...html.matchAll(/grdn-site\.vercel\.app\/web\/([\w.-]+\.(?:png|jpe?g|webp|gif|svg))/g)].map(m => m[1]))];
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), refs = [...new Set([...html.matchAll(/(?:grdn-site\.vercel\.app\/web\/|['"])(\w[\w.-]*\.(?:png|jpe?g|webp|gif|svg))['"]/g)].map(m => m[1]))]; // names in the page source, absolute or bare (IMG() adds the base)
   const absent = refs.filter(f => !fs.existsSync(path.join(ROOT, 'web', f)));
   check(`every web/ image the page names exists in web/ (${refs.length})`, refs.length > 20 && absent.length === 0, absent.join(', '));
   check('desktop: no errors in the video pass', errors.length === 0, errors.join(' | '));
@@ -1266,6 +1268,66 @@ async function agentMade(browser) {
   await ctx.close();
 }
 
+// ---------- load speed (2026-10-29): small images, loaded only near the view; fonts that do not block the first paint ----------
+// The file in web/ that an image URL names, whether the page uses the production base or its own /web/.
+const webFile = u => { const m = String(u || '').match(/\/web\/([\w.-]+)$/); return m ? path.join(ROOT, 'web', m[1]) : null; };
+// Image bytes the page asks for while it opens: everything requested up to network idle, then 1.5 s more of drift.
+async function imageBytes(browser) {
+  for (const [vp, cap] of [['phone', 600 * 1024], ['desktop', 1200 * 1024]]) {
+    const ctx = await browser.newContext(VIEWPORTS[vp]); const page = await ctx.newPage(); const got = [];
+    page.on('response', async res => { if (res.request().resourceType() !== 'image' || res.url().startsWith('data:')) return; const p = res.body().then(b => b.length).catch(() => 0); got.push({ u: res.url(), p }); });
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(1500);
+    const sizes = await Promise.all(got.map(async g => ({ u: g.u.replace(/^.*\/web\//, ''), n: await g.p })));
+    const total = sizes.reduce((s, x) => s + x.n, 0), all = await page.evaluate(() => document.querySelectorAll('#world img').length);
+    check(`${vp}: images asked for while the page opens weigh ≤ ${cap / 1024} KB (${(total / 1024).toFixed(0)} KB in ${sizes.length} of ${all} canvas images)`, total <= cap && sizes.length < all, JSON.stringify(sizes.sort((a, b) => b.n - a.n).slice(0, 8)));
+    await ctx.close();
+  }
+}
+// Every image the page can show: no file over 150 KB but og.png, and each one loads once its garden or specimen is shown.
+async function imagesShown(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop'); await explore(page);
+  const gardens = await page.evaluate(() => G.filter(g => g.things.some(t => t.img)).map(g => g.name));
+  const bad = [], files = new Set();
+  const settle = sel => page.evaluate(sel => Promise.all([...document.querySelectorAll(sel)].map(i => new Promise(done => {
+    const fin = () => done({ src: i.currentSrc || i.src || i.dataset.src || '', ok: i.naturalWidth > 0 });
+    if (i.complete && i.src) return fin(); const t = setTimeout(fin, 6000);
+    i.addEventListener('load', () => { clearTimeout(t); fin(); }, { once: true }); i.addEventListener('error', () => { clearTimeout(t); fin(); }, { once: true }); }))), sel);
+  for (const g of gardens) {
+    await page.evaluate(g => goGarden(g), g); await wait(900);
+    const sel = await page.evaluate(g => { const el = [...document.querySelectorAll('#world .garden')].find(x => x.querySelector('h2').textContent === g); el.dataset.chk = 1; return '[data-chk] img'; }, g);
+    for (const r of await settle(sel)) { files.add(r.src); if (!r.ok) bad.push(`${g}: ${r.src}`); }
+    await page.evaluate(() => document.querySelector('[data-chk]').removeAttribute('data-chk'));
+  }
+  for (const id of await page.evaluate(() => Object.keys(SPECS))) {
+    await page.evaluate(id => openSpec(id), id); await wait(300);
+    for (const r of await settle('#spec img')) { files.add(r.src); if (!r.ok) bad.push(`${id}: ${r.src}`); }
+    await closeEsc(page);
+  }
+  const bgs = await page.evaluate(() => { const out = new Set(); for (const el of document.querySelectorAll('#world *')) for (const m of getComputedStyle(el).backgroundImage.matchAll(/url\("?([^")]+)"?\)/g)) if (!m[1].startsWith('data:')) out.add(m[1]); return [...out]; });
+  bgs.forEach(u => files.add(u));
+  check(`desktop: every canvas and specimen image loads once its garden or specimen is shown (${files.size})`, files.size > 30 && bad.length === 0, bad.join(', '));
+  const big = [...files].map(u => ({ u, f: webFile(u) })).map(x => ({ ...x, n: x.f && fs.existsSync(x.f) ? fs.statSync(x.f).size : -1 })).filter(x => x.n < 0 || x.n > 150 * 1024);
+  check(`no image the page shows is over 150 KB or missing from web/ (${files.size})`, big.length === 0, JSON.stringify(big.map(x => `${x.u} ${x.n}`)));
+  const og = fs.statSync(path.join(ROOT, 'web', 'og.png')).size;
+  check(`og.png stays a PNG of ≤ 300 KB (${(og / 1024).toFixed(0)} KB)`, og <= 300 * 1024);
+  check('desktop: no errors in the images-shown pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+// Production keeps absolute image URLs (grdn.page proxies only /); this machine and the LAN use the page's own /web/.
+async function assetBase(browser) {
+  const ctx = await browser.newContext(VIEWPORTS.desktop), page = await ctx.newPage();
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const local = await page.evaluate(() => typeof IMG === 'function' ? IMG('x.webp') : '');
+  await page.route('https://grdn.page/', r => r.fulfill({ status: 200, contentType: 'text/html', body: fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8') }));
+  await page.route(/^https:\/\/grdn-site\.vercel\.app\//, r => r.fulfill({ status: 404, body: '' }));
+  await page.goto('https://grdn.page/', { waitUntil: 'domcontentloaded' });
+  const prod = await page.evaluate(() => ({ img: IMG('x.webp'), srcs: [...document.querySelectorAll('#world img')].map(i => i.getAttribute('src') || i.dataset.src) }));
+  check('on localhost the images come from the page\'s own /web/', local === '/web/x.webp', local);
+  check('on production every image URL is absolute https://grdn-site.vercel.app/web/…', prod.img === 'https://grdn-site.vercel.app/web/x.webp' && prod.srcs.length > 20 && prod.srcs.every(s => s.startsWith('https://grdn-site.vercel.app/web/')), JSON.stringify({ img: prod.img, bad: prod.srcs.filter(s => !s.startsWith('https://grdn-site.vercel.app/web/')).slice(0, 3) }));
+  await ctx.close();
+}
+async function loadSpeed(browser) { await assetBase(browser); await imageBytes(browser); await imagesShown(browser); }
+
 async function audit(browser) {
   await agentMade(browser);
   await reassureCentred(browser);
@@ -1281,6 +1343,7 @@ async function audit(browser) {
   await videosAndWords(browser);
   await sharing(browser);
   await groundAndTransitions(browser);
+  await loadSpeed(browser);
 }
 
 async function fullPass(browser, vp) {
@@ -1322,6 +1385,7 @@ async function fullPass(browser, vp) {
     if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); await morph(browser); throw 'only'; }
     if (process.env.ONLY === 'pill') { for (let k = 0; k < 3; k++) { const { ctx, page } = await newPage(browser, 'desktop'); await explore(page); await pillClear(page, 'desktop'); await ctx.close(); } throw 'only'; }
     if (process.env.ONLY === 'agentmade') { await agentMade(browser); throw 'only'; }
+    if (process.env.ONLY === 'speed') { await loadSpeed(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     if (process.env.ONLY === 'new') { // quick loop while building the stream and agent specimens
       for (const vp of ['desktop', 'phone']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); await streamCheck(page, vp, vp === 'desktop' && !process.env.SHORT); if (!process.env.NOAGENT) await agentCheck(page, vp);

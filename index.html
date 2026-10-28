@@ -515,6 +515,12 @@
 </div></div>
 
 <script>
+// ---------- assets ----------
+// grdn.page proxies only / to grdn-site.vercel.app, so in production every image is an absolute grdn-site.vercel.app/web/ URL.
+// Served from this machine or the LAN (localhost, 127.x, 10.x, 172.16-31.x, 192.168.x), the page uses its own /web/, so new files work before a deploy.
+const LOCAL = /^(localhost|127(\.\d+){3}|\[::1\]|10(\.\d+){3}|192\.168(\.\d+){2}|172\.(1[6-9]|2\d|3[01])(\.\d+){2})$/.test(location.hostname);
+const IMG = n => (LOCAL ? '/web/' : 'https://grdn-site.vercel.app/web/') + n;
+const THUMB = n => IMG(n.replace(/\.webp$/, '-th.webp')); // a small square-ish copy for the 34-44 px icons in a specimen view
 // ---------- content ----------
 const G = [
   { name: 'Fractions, by hand', by: 'Ms. Rao’s class 4B', things: [
@@ -526,7 +532,7 @@ const G = [
   { name: 'Octopus minds', by: 'a rabbit hole by Ines', things: [
     { type: 'link', href: 'https://en.wikipedia.org/wiki/Cephalopod_intelligence', dom: 'wikipedia.org', t: 'Cephalopod intelligence', kept: 88 },
     { type: 'note', text: 'Two thirds of the neurons are in the arms. Do the arms think?', kept: 40 },
-    { type: 'video', img: 'https://grdn-site.vercel.app/web/octopus.jpg', t: 'An octopus opens a jar', dom: 'youtube.com', kept: 302 },
+    { type: 'video', img: 'octopus.webp', t: 'An octopus opens a jar', dom: 'youtube.com', kept: 302 },
     { type: 'app', e: '🐙', bg: '#FFE3D6', k: 'Toy', t: 'Eight-arm drawing', kept: 57 },
     { type: 'link', dom: 'arxiv.org', t: 'Distributed control in soft arms', kept: 9 },
   ]},
@@ -540,62 +546,62 @@ const G = [
   { name: 'Sound toys', by: 'Kenji', things: [
     { live: 'synth' },
     { type: 'app', e: '🥁', bg: '#FFE3D6', k: 'Toy', t: 'Sixteen-step drums', kept: 410 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/musiclab-chromeexperiments-com-18.jpg', href: 'https://musiclab.chromeexperiments.com/Song-Maker/', dom: 'musiclab.chromeexperiments.com', t: 'Song Maker', kept: 76 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/patatap-com-12.png', href: 'https://patatap.com', dom: 'patatap.com', t: 'Patatap', kept: 512 },
+    { type: 'link', img: 'musiclab-chromeexperiments-com-18.webp', href: 'https://musiclab.chromeexperiments.com/Song-Maker/', dom: 'musiclab.chromeexperiments.com', t: 'Song Maker', kept: 76 },
+    { type: 'link', img: 'patatap-com-12.webp', href: 'https://patatap.com', dom: 'patatap.com', t: 'Patatap', kept: 512 },
   ]},
   { name: 'Colour', by: 'a garden by Mo', things: [
     { spec: 'mood', type: 'app', e: '🎨', bg: '#E6E9F0', k: 'Moodboard', t: 'Café: warm, not cute', meta: 'made with Grdn', kept: 96 },
     { live: 'palette' },
     { type: 'note', text: 'Warm paper, one ink, one accent. Everything else is noise.', kept: 19 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/oklch-com-23.png', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/weavesilk-com-13.png', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
+    { type: 'link', img: 'oklch-com-23.webp', href: 'https://oklch.com', dom: 'oklch.com', t: 'OKLCH colour picker', kept: 144 },
+    { type: 'link', img: 'weavesilk-com-13.webp', href: 'https://weavesilk.com', dom: 'weavesilk.com', t: 'Silk, interactive generative art', kept: 1880 },
   ]},
   { name: 'Moon & sky', by: 'Grandpa Tom', things: [
     { live: 'moon', spec: 'moon' },
     { type: 'app', e: '🔭', bg: '#E4E8F7', k: 'App', t: 'What’s up tonight', kept: 205 },
     { type: 'note', text: 'Saturn is low in the east after nine. Take the kids.', kept: 6 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/pale-blue-dot.png', href: 'https://en.wikipedia.org/wiki/Pale_Blue_Dot', dom: 'wikipedia.org', t: 'Pale Blue Dot', kept: 3120 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/nasa-gov-27.jpg', href: 'https://www.nasa.gov/image-of-the-day/', dom: 'nasa.gov', t: 'NASA image of the day', kept: 640 },
+    { type: 'link', img: 'pale-blue-dot.webp', href: 'https://en.wikipedia.org/wiki/Pale_Blue_Dot', dom: 'wikipedia.org', t: 'Pale Blue Dot', kept: 3120 },
+    { type: 'link', img: 'nasa-gov-27.webp', href: 'https://www.nasa.gov/image-of-the-day/', dom: 'nasa.gov', t: 'NASA image of the day', kept: 640 },
   ]},
   { name: 'Robin Sloan', by: 'love, not likes', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com', t: 'Fish: a tap essay', kept: 3420 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-home-cooked.png', href: 'https://www.robinsloan.com/notes/home-cooked-app/', dom: 'robinsloan.com', t: 'An app can be a home-cooked meal', kept: 5210 },
+    { type: 'link', img: 'sloan-fish.webp', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com', t: 'Fish: a tap essay', kept: 3420 },
+    { type: 'link', img: 'sloan-home-cooked.webp', href: 'https://www.robinsloan.com/notes/home-cooked-app/', dom: 'robinsloan.com', t: 'An app can be a home-cooked meal', kept: 5210 },
     { type: 'note', text: 'Liking is cheap. Love is coming back.', kept: 612 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-moonbound.jpg', href: 'https://www.robinsloan.com/moonbound/', dom: 'robinsloan.com', t: 'Moonbound, a novel', kept: 890 },
+    { type: 'link', img: 'sloan-moonbound.webp', href: 'https://www.robinsloan.com/moonbound/', dom: 'robinsloan.com', t: 'Moonbound, a novel', kept: 890 },
   ]},
   { name: 'Digital gardens', by: 'the people who planted the idea', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/appleton-garden-history.png', href: 'https://maggieappleton.com/garden-history', dom: 'maggieappleton.com · Maggie Appleton', t: 'A Brief History & Ethos of the Digital Garden', kept: 4870 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/appleton-garden.png', href: 'https://maggieappleton.com/garden', dom: 'maggieappleton.com · Maggie Appleton', t: 'The Garden of Maggie Appleton', kept: 2310 },
+    { type: 'link', img: 'appleton-garden-history.webp', href: 'https://maggieappleton.com/garden-history', dom: 'maggieappleton.com · Maggie Appleton', t: 'A Brief History & Ethos of the Digital Garden', kept: 4870 },
+    { type: 'link', img: 'appleton-garden.webp', href: 'https://maggieappleton.com/garden', dom: 'maggieappleton.com · Maggie Appleton', t: 'The Garden of Maggie Appleton', kept: 2310 },
     { type: 'link', href: 'https://notes.andymatuschak.org/Evergreen_notes', dom: 'notes.andymatuschak.org · Andy Matuschak', t: 'Evergreen notes', kept: 3950 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/ttft.png', href: 'https://numinous.productions/ttft/', dom: 'numinous.productions · Andy Matuschak & Michael Nielsen', t: 'How can we develop transformative tools for thought?', kept: 2780 },
+    { type: 'link', img: 'ttft.webp', href: 'https://numinous.productions/ttft/', dom: 'numinous.productions · Andy Matuschak & Michael Nielsen', t: 'How can we develop transformative tools for thought?', kept: 2780 },
     { type: 'link', href: 'https://hapgood.us/2015/10/17/the-garden-and-the-stream-a-technopastoral/', dom: 'hapgood.us · Mike Caulfield', t: 'The Garden and the Stream: A Technopastoral', kept: 1640 },
     { type: 'link', href: 'https://tomcritchlow.com/2019/02/17/building-digital-garden/', dom: 'tomcritchlow.com · Tom Critchlow', t: 'Building a digital garden', kept: 720 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/arena.png', href: 'https://www.are.na', dom: 'are.na', t: 'Are.na', kept: 2600 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/hypothesis.png', href: 'https://web.hypothes.is', dom: 'web.hypothes.is', t: 'Hypothesis, notes on the whole web', kept: 880 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/tabfs.png', href: 'https://omar.website/tabfs/', dom: 'omar.website · Omar Rizwan', t: 'TabFS: your browser tabs as files', kept: 1520 },
+    { type: 'link', img: 'arena.webp', href: 'https://www.are.na', dom: 'are.na', t: 'Are.na', kept: 2600 },
+    { type: 'link', img: 'hypothesis.webp', href: 'https://web.hypothes.is', dom: 'web.hypothes.is', t: 'Hypothesis, notes on the whole web', kept: 880 },
+    { type: 'link', img: 'tabfs.webp', href: 'https://omar.website/tabfs/', dom: 'omar.website · Omar Rizwan', t: 'TabFS: your browser tabs as files', kept: 1520 },
     { type: 'note', text: 'Tend ideas in public, and let them grow slowly.', kept: 205 },
   ]},
   { name: 'Where Grdn comes from', by: 'a 2021 thesis, still growing', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/diamond-age.jpg', href: 'https://en.wikipedia.org/wiki/The_Diamond_Age', dom: 'Neal Stephenson · wikipedia.org', t: 'The Diamond Age', kept: 2810 },
+    { type: 'link', img: 'diamond-age.webp', href: 'https://en.wikipedia.org/wiki/The_Diamond_Age', dom: 'Neal Stephenson · wikipedia.org', t: 'The Diamond Age', kept: 2810 },
     { type: 'note', text: 'The Primer: a book that learns its reader, and grows with her.', kept: 340 },
     { type: 'link', href: 'https://proto-knowledge.blogspot.com/2011/11/building-young-ladys-illustrated-primer.html', dom: 'proto-knowledge.blogspot.com', t: 'Building “A Young Lady’s Illustrated Primer”', kept: 260 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/mother-of-all-demos.jpg', href: 'https://en.wikipedia.org/wiki/The_Mother_of_All_Demos', dom: 'Doug Engelbart, 1968 · wikipedia.org', t: 'The Mother of All Demos', kept: 3120 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/dynabook.png', href: 'https://en.wikipedia.org/wiki/Dynabook', dom: 'Alan Kay · wikipedia.org', t: 'The Dynabook', kept: 1740 },
+    { type: 'link', img: 'mother-of-all-demos.webp', href: 'https://en.wikipedia.org/wiki/The_Mother_of_All_Demos', dom: 'Doug Engelbart, 1968 · wikipedia.org', t: 'The Mother of All Demos', kept: 3120 },
+    { type: 'link', img: 'dynabook.webp', href: 'https://en.wikipedia.org/wiki/Dynabook', dom: 'Alan Kay · wikipedia.org', t: 'The Dynabook', kept: 1740 },
     { type: 'link', href: 'https://worrydream.com/MediaForThinkingTheUnthinkable/', dom: 'worrydream.com · Bret Victor', t: 'Media for Thinking the Unthinkable', kept: 4410 },
     { type: 'link', href: 'http://hyperphysics.phy-astr.gsu.edu/hbase/index.html', dom: 'Rod Nave · hyperphysics.phy-astr.gsu.edu', t: 'HyperPhysics: pathways through physics', kept: 980 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/las-pozas.jpg', href: 'https://en.wikipedia.org/wiki/Las_Pozas', dom: 'Edward James · wikipedia.org', t: 'Las Pozas, a garden in the jungle', kept: 1290 },
+    { type: 'link', img: 'las-pozas.webp', href: 'https://en.wikipedia.org/wiki/Las_Pozas', dom: 'Edward James · wikipedia.org', t: 'Las Pozas, a garden in the jungle', kept: 1290 },
     { type: 'link', href: 'https://www.nowness.com/series/great-gardens/great-gardens-las-pozas-toby-amies', dom: 'nowness.com · Toby Amies', t: 'Great Gardens: Las Pozas', kept: 410 },
     { type: 'app', e: '📗', bg: '#DDF3EF', k: 'Book', t: 'Metaphors We Live By', meta: 'Lakoff & Johnson', kept: 1150 },
   ]},
   { name: 'Small, opinionated apps', by: 'made by one person, loved by many', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/sloan-fish.png', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com · Robin Sloan', t: 'Fish: a tap essay', kept: 3420 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/pointer-pointer.jpg', href: 'https://pointerpointer.com', dom: 'pointerpointer.com', t: 'Pointer Pointer', kept: 6200 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/little-alchemy.jpg', href: 'https://littlealchemy2.com', dom: 'littlealchemy2.com', t: 'Little Alchemy 2', kept: 5400 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/orb-farm.png', href: 'https://orb.farm', dom: 'orb.farm · Max Bittker', t: 'orb.farm, a tiny aquarium ecosystem', kept: 2750 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/is-it-christmas.png', href: 'https://isitchristmas.com', dom: 'isitchristmas.com', t: 'Is It Christmas?', kept: 3900 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/kinopio.png', href: 'https://kinopio.club', dom: 'kinopio.club', t: 'Kinopio, spatial thinking', kept: 1480 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/wordle.png', href: 'https://www.nytimes.com/games/wordle/index.html', dom: 'Josh Wardle, made for his partner', t: 'Wordle', kept: 9100 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/spring83.jpg', href: 'https://www.robinsloan.com/lab/specifying-spring-83/', dom: 'robinsloan.com · Robin Sloan', t: 'Specifying Spring ’83', kept: 610 },
+    { type: 'link', img: 'sloan-fish.webp', href: 'https://www.robinsloan.com/fish/', dom: 'robinsloan.com · Robin Sloan', t: 'Fish: a tap essay', kept: 3420 },
+    { type: 'link', img: 'pointer-pointer.webp', href: 'https://pointerpointer.com', dom: 'pointerpointer.com', t: 'Pointer Pointer', kept: 6200 },
+    { type: 'link', img: 'little-alchemy.webp', href: 'https://littlealchemy2.com', dom: 'littlealchemy2.com', t: 'Little Alchemy 2', kept: 5400 },
+    { type: 'link', img: 'orb-farm.webp', href: 'https://orb.farm', dom: 'orb.farm · Max Bittker', t: 'orb.farm, a tiny aquarium ecosystem', kept: 2750 },
+    { type: 'link', img: 'is-it-christmas.webp', href: 'https://isitchristmas.com', dom: 'isitchristmas.com', t: 'Is It Christmas?', kept: 3900 },
+    { type: 'link', img: 'kinopio.webp', href: 'https://kinopio.club', dom: 'kinopio.club', t: 'Kinopio, spatial thinking', kept: 1480 },
+    { type: 'link', img: 'wordle.webp', href: 'https://www.nytimes.com/games/wordle/index.html', dom: 'Josh Wardle, made for his partner', t: 'Wordle', kept: 9100 },
+    { type: 'link', img: 'spring83.webp', href: 'https://www.robinsloan.com/lab/specifying-spring-83/', dom: 'robinsloan.com · Robin Sloan', t: 'Specifying Spring ’83', kept: 610 },
     { type: 'link', href: 'https://alexanderperrin.com.au/paper/shorttrip/', dom: 'alexanderperrin.com.au', t: 'Short Trip, a tram through the hills', kept: 1330 },
     { type: 'link', href: 'https://thisissand.com', dom: 'thisissand.com', t: 'This Is Sand', kept: 2050 },
     { type: 'link', href: 'https://pippinbarr.com/itisasifyouweredoingwork/', dom: 'pippinbarr.com · Pippin Barr', t: 'It is as if you were doing work', kept: 870 },
@@ -603,30 +609,30 @@ const G = [
   ]},
   { name: 'Windows onto the world', by: 'a garden by Amara', things: [
     { spec: 'paper', type: 'app', e: '📰', bg: '#EFE4F8', k: 'Paper', t: 'The Sunday Garden', meta: 'made with Grdn · every Sunday', kept: 1210 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/radio-garden-0.jpg', href: 'https://radio.garden', dom: 'radio.garden', t: 'Radio Garden', kept: 4210 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/window-swap-com-5.png', href: 'https://www.window-swap.com', dom: 'window-swap.com', t: 'WindowSwap', kept: 2980 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/earth-nullschool-net-10.jpg', href: 'https://earth.nullschool.net', dom: 'earth.nullschool.net', t: 'Earth, the wind right now', kept: 1575 },
+    { type: 'link', img: 'radio-garden-0.webp', href: 'https://radio.garden', dom: 'radio.garden', t: 'Radio Garden', kept: 4210 },
+    { type: 'link', img: 'window-swap-com-5.webp', href: 'https://www.window-swap.com', dom: 'window-swap.com', t: 'WindowSwap', kept: 2980 },
+    { type: 'link', img: 'earth-nullschool-net-10.webp', href: 'https://earth.nullschool.net', dom: 'earth.nullschool.net', t: 'Earth, the wind right now', kept: 1575 },
     { type: 'note', text: 'Morning coffee: a window in Reykjavík, radio from Dakar.', kept: 73 },
   ]},
   { name: 'Things that explain themselves', by: 'a garden by Nico', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/ciechanow-ski-3.png', href: 'https://ciechanow.ski/mechanical-watch/', dom: 'ciechanow.ski', t: 'Mechanical Watch', kept: 5120 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/ciechanow-ski-4.png', href: 'https://ciechanow.ski/gps/', dom: 'ciechanow.ski', t: 'GPS', kept: 3380 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/ncase-me-20.png', href: 'https://ncase.me/trust/', dom: 'ncase.me', t: 'The Evolution of Trust', kept: 4470 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/ncase-me-6.png', href: 'https://ncase.me/polygons/', dom: 'ncase.me', t: 'Parable of the Polygons', kept: 2160 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/pudding-cool-16.jpg', href: 'https://pudding.cool', dom: 'pudding.cool', t: 'The Pudding', kept: 1210 },
+    { type: 'link', img: 'ciechanow-ski-3.webp', href: 'https://ciechanow.ski/mechanical-watch/', dom: 'ciechanow.ski', t: 'Mechanical Watch', kept: 5120 },
+    { type: 'link', img: 'ciechanow-ski-4.webp', href: 'https://ciechanow.ski/gps/', dom: 'ciechanow.ski', t: 'GPS', kept: 3380 },
+    { type: 'link', img: 'ncase-me-20.webp', href: 'https://ncase.me/trust/', dom: 'ncase.me', t: 'The Evolution of Trust', kept: 4470 },
+    { type: 'link', img: 'ncase-me-6.webp', href: 'https://ncase.me/polygons/', dom: 'ncase.me', t: 'Parable of the Polygons', kept: 2160 },
+    { type: 'link', img: 'pudding-cool-16.webp', href: 'https://pudding.cool', dom: 'pudding.cool', t: 'The Pudding', kept: 1210 },
   ]},
   { name: 'Walls I’d hang', by: 'public domain, kept by Sol', things: [
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/great-wave.jpg', href: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa', dom: 'wikipedia.org', t: 'The Great Wave off Kanagawa', kept: 6040 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/starry-night.jpg', href: 'https://en.wikipedia.org/wiki/The_Starry_Night', dom: 'wikipedia.org', t: 'The Starry Night', kept: 5530 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/mandelbrot.jpg', href: 'https://en.wikipedia.org/wiki/Mandelbrot_set', dom: 'wikipedia.org', t: 'The Mandelbrot set', kept: 2210 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/publicdomainreview-org-7.png', href: 'https://publicdomainreview.org', dom: 'publicdomainreview.org', t: 'The Public Domain Review', kept: 870 },
+    { type: 'link', img: 'great-wave.webp', href: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa', dom: 'wikipedia.org', t: 'The Great Wave off Kanagawa', kept: 6040 },
+    { type: 'link', img: 'starry-night.webp', href: 'https://en.wikipedia.org/wiki/The_Starry_Night', dom: 'wikipedia.org', t: 'The Starry Night', kept: 5530 },
+    { type: 'link', img: 'mandelbrot.webp', href: 'https://en.wikipedia.org/wiki/Mandelbrot_set', dom: 'wikipedia.org', t: 'The Mandelbrot set', kept: 2210 },
+    { type: 'link', img: 'publicdomainreview-org-7.webp', href: 'https://publicdomainreview.org', dom: 'publicdomainreview.org', t: 'The Public Domain Review', kept: 870 },
   ]},
   { name: 'Linear algebra, start here', by: 'crafted by Grdn', things: [
     { type: 'video', frame: 'eigen', t: 'Eigenvectors in 60 seconds', dom: 'made by Grdn from this garden', kept: 980 },
     { type: 'app', e: '🐍', bg: '#DDF3EF', k: 'Game', t: 'Matrix Snake', kept: 1204 },
     { type: 'note', text: 'A matrix is a machine that moves space. Watch where the grid goes.', kept: 311 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/ocw-mit-edu-29.jpg', href: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', dom: 'ocw.mit.edu', t: '18.06 Linear Algebra', kept: 530 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/redblobgames-com-11.jpg', href: 'https://www.redblobgames.com/grids/hexagons/', dom: 'redblobgames.com', t: 'Hexagonal grids', kept: 2240 },
+    { type: 'link', img: 'ocw-mit-edu-29.webp', href: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', dom: 'ocw.mit.edu', t: '18.06 Linear Algebra', kept: 530 },
+    { type: 'link', img: 'redblobgames-com-11.webp', href: 'https://www.redblobgames.com/grids/hexagons/', dom: 'redblobgames.com', t: 'Hexagonal grids', kept: 2240 },
   ]},
   { name: 'Board game night', by: 'the Friday table', things: [
     { live: 'dice' },
@@ -657,7 +663,7 @@ const G = [
     { type: 'app', e: '🐸', bg: '#DDF3EF', k: 'Game', t: 'Frog jump', kept: 1630 },
     { type: 'app', e: '🏓', bg: '#FFE3D6', k: 'Game', t: 'Pong for two', kept: 902 },
     { type: 'app', e: '🧩', bg: '#FCEBC2', k: 'Game', t: 'Word ladder', kept: 244 },
-    { type: 'link', img: 'https://grdn-site.vercel.app/web/quickdraw-withgoogle-com-9.png', href: 'https://quickdraw.withgoogle.com', dom: 'quickdraw.withgoogle.com', t: 'Quick, Draw!', kept: 990 },
+    { type: 'link', img: 'quickdraw-withgoogle-com-9.webp', href: 'https://quickdraw.withgoogle.com', dom: 'quickdraw.withgoogle.com', t: 'Quick, Draw!', kept: 990 },
   ]},
   { name: 'Birds at the window', by: 'Nana Ruth', things: [
     { type: 'app', e: '🐦', bg: '#DDF3EF', k: 'App', t: 'Who is singing?', kept: 640 },
@@ -709,8 +715,8 @@ function thingHTML(th) {
   switch (th.type) {
     case 'note': return `<div class="thing note"><div class="k">Note</div><p style="margin-top:6px">${esc(th.text)}</p>${meta(th)}</div>`;
     case 'app': return `<div class="thing"><div class="row"><div class="ic" style="background:${th.bg}">${th.e}</div><div><div class="k">${esc(th.k)}</div><div class="t">${esc(th.t)}</div></div></div>${meta(th)}</div>`;
-    case 'link': return `<div class="thing link">${th.img ? `<img src="${th.img}" alt="" loading="lazy" draggable="false">` : ''}<div class="k">Link</div><div class="t">${th.href ? `<a href="${th.href}" target="_blank" rel="noopener">${esc(th.t)}</a>` : esc(th.t)}</div><div class="dom">${esc(th.dom)}</div>${meta(th)}</div>`;
-    case 'video': return `<div class="thing video"><div class="thumb">${th.img ? `<img src="${th.img}" alt="" loading="lazy" draggable="false">` : FRAMES[th.frame]}<span class="play" aria-hidden="true"></span></div><div class="k">Video</div><div class="t">${esc(th.t)}</div><div class="dom" style="font-size:13px;color:var(--muted)">${esc(th.dom)}</div>${meta(th)}</div>`;
+    case 'link': return `<div class="thing link">${th.img ? `<img data-src="${IMG(th.img)}" alt="" width="250" height="160" decoding="async" draggable="false">` : ''}<div class="k">Link</div><div class="t">${th.href ? `<a href="${th.href}" target="_blank" rel="noopener">${esc(th.t)}</a>` : esc(th.t)}</div><div class="dom">${esc(th.dom)}</div>${meta(th)}</div>`;
+    case 'video': return `<div class="thing video"><div class="thumb">${th.img ? `<img data-src="${IMG(th.img)}" alt="" width="250" height="120" decoding="async" draggable="false">` : FRAMES[th.frame]}<span class="play" aria-hidden="true"></span></div><div class="k">Video</div><div class="t">${esc(th.t)}</div><div class="dom" style="font-size:13px;color:var(--muted)">${esc(th.dom)}</div>${meta(th)}</div>`;
     case 'flow': return `<div class="thing"><div class="k">${esc(th.k)}</div><div class="t">${esc(th.t)}</div><div class="flow">${th.steps.map(esc).map(s => `<span>${s}</span>`).join('<i>→</i>')}</div>${meta(th)}</div>`;
   }
 }
@@ -761,6 +767,9 @@ const WW = 60 * 2 + COLS * COLW - 60, WH = Math.max(...heights) + 60;
 const PW = COLS * COLW, colP = heights.map(h => h - 60);
 const tiles = [...world.querySelectorAll('.garden')].map(el => ({ el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top), h: el.offsetHeight, c: Math.round((parseFloat(el.style.left) - 60) / COLW), x: null, y: null }));
 const maxGH = Math.max(...tiles.map(t => t.h));
+// Canvas pictures load only when their card comes within 300 px of the screen: the world is one big transformed layer, so native lazy loading would fetch most of them at once.
+const lazy = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const i = e.target; i.src = i.dataset.src; i.removeAttribute('data-src'); lazy.unobserve(i); }), { rootMargin: '300px' });
+world.querySelectorAll('img[data-src]').forEach(i => lazy.observe(i));
 
 // ---------- live widgets ----------
 document.querySelectorAll('.pizza').forEach(p => {
@@ -921,7 +930,6 @@ document.getElementById('f').addEventListener('submit', async e => {
 });
 
 // ---------- specimens: things made with Grdn open into a live view, with Where next beside them ----------
-const IMG = n => `https://grdn-site.vercel.app/web/${n}`;
 function moonNow() { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14) / 864e5, now = Date.now() / 864e5, age = (((now - ref) % syn) + syn) % syn;
   const idx = Math.round(age / syn * 8) % 8, toFull0 = ((syn / 2 - age) % syn + syn) % syn, toFull = toFull0 < 1.5 ? toFull0 + syn : toFull0;
   return { face: [...'🌑🌒🌓🌔🌕🌖🌗🌘'][idx], name: ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'][idx],
@@ -930,7 +938,7 @@ const SPECS = {
   titan: { act: 'Play', noun: 'game', kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: [{ t: 'Titan, Saturn’s largest moon', icon: '🪐', became: 'the orange haze, the dunes and Saturn' }, { t: 'Lunar lander physics', icon: '🚀', became: 'weak gravity, thick air, a slow fall' }, { t: 'Leo’s note: “make it hard”', icon: '📝', became: 'set the 3 m/s landing limit' }],
     next: [{ t: 'Moon tonight', s: 'Grandpa Tom · dashboard', why: 'Tonight’s moon phase, made from Tom’s links', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom', why: 'Saturn notes and NASA pictures', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'made by one, loved by many', why: 'More games one person made', garden: 'Small, opinionated apps' }],
     render: el => lander(el) },
-  moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: [{ t: 'NASA image of the day', img: 'nasa-gov-27.jpg', became: 'the night-sky look of every tile' }, { t: 'What’s up tonight', icon: '🔭', became: 'the space station pass and clear hours' }, { t: 'Tom’s note on Saturn', icon: '📝', became: 'the Saturn tile: up after 9pm' }],
+  moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: [{ t: 'NASA image of the day', img: 'nasa-gov-27.webp', became: 'the night-sky look of every tile' }, { t: 'What’s up tonight', icon: '🔭', became: 'the space station pass and clear hours' }, { t: 'Tom’s note on Saturn', icon: '📝', became: 'the Saturn tile: up after 9pm' }],
     next: [{ t: 'Land on Titan', s: 'Leo · game', why: 'Fly down to Saturn’s biggest moon', open: 'titan' }, { t: 'Walls I’d hang', s: 'Sol', why: 'The Starry Night, and other skies', garden: 'Walls I’d hang' }, { t: 'GPS, explained', s: 'Nico', why: 'How the satellites overhead find you', garden: 'Things that explain themselves' }],
     render: el => moonDash(el) },
   paper: { act: 'Read', noun: 'paper', verb: 'wrote', kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: [{ t: 'Nico’s garden', icon: '⚙️', became: 'the lead: how a watch keeps time' }, { t: 'Sol’s garden', icon: '🌊', became: 'The Great Wave, up close' }, { t: 'Robin Sloan', icon: '🍲', became: 'the home-cooked app story' }, { t: 'Grandpa Tom’s garden', icon: '🌍', became: 'Pale Blue Dot, on the back page' }],
@@ -939,10 +947,10 @@ const SPECS = {
       const day = d => d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
       const story = (img, from, h, p) => `<article><img src="${IMG(img)}" alt=""><small>from ${from}</small><h4>${h}</h4><p>${p}</p></article>`;
       el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><div class="dateline"><span>No. 42</span><span>${day(sun)} ${sun.getFullYear()}</span><span>from 4 gardens Amara follows</span></div></div>
-        <article class="lead"><img src="${IMG('ciechanow-ski-3.png')}" alt=""><div><small>from Nico’s garden · 5,120 people keep this</small><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece. Start with the mainspring; by the escapement you will hear it tick.</p></div></article>
-        <div class="stories">${story('great-wave.jpg', 'Sol’s garden', 'The Great Wave, up close', 'Hokusai’s print, and why the boats matter more than the wave.')}${story('sloan-home-cooked.png', 'Robin Sloan’s garden', 'An app can be a home-cooked meal', 'Software made for four people, and loved by all four.')}${story('pale-blue-dot.png', 'Grandpa Tom’s garden', 'Pale Blue Dot', 'Everyone you love, on a mote of dust in a sunbeam.')}</div>
+        <article class="lead"><img src="${IMG('ciechanow-ski-3-800.webp')}" alt=""><div><small>from Nico’s garden · 5,120 people keep this</small><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece. Start with the mainspring; by the escapement you will hear it tick.</p></div></article>
+        <div class="stories">${story('great-wave.webp', 'Sol’s garden', 'The Great Wave, up close', 'Hokusai’s print, and why the boats matter more than the wave.')}${story('sloan-home-cooked.webp', 'Robin Sloan’s garden', 'An app can be a home-cooked meal', 'Software made for four people, and loved by all four.')}${story('pale-blue-dot.webp', 'Grandpa Tom’s garden', 'Pale Blue Dot', 'Everyone you love, on a mote of dust in a sunbeam.')}</div>
         <p class="next-issue"><b>Next issue</b> ${day(nxt)}, from whatever the four gardens keep this week.</p></div>`; } },
-  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: [{ t: 'Mo’s palette', icon: '🎨', became: 'five swatches, each with its hex' }, { t: 'The Starry Night', img: 'starry-night.jpg', became: 'the night blue and the ochre accent' }, { t: 'The Great Wave', img: 'great-wave.jpg', became: 'the paper, the blush and the ink' }, { t: 'Mo’s note: one ink, one accent', icon: '📝', became: 'the rule the palette keeps' }],
+  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: [{ t: 'Mo’s palette', icon: '🎨', became: 'five swatches, each with its hex' }, { t: 'The Starry Night', img: 'starry-night.webp', became: 'the night blue and the ochre accent' }, { t: 'The Great Wave', img: 'great-wave.webp', became: 'the paper, the blush and the ink' }, { t: 'Mo’s note: one ink, one accent', icon: '📝', became: 'the rule the palette keeps' }],
     next: [{ t: 'Walls I’d hang', s: 'Sol', why: 'The two paintings this palette came from', garden: 'Walls I’d hang' }, { t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'The Great Wave again, on page two', open: 'paper' }, { t: 'Type & letters', s: 'Wen', why: 'The other half of a café sign', garden: 'Type & letters' }],
     render: el => moodboard(el) },
   kyoto: { act: 'Try', noun: 'planner', kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: [{ t: 'Temples we can walk between', icon: '🗺️', became: 'the walking times between stops' }, { t: 'Their note: Fushimi Inari before 7am', icon: '📝', became: 'the 6:30 start' }, { t: '6 places they kept', icon: '📍', became: 'the stops, and indoor swaps for rain' }],
@@ -985,7 +993,7 @@ const SPECS = {
 const PEEK = {
   titan: ['radial-gradient(circle at 74% 46%, var(--titan-saturn) 0 9px, transparent 10px), radial-gradient(ellipse 30px 6px at 74% 46%, transparent 0 60%, rgba(255,231,189,.7) 62% 78%, transparent 80%), linear-gradient(to top, var(--titan-ground) 0 24%, var(--titan-dune) 24% 30%, transparent 30%), linear-gradient(var(--titan-sky-1), var(--titan-sky-2) 60%, var(--titan-sky-3))', '<span>🚀</span>'],
   moon: ['radial-gradient(circle at 18% 50%, var(--moon-lit) 0 15px, transparent 16px), radial-gradient(1.5px 1.5px at 40% 30%, #fff, transparent), radial-gradient(1.5px 1.5px at 62% 64%, #fff, transparent), radial-gradient(1px 1px at 80% 26%, #fff, transparent), radial-gradient(1px 1px at 52% 48%, #fff, transparent), linear-gradient(#10243A, #24394F)'],
-  paper: [`linear-gradient(rgba(16,36,58,.12), rgba(16,36,58,.12)), url(${IMG('great-wave.jpg')}) center 40%/cover`],
+  paper: [`linear-gradient(rgba(16,36,58,.12), rgba(16,36,58,.12)), url(${IMG('great-wave.webp')}) center 40%/cover`],
   mood: ['linear-gradient(90deg, #F5EDD5 0 20%, #E4B494 20% 40%, #B0A54B 40% 60%, #47658F 60% 80%, #2C4C6A 80%)'],
   kyoto: ['linear-gradient(100deg, var(--kyo-sky) 0 50%, var(--kyo-rain) 50%)', '<span>⛩️</span><span style="left:auto;right:84px">☀️ 🌧</span>'],
   recipe: ['linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2))', '<span>🍚</span><span style="left:46px">🥢</span>'],
@@ -1032,7 +1040,7 @@ function moonDash(el) {
 }
 // Café moodboard: an even grid of what Mo kept, then a palette sampled from the two paintings. A swatch copies its hex and lights up the image it came from.
 function moodboard(el) {
-  const art = { starry: ['The Starry Night', 'starry-night.jpg', 'night blue and ochre'], wave: ['The Great Wave', 'great-wave.jpg', 'paper, blush and ink'] };
+  const art = { starry: ['The Starry Night', 'starry-night.webp', 'night blue and ochre'], wave: ['The Great Wave', 'great-wave.webp', 'paper, blush and ink'] };
   const sw = [['#F5EDD5', 'Paper', 'wave'], ['#E4B494', 'Blush', 'wave'], ['#B0A54B', 'Ochre', 'starry'], ['#47658F', 'Night blue', 'starry'], ['#2C4C6A', 'Ink', 'wave']]; // sampled from the images
   el.innerHTML = `<div class="mood"><div class="tiles">${Object.entries(art).map(([k, [t, f, c]]) => `<figure data-src="${k}"><img src="${IMG(f)}" alt="${t}"><figcaption><b>${t}</b> · ${c}</figcaption></figure>`).join('')}
       <figure data-src="note" class="tnote"><blockquote>“Warm paper, one ink, one accent. Everything else is noise.”</blockquote><figcaption><b>Mo’s note</b> · the rule</figcaption></figure>
@@ -1358,7 +1366,7 @@ const setInert = on => { const away = card.classList.contains('away'); view.iner
 function nxThumb(n) {
   const things = n.open ? G.flatMap(g => g.things).filter(th => th.spec === n.open) : (G.find(g => g.name === n.garden) || { things: [] }).things;
   const img = !n.open && things.find(th => th.img), app = things.find(th => th.e);
-  return `<span class="nx-th" aria-hidden="true"${app && !img ? ` style="background:${app.bg}"` : ''}>${img ? `<img src="${img.img}" alt="">` : app ? app.e : '🌔'}</span>`;
+  return `<span class="nx-th" aria-hidden="true"${app && !img ? ` style="background:${app.bg}"` : ''}>${img ? `<img src="${THUMB(img.img)}" alt="">` : app ? app.e : '🌔'}</span>`;
 }
 // Open a specimen. From a card it grows out of the card (FLIP); from a Where next row the content cross-fades.
 function openSpec(id, from) {
@@ -1375,7 +1383,7 @@ function openSpec(id, from) {
   // Grdn is the maker, the owner is the keeper: "Grdn built this game from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
   const n = s.from.length, what = s.fromWhat || (n === 1 ? 'thing' : 'things'), verb = s.fromVerb || 'kept';
   const lead = s.lead ? esc(s.lead).replace('{owner}', `<b>${esc(s.owner)}</b>`) : `Grdn ${s.verb || 'built'} this ${s.noun} from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:`;
-  document.getElementById('spec-made').innerHTML = `<span>${lead}</span>${s.from.map(f => `<span class="chip"><span class="src-ic" aria-hidden="true">${f.img ? `<img src="${IMG(f.img)}" alt="">` : f.icon}</span><span class="src"><b>${esc(f.t)}</b><span class="became">${esc(f.became)}</span></span></span>`).join('')}`;
+  document.getElementById('spec-made').innerHTML = `<span>${lead}</span>${s.from.map(f => `<span class="chip"><span class="src-ic" aria-hidden="true">${f.img ? `<img src="${THUMB(f.img)}" alt="">` : f.icon}</span><span class="src"><b>${esc(f.t)}</b><span class="became">${esc(f.became)}</span></span></span>`).join('')}`;
   // each row says what it does: open another specimen (its verb, ↗) or visit a garden (→)
   document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}">${nxThumb(n)}<span><b>${esc(n.t)}</b><small>${esc(n.s)}</small><span class="why">${esc(n.why)}</span></span>${n.open
     ? `<span class="go open" aria-hidden="true">${SPECS[n.open].act} ↗</span>` : `<span class="go" aria-hidden="true">Visit →</span>`}</button>`).join('');
