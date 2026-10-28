@@ -160,7 +160,7 @@
     opacity: 0; pointer-events: none; transition: opacity .35s ease; }
   #pillbar.show { opacity: 1; pointer-events: auto; }
   #pill { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
-    transition: all .35s ease; }
+    transition: opacity .35s ease, transform .35s ease; }
   #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
 
@@ -722,7 +722,10 @@ const wrap = () => { // place each garden in the copy of the loop nearest the vi
     if (x !== t.x) { t.el.style.left = x + 'px'; t.x = x; } if (y !== t.y) { t.el.style.top = y + 'px'; t.y = y; }
   }
 };
-const apply = () => { z = Math.min(ZMAX, Math.max(ZMIN, z)); world.style.transform = `translate(${px}px,${py}px) scale(${z})`; wrap(); };
+// the dot grid is the ground: it moves and scales with the canvas
+const DOT = 28, dotMod = v => ((v % (DOT * z)) + DOT * z) % (DOT * z);
+const apply = () => { z = Math.min(ZMAX, Math.max(ZMIN, z)); world.style.transform = `translate(${px}px,${py}px) scale(${z})`;
+  view.style.backgroundSize = `${DOT * z}px ${DOT * z}px`; view.style.backgroundPosition = `${dotMod(px)}px ${dotMod(py)}px`; wrap(); };
 function zoomAt(nz, cx, cy) { nz = Math.min(ZMAX, Math.max(ZMIN, nz)); px = cx - (cx - px) * nz / z; py = cy - (cy - py) * nz / z; z = nz; apply(); }
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (calm) drifting = false;
@@ -856,10 +859,10 @@ const SPECS = {
         const [ic, head, sub] = wx[k]; el.querySelector('.wx').innerHTML = `<span class="wx-ic" aria-hidden="true">${ic}</span><span><b>Kyoto, Saturday</b><small>${head} · ${sub}</small></span>`;
         el.querySelectorAll('.toggle button').forEach(b => { b.classList.toggle('on', b.dataset.k === k); b.setAttribute('aria-pressed', b.dataset.k === k); });
         const on = el.querySelector(`.toggle button[data-k="${k}"]`), th = el.querySelector('.toggle .thumb'); th.style.width = on.offsetWidth + 'px'; th.style.transform = `translateX(${on.offsetLeft - 3}px)`;
-        // the stops that changed flip in, one after another
+        // the stops that changed fade in and slide up 8px, one shortly after another
         if (was && !still()) [...ol.querySelectorAll('li')].forEach((li, i) => { if (was[i][1] === days[k][i][1]) return;
-          li.querySelector('.stop').animate([{ transform: 'perspective(600px) rotateX(-80deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 480, delay: 90 * i, easing: EASE, fill: 'backwards' });
-          li.querySelector('.dot').animate([{ transform: 'scale(.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, delay: 90 * i, easing: EASE, fill: 'backwards' }); });
+          li.querySelector('.stop').animate([{ transform: 'translateY(8px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, delay: 40 * i, easing: EASE, fill: 'backwards' });
+          li.querySelector('.dot').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: 40 * i, easing: EASE, fill: 'backwards' }); });
         el.querySelector('.plan').dataset.k = cur = k; };
       el.innerHTML = `<div class="plan"><div class="plan-head"><div class="wx"></div><div class="toggle" role="group" aria-label="Weather"><span class="thumb" aria-hidden="true"></span><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div></div><ol></ol></div>`;
       el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },

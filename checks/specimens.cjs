@@ -549,6 +549,11 @@ async function kyotoPolish(page, vp) {
   check(`${vp}: kyoto every stop has a time and an icon marker on the spine`, a.stops.length >= 5 && a.stops.every(x => /^\d{1,2}:\d{2}$/.test((x.time || '').trim()) && x.dot), JSON.stringify(a.stops));
   await page.locator('#spec-body .toggle button[data-k="rain"]').click(); await wait(40);
   const n = await bodyAnims(page, '#spec-body .stop.swapped');
+  // the swap is a short fade and slide: no 3D flip, at most 8px of travel, at most 250 ms each
+  const kf = await page.evaluate(() => [...document.querySelectorAll('#spec-body li *')].flatMap(e => e.getAnimations()).map(a => { const t = a.effect.getTiming(), frames = a.effect.getKeyframes().map(k => k.transform || 'none');
+    const travel = Math.max(0, ...frames.map(f => { const m = f.match(/translate[XY]?\(([^)]+)\)/); return m ? Math.max(...m[1].split(',').map(v => Math.abs(parseFloat(v)) || 0)) : 0; }));
+    return { d: t.duration, flip: frames.some(f => /rotate|perspective|matrix3d/.test(f)), travel, scale: frames.some(f => /scale/.test(f)) }; }));
+  check(`${vp}: kyoto swap is a short fade/slide (no flip, ≤8px, ≤250 ms; ${kf.length} animations)`, kf.length >= 2 && kf.every(k => !k.flip && !k.scale && k.travel <= 8 && k.d <= 250), JSON.stringify(kf));
   await wait(600); const b = await read();
   check(`${vp}: kyoto weather header shows the day's weather and changes with the toggle`, /\d+°/.test(a.wx) && /\d+°|%/.test(b.wx) && a.wx !== b.wx, `${a.wx} / ${b.wx}`);
   check(`${vp}: kyoto Rain swap animates the swapped stops and slides the toggle`, n >= 2 && a.thumb !== null && Math.abs(b.thumb - a.thumb) > 20 && b.names.join() !== a.names.join(), JSON.stringify({ n, t0: a.thumb, t1: b.thumb }));
@@ -963,6 +968,27 @@ async function sharing(browser) {
   await ctx.close();
 }
 
+// Small motion: the dot grid moves and scales with the canvas, and nothing uses `transition: all`.
+async function groundAndTransitions(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop'); await explore(page);
+  const read = () => page.evaluate(() => { const cs = getComputedStyle(document.getElementById('view')); return { pos: cs.backgroundPosition, size: cs.backgroundSize, px, py, z }; });
+  const a = await read();
+  await page.mouse.move(700, 300); await page.mouse.down(); await page.mouse.move(760, 340, { steps: 4 }); await page.mouse.move(837, 361, { steps: 4 }); await page.mouse.up(); await wait(900);
+  const b = await read();
+  const want = s => { const t = 28 * s.z, m = v => ((v % t) + t) % t; return [m(s.px), m(s.py)]; }, got = s => s.pos.split(/\s+/).map(parseFloat);
+  const near = (s) => { const [wx, wy] = want(s), [gx, gy] = got(s), t = 28 * s.z, d = (p, q) => Math.min(Math.abs(p - q), t - Math.abs(p - q)); return d(wx, gx) < 1 && d(wy, gy) < 1; };
+  check('desktop: the dot grid moves with the canvas when it is dragged', a.pos !== b.pos && b.px !== a.px && near(b), JSON.stringify({ a, b, want: want(b) }));
+  await page.evaluate(() => zoomAt(z * 1.25, innerWidth / 2, innerHeight / 2)); await wait(50);
+  const c = await read();
+  check('desktop: the dot grid scales with the canvas zoom', Math.abs(parseFloat(c.size) - 28 * c.z) < .5 && c.z !== b.z && near(c), JSON.stringify({ b, c }));
+  const all = await page.evaluate(() => { const css = [...document.styleSheets].flatMap(s => { try { return [...s.cssRules].map(r => r.cssText); } catch { return []; } }).filter(t => /transition(-property)?\s*:\s*all\b/.test(t));
+    const els = [...document.querySelectorAll('*')].filter(e => { const cs = getComputedStyle(e); return /\ball\b/.test(cs.transitionProperty) && cs.transitionDuration.split(',').some(d => parseFloat(d) > 0); }).map(e => e.id || e.className || e.tagName);
+    return { css, els }; });
+  check('no rule or element uses `transition: all`', all.css.length === 0 && all.els.length === 0, JSON.stringify(all));
+  check('desktop: no errors in the ground pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
@@ -973,6 +999,7 @@ async function audit(browser) {
   await greyContrast(browser);
   await videosAndWords(browser);
   await sharing(browser);
+  await groundAndTransitions(browser);
 }
 
 async function fullPass(browser, vp) {
