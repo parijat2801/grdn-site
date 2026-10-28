@@ -1267,6 +1267,7 @@ async function agentMade(browser) {
 }
 
 async function audit(browser) {
+  await agentMade(browser);
   await reassureCentred(browser);
   await tapOut(browser);
   await morph(browser);
