@@ -876,12 +876,46 @@ async function widowPass(browser) {
   for (const vp of ['phone', 'small']) { const { ctx, page, errors } = await newPage(browser, vp); await wait(1000); await widows(page, vp); await ctx.close(); }
 }
 
+// Small grey text (meta, counts, captions, bylines, why lines) reaches 4.5:1 against its real background, by computed colours,
+// over the whole canvas and inside every specimen view. "Grey" is any text colour whose channels sit within 60 of each other (the ink family, and white).
+// Text over a picture or a gradient is skipped here (the pixel checks above cover the opening card and the HUD).
+const scanGrey = (page, root) => page.evaluate(root => {
+  const bgOf = el => { const layers = []; for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e); if (e.id !== 'view' && cs.backgroundImage !== 'none') return null; const c = __c.rgb(cs.backgroundColor); if (c && c.a > 0) { layers.push(c); if (c.a >= 1) break; } }
+    let bg = { r: 255, g: 255, b: 255, a: 1 }; for (let i = layers.length - 1; i >= 0; i--) bg = __c.over(layers[i], bg); return bg; };
+  const out = [];
+  for (const el of document.querySelectorAll(`${root}, ${root} *`)) {
+    if (el.closest('svg, .heart, .kept.bump, [aria-hidden="true"]:not(.nx-th)')) continue;
+    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+    const cs = getComputedStyle(el); if (!el.getClientRects().length || cs.visibility === 'hidden') continue;
+    const ink = __c.ink(el); if (ink.a < .05) continue;
+    const spread = Math.max(ink.r, ink.g, ink.b) - Math.min(ink.r, ink.g, ink.b); if (spread > 60 && !el.matches('.live .tag')) continue;
+    const bg = bgOf(el); if (!bg) continue;
+    const fs = parseFloat(cs.fontSize), large = fs >= 24 || (fs >= 18.66 && +cs.fontWeight >= 700), need = large ? 3 : 4.5, ratio = __c.ratio(__c.over(ink, bg), bg);
+    if (ratio < need) out.push({ t: el.textContent.trim().slice(0, 22), cls: el.className, fs, ratio: +ratio.toFixed(2) });
+  }
+  return out; }, root);
+async function greyContrast(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop'); await explore(page); await wait(1000); await page.evaluate(HELP);
+  const canvas = await scanGrey(page, '#world');
+  const uniq = a => [...new Map(a.map(x => [x.cls + '|' + x.ratio, x])).values()];
+  check(`desktop: small grey text on the canvas reaches 4.5:1 against its background (computed colours)`, canvas.length === 0, `${canvas.length} low: ${JSON.stringify(uniq(canvas).slice(0, 6))}`);
+  for (const id of await page.evaluate(() => Object.keys(SPECS))) {
+    await page.evaluate(id => openSpec(id), id); await wait(450);
+    const low = await scanGrey(page, '#spec .panel');
+    check(`desktop: ${id} view's small grey text reaches 4.5:1 (computed colours)`, low.length === 0, `${low.length} low: ${JSON.stringify(uniq(low).slice(0, 6))}`);
+    await closeEsc(page);
+  }
+  check('desktop: no errors in the grey contrast pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
   await emailFocus(browser);
   await entrance(browser);
   await widowPass(browser);
+  await greyContrast(browser);
 }
 
 async function fullPass(browser, vp) {

@@ -9,7 +9,7 @@
 <style>
   /* Design tokens (from the scene work on feature/grdn-page-deploy): colour, people colours, type, space, radius, shadow, motion. */
   :root {
-    --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; --line:rgba(16,36,58,.10); --muted:rgba(16,36,58,.55);
+    --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; --line:rgba(16,36,58,.10); --muted:rgba(16,36,58,.66);
     --c-tom: #2f6db5; --t-tom: #e3ecf8; --c-leo: #e08a1e; --t-leo: #fbecd6; --c-amara: #8a4fc4; --t-amara: #efe4f8;
     --c-lena: #d94f70; --t-lena: #fbe3e9; --c-arjun: #c4552f; --t-arjun: #f8e2d9; --c-mo: #5b6b8c; --t-mo: #e6e9f0; --c-grdn: var(--teal);
     --seen: #eceae3; --seen-ink: rgba(16,36,58,.62); --seen-line: rgba(16,36,58,.22); --card: #fff; --bubble: #fffaf3; --art-bg: #F1ECE0;
@@ -86,7 +86,7 @@
   .flow span { font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #F1ECE0; }
   .flow i { font-style: normal; color: var(--muted); }
   .live { cursor: default; }
-  .live .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--teal); }
+  .live .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--teal-ink); }
   .live button, .live .hit { cursor: pointer; }
 
   /* live widgets */
@@ -130,7 +130,7 @@
   .explore { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .form-error { font-size: 14px; margin-top: 10px; color: var(--muted); }
   .reassure { text-wrap: balance; margin-top: 12px; font-size: 14px; color: var(--muted-strong); }
-  .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
+  .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal-ink); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
   /* solid paper only in an ellipse around the pill; elsewhere a soft fade, so cards visibly slide under it instead of looking cut off */
