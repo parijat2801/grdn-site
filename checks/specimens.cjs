@@ -67,9 +67,9 @@ async function openingCard(page, vp) {
 // The made line names Grdn as the maker and the owner as the keeper; possessives and plurals read right for every owner.
 const MADE = { titan: 'Grdn built this game from 3 things Leo kept:', moon: 'Grdn built this dashboard from 3 things Grandpa Tom kept:', paper: 'Grdn wrote this paper from 4 gardens Amara follows:',
   mood: 'Grdn built this moodboard from 4 things Mo kept:', kyoto: 'Grdn built this planner from 3 things Mei & Jo kept:', recipe: 'Grdn built this scaler from 3 things Priya & Sam kept:', savings: 'Grdn built this chart from 2 things Dami kept:',
-  stream: 'Lena’s stream reads her garden, her feeds and her rules.', agent: 'Arjun’s agent tends this garden with him, through Grdn’s MCP tools:' };
+  stream: 'Lena’s stream reads her garden, her feeds and her rules.', mess: 'Nico built this explorable from 3 things he kept:', agent: 'Arjun’s agent tends this garden with him, through Grdn’s MCP tools:' };
 // The badge on each specimen card names what you do with it.
-const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try', stream: 'Try', agent: 'Watch' };
+const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try', stream: 'Try', agent: 'Watch', mess: 'Play' };
 async function badges(page, vp) {
   const b = await page.evaluate(() => [...document.querySelectorAll('[data-spec]')].map(c => { const m = c.querySelector('.open-mark'); return { id: c.dataset.spec, t: m.textContent.trim(), after: getComputedStyle(m, '::after').content, label: c.getAttribute('aria-label') }; }));
   const bad = b.filter(x => x.t !== BADGE[x.id] || x.after !== '" ↗"' || !x.label.startsWith(BADGE[x.id] + ' '));
@@ -519,6 +519,155 @@ async function agentCheck(page, vp) {
   check(`${vp}: agent: the run stops when the view closes mid-run`, !!c0 && !c0.done && c1.steps === c0.steps && c1.count === c0.count, JSON.stringify({ c0: c0 && c0.steps, c1: c1 && c1.steps }));
 }
 
+// ---------- Mess around and find out: Nico's explorable, a garden of doors in four acts ----------
+const MX_CAPS = ['Mess around and find out is how anything gets better. Every experiment teaches you something.',
+  'Experiments create knowledge, skills and chances. They can also destroy them.',
+  'What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.',
+  'So the goal isn’t to avoid risk, or to chase every discovery. It’s to keep growing your room to experiment, without breaking what makes it possible.'];
+const MX_CLOSE = 'Mess around in ways that let you mess around better tomorrow.';
+const MX_ACTS = ['Mess around', 'Find out', 'The real variable', 'Your turn'];
+// one garden's state, read from the page: tiles by state, frontier, bold bets, the reach readout and the turn
+const mxGarden = (page, sel) => page.evaluate(sel => { const g = document.querySelector(sel); if (!g) return null; const tx = e => (e || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
+  const t = [...g.querySelectorAll('.mx-t')], by = v => t.filter(e => e.dataset.s === v).map(e => +e.dataset.i), act = g.closest('[data-act]') || g.closest('.mx-player');
+  return { seed: g.dataset.seed, n: t.length, lit: by('1'), dark: by('0'), scorched: by('2'), frontier: t.filter(e => e.hasAttribute('data-f')).map(e => +e.dataset.i), bold: t.filter(e => e.hasAttribute('data-bold')).map(e => +e.dataset.i),
+    reach: +tx(act.querySelector('[data-reach]')), turn: +(act.querySelector('[data-turn]') || {}).dataset?.turn, status: tx(act.querySelector('.mx-status')) }; }, sel);
+const mxClickTile = async (page, sel, i) => { const b = await page.evaluate(([sel, i]) => { const e = document.querySelector(`${sel} .mx-t[data-i="${i}"]`); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, [sel, i]);
+  await page.mouse.click(b.x, b.y); await wait(40); };
+const mxShow = (page, act) => page.evaluate(a => document.querySelector(`#spec-body [data-act="${a}"]`).scrollIntoView({ block: 'start' }), act);
+const mxRuns = page => page.evaluate(() => Object.fromEntries(['cautious', 'bold', 'gardener'].map(w => { const s = document.querySelector(`#spec-body .mx-strip[data-who="${w}"]`);
+  return [w, { runs: document.querySelectorAll(`#spec-body [data-act="4"] path[data-run][data-who="${w}"]`).length, median: s ? +s.dataset.median : NaN, dots: s ? s.querySelectorAll('[data-end]').length : 0 }]; })));
+const mxSlide = (page, k, v) => page.evaluate(([k, v]) => { const i = document.querySelector(`#spec-body input[data-k="${k}"]`); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); }, [k, v]);
+
+async function messCheck(page, vp) {
+  await page.evaluate(() => openSpec('mess')); await wait(450);
+  const head = await page.evaluate(() => ({ kind: document.querySelector('#spec-kind .kind').textContent, home: document.querySelector('#spec-kind .home').textContent, title: document.getElementById('spec-title').textContent,
+    caps: [...document.querySelectorAll('#spec-body .mx-cap')].map(e => e.textContent.replace(/\s+/g, ' ').trim()), acts: [...document.querySelectorAll('#spec-body .mx-act h4')].map(e => e.textContent.replace(/^\d+\s*/, '').trim()),
+    close: (document.querySelector('#spec-body .mx-close') || {}).textContent?.trim(), order: (() => { const els = [...document.querySelectorAll('#spec-body .mx-cap, #spec-body .mx-close, #spec-made')]; return els.map(e => Math.round(e.getBoundingClientRect().top)); })(),
+    navHead: document.querySelector('#spec .nx-head').textContent, rows: document.querySelectorAll('#spec-next .nx').length, below: document.querySelector('#spec .next').getBoundingClientRect().top >= document.querySelector('#spec .main').getBoundingClientRect().bottom - 1 }));
+  check(`${vp}: mess: an explorable in Nico's garden, "Mess around and find out"`, head.kind === 'Explorable' && head.home === 'in Things that explain themselves, Nico’s garden' && head.title === 'Mess around and find out', JSON.stringify(head));
+  check(`${vp}: mess: four acts in order (${head.acts.join(' / ')})`, head.acts.join('|') === MX_ACTS.join('|'), JSON.stringify(head.acts));
+  check(`${vp}: mess: the four captions, in order, then the closing line, then the made line`, head.caps.join('|') === MX_CAPS.join('|') && head.close === MX_CLOSE && head.order.length === 6 && head.order.every((y, i) => !i || y > head.order[i - 1]), JSON.stringify({ caps: head.caps, close: head.close, order: head.order }));
+  check(`${vp}: mess: "More to explore" sits under the view with 3 rows`, head.navHead === 'More to explore' && head.rows === 3 && head.below, JSON.stringify(head));
+
+  // Act 1: a click on a glowing edge tile is a try; success lights it, a miss costs the turn
+  const A1 = '#spec-body [data-act="1"] .mx-garden';
+  const a0 = await mxGarden(page, A1);
+  check(`${vp}: mess act 1: a few tiles start lit, with a glowing edge to try, and the reach readout counts the lit tiles`, a0 && a0.lit.length >= 3 && a0.lit.length <= 7 && a0.frontier.length >= 3 && a0.reach === a0.lit.length && a0.turn === 0 && a0.scorched.length === 0, JSON.stringify(a0));
+  let a = a0, grew = false, turns = [];
+  for (let k = 0; k < 14 && !grew; k++) { await mxClickTile(page, A1, a.frontier[0]); const b = await mxGarden(page, A1); turns.push(b.turn); grew = b.lit.length > a.lit.length && b.lit.includes(a.frontier[0]) && b.reach === b.lit.length; a = b; }
+  check(`${vp}: mess act 1: clicking an edge tile is a try (each one a turn) and a success lights it and raises the reach`, grew && turns.every((t, i) => t === i + 1), JSON.stringify({ turns, lit: a.lit.length }));
+  const line1 = await page.evaluate(() => ((document.querySelector('#spec-body [data-act="1"] path[data-line]') || {}).dataset || {}).pts);
+  check(`${vp}: mess act 1: the reach line has a point per turn and ends at the reach`, !!line1 && line1.split(',').length === a.turn + 1 && +line1.split(',').pop() === a.reach, JSON.stringify({ line1, turn: a.turn }));
+  // keyboard: Tab reaches one edge tile, arrows move between edge tiles, Enter tries it
+  const kb = await page.evaluate(() => { const g = document.querySelector('#spec-body [data-act="1"] .mx-garden'), t = g.querySelectorAll('.mx-t[tabindex="0"]'); return { tabbable: t.length, f: t.length && t[0].hasAttribute('data-f'), label: t.length && t[0].getAttribute('aria-label') }; });
+  await page.evaluate(() => document.querySelector('#spec-body [data-act="1"] .mx-t[tabindex="0"]').focus());
+  const f0 = await page.evaluate(() => document.activeElement.dataset.i); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowDown');
+  const f1 = await page.evaluate(() => ({ i: document.activeElement.dataset.i, f: document.activeElement.hasAttribute('data-f'), ring: getComputedStyle(document.activeElement).outlineStyle !== 'none' || getComputedStyle(document.activeElement).strokeWidth !== '0px' }));
+  const t0 = (await mxGarden(page, A1)).turn; await page.keyboard.press('Enter'); await wait(60); const t1 = (await mxGarden(page, A1)).turn;
+  check(`${vp}: mess act 1: one edge tile is in the Tab order, named; arrows move to another edge tile; Enter tries it`, kb.tabbable === 1 && kb.f && /try/i.test(kb.label || '') && f1.f && f1.i !== f0 && t1 === t0 + 1, JSON.stringify({ kb, f0, f1, t0, t1 }));
+
+  // Act 2: bold bets glow bigger; a ruinous one scorches tiles that never light again; waiting lets the edge fade
+  const A2 = '#spec-body [data-act="2"] .mx-garden';
+  await mxShow(page, 2);
+  let b = await mxGarden(page, A2);
+  const glow = await page.evaluate(() => { const g = document.querySelector('#spec-body [data-act="2"] .mx-garden'), bd = g.querySelector('.mx-t[data-bold]'), f = g.querySelector('.mx-t[data-f]:not([data-bold])'), w = e => e ? parseFloat(getComputedStyle(e).strokeWidth) : 0; return { bold: w(bd), plain: w(f), filter: bd ? getComputedStyle(bd).filter : '' }; });
+  check(`${vp}: mess act 2: bold bets are marked with a bigger glow than ordinary edge tiles`, b.bold.length >= 1 && b.bold.every(i => b.frontier.includes(i)) && (glow.bold > glow.plain || glow.filter !== 'none'), JSON.stringify({ bold: b.bold, glow }));
+  let burnt = [], tries = 0;
+  for (; tries < 40 && !burnt.length; tries++) { const pick = b.bold[0] ?? b.frontier[0]; if (pick === undefined) { await page.locator('#spec-body [data-act="2"] .mx-again').click(); b = await mxGarden(page, A2); continue; }
+    await mxClickTile(page, A2, pick); const c = await mxGarden(page, A2); burnt = c.scorched.filter(i => !b.scorched.includes(i)); b = c; }
+  check(`${vp}: mess act 2: a ruinous bold bet scorches a patch (${burnt.length} tiles after ${tries} tries) and says so`, burnt.length >= 2 && /closed for good|burn|scorch/i.test(b.status), JSON.stringify({ burnt, status: b.status }));
+  let relit = [];
+  for (let k = 0; k < 30; k++) { const c = await mxGarden(page, A2); const pick = c.bold[0] ?? c.frontier[0]; if (pick === undefined) break; await mxClickTile(page, A2, pick); const d = await mxGarden(page, A2); relit.push(...burnt.filter(i => !d.scorched.includes(i))); }
+  check(`${vp}: mess act 2: scorched tiles never light again (30 more tries)`, burnt.length > 0 && relit.length === 0, JSON.stringify(relit));
+  await page.locator('#spec-body [data-act="2"] .mx-again').click(); await wait(60);
+  const w0 = await mxGarden(page, A2);
+  for (let k = 0; k < 60; k++) await page.locator('#spec-body [data-act="2"] .mx-wait').click();
+  const w1 = await mxGarden(page, A2);
+  check(`${vp}: mess act 2: waiting 60 turns lets unused edge doors fade dark (${w0.lit.length} → ${w1.lit.length}), and none are scorched`, w1.turn === w0.turn + 60 && w1.lit.length < w0.lit.length && w1.lit.length >= 1 && w1.scorched.length === 0, JSON.stringify({ w0: w0.lit, w1: w1.lit, turn: w1.turn }));
+
+  // Act 3: three players on one seed; the shown run is that seed's run; re-roll changes the seed
+  await mxShow(page, 3); await wait(200);
+  const p0 = await page.evaluate(() => ({ who: [...document.querySelectorAll('#spec-body .mx-player')].map(p => p.dataset.who), seeds: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => g.dataset.seed), shown: (document.querySelector('#spec-body [data-act="3"] [data-seed-out]') || {}).textContent,
+    homes: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => [...g.querySelectorAll('.mx-t[data-s="1"]')].map(e => e.dataset.i).join()) }));
+  check(`${vp}: mess act 3: Cautious, Bold and Gardener play the same seed, shown on the page, from the same start`, p0.who.join() === 'cautious,bold,gardener' && new Set(p0.seeds).size === 1 && p0.shown && p0.shown.includes(p0.seeds[0]) && new Set(p0.homes).size === 1, JSON.stringify(p0));
+  const playing = await page.evaluate(() => document.querySelector('#spec-body [data-act="3"] .mx-play').getAttribute('aria-pressed') === 'true');
+  if (!playing) await page.locator('#spec-body [data-act="3"] .mx-play').click();
+  let p1 = null; const tp = Date.now();
+  for (let k = 0; k < 200; k++) { p1 = await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'); return { turn: +r.querySelector('[data-turn]').dataset.turn, turns: +r.dataset.turns, lines: Object.fromEntries([...r.querySelectorAll('path[data-line]')].map(p => [p.dataset.line, p.dataset.pts])) }; }); if (p1.turn >= p1.turns) break; await wait(100); }
+  const secs = (Date.now() - tp) / 1000;
+  check(`${vp}: mess act 3: the three runs play out turn by turn to the end (${p1.turns} turns in ${secs.toFixed(1)} s)`, p1.turn === p1.turns && secs >= 4 && secs <= 16 && ['cautious', 'bold', 'gardener'].every(w => p1.lines[w] && p1.lines[w].split(',').length === p1.turns + 1), JSON.stringify({ turn: p1.turn, turns: p1.turns, secs }));
+  const model = await page.evaluate(([seed, turns]) => { const P = MX.params3(); return Object.fromEntries(['cautious', 'bold', 'gardener'].map(w => [w, [MX.run(+seed, w, { ...P, turns }).join(), MX.run(+seed, w, { ...P, turns }).join()]])); }, [p0.seeds[0], p1.turns]);
+  check(`${vp}: mess act 3: each shown line is exactly that seed's run, and the same seed gives the same line twice`, ['cautious', 'bold', 'gardener'].every(w => model[w][0] === model[w][1] && model[w][0] === p1.lines[w]), JSON.stringify({ model, shown: p1.lines }));
+  const players = await page.evaluate(() => [...document.querySelectorAll('#spec-body .mx-player')].map(p => ({ who: p.dataset.who, reach: +p.querySelector('[data-reach]').textContent.trim(), lit: p.querySelectorAll('.mx-t[data-s="1"]').length })));
+  check(`${vp}: mess act 3: each player's garden and reach readout match its line's last point`, players.every(p => p.reach === p.lit && p.reach === +p1.lines[p.who].split(',').pop()), JSON.stringify(players));
+  await page.locator('#spec-body [data-act="3"] .mx-reroll').click(); await wait(150);
+  const p2 = await page.evaluate(() => ({ seeds: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => g.dataset.seed), turn: +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn }));
+  check(`${vp}: mess act 3: Re-roll gives all three a new seed, the same for each, and starts over`, new Set(p2.seeds).size === 1 && p2.seeds[0] !== p0.seeds[0] && p2.turn <= 2, JSON.stringify({ before: p0.seeds[0], p2 }));
+  // offscreen, it does not run
+  await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'), pl = r.querySelector('.mx-play'); if (pl.getAttribute('aria-pressed') !== 'true') pl.click(); }); await wait(50);
+  await mxShow(page, 1); await wait(400);
+  const off0 = await page.evaluate(() => +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn); await wait(1200); const off1 = await page.evaluate(() => +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn);
+  check(`${vp}: mess act 3: the run pauses while it is scrolled out of view`, off0 === off1, `${off0} → ${off1}`);
+
+  // Act 4: sliders and run 100 times; the sliders, not the strategy names, decide
+  await mxShow(page, 4); await wait(150);
+  const sl = await page.evaluate(() => [...document.querySelectorAll('#spec-body [data-act="4"] input[type=range]')].map(i => ({ k: i.dataset.k, label: (i.labels && i.labels[0] ? i.labels[0].textContent : i.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim() })));
+  check(`${vp}: mess act 4: four labelled sliders: bet size, reversibility, patience, how fast doors close`, sl.map(s => s.k).join() === 'size,rev,turns,fade' && sl.every(s => s.label.length > 4), JSON.stringify(sl));
+  await page.locator('#spec-body [data-act="4"] [data-mode="many"]').click(); await wait(200);
+  const r0 = await mxRuns(page);
+  check(`${vp}: mess act 4: "100 runs" draws 100 runs per strategy, with each one's ending as a dot and its median`, Object.values(r0).every(r => r.runs === 100 && r.dots === 100 && Number.isFinite(r.median)), JSON.stringify(r0));
+  await mxSlide(page, 'rev', 90); await wait(200); const hi = await mxRuns(page);
+  await mxSlide(page, 'rev', 10); await wait(200); const lo = await mxRuns(page);
+  check(`${vp}: mess act 4: more failures you can undo raise Bold's median reach over 100 runs (${lo.bold.median} → ${hi.bold.median})`, hi.bold.median > lo.bold.median + 5, JSON.stringify({ hi, lo }));
+  await mxSlide(page, 'rev', 50); await mxSlide(page, 'fade', 0); await wait(200); const f0r = await mxRuns(page); await mxSlide(page, 'fade', 12); await wait(200); const f1r = await mxRuns(page);
+  check(`${vp}: mess act 4: doors that close faster lower Cautious and Gardener (${f0r.cautious.median}/${f0r.gardener.median} → ${f1r.cautious.median}/${f1r.gardener.median})`, f1r.cautious.median < f0r.cautious.median && f1r.gardener.median < f0r.gardener.median, JSON.stringify({ f0r, f1r }));
+  const who = await page.evaluate(() => (document.querySelector('#spec-body [data-act="4"] .mx-verdict') || {}).textContent || '');
+  check(`${vp}: mess act 4: a line says how often each strategy ended ahead`, /Cautious/.test(who) && /Bold/.test(who) && /Gardener/.test(who) && /\d/.test(who), who);
+  await mxSlide(page, 'fade', 4);
+  const o = await overflow(page);
+  check(`${vp}: mess view has no horizontal overflow`, noOverflow(o), JSON.stringify(o));
+  if (SHOTS) for (const k of [1, 2, 3, 4]) { await mxShow(page, k); await wait(k === 3 ? 2500 : 350); await page.screenshot({ path: `${SHOTS}/${vp}-mess-act${k}.png` }); }
+
+  // closing stops every loop and observer
+  await mxShow(page, 3); await page.evaluate(() => { const pl = document.querySelector('#spec-body [data-act="3"] .mx-play'); if (pl.getAttribute('aria-pressed') !== 'true') pl.click(); }); await wait(500);
+  const live0 = await page.evaluate(() => MX.live());
+  await closeEsc(page);
+  const fr0 = await page.evaluate(() => MX.frames); await wait(1200); const fr1 = await page.evaluate(() => ({ frames: MX.frames, live: MX.live() }));
+  check(`${vp}: mess: closing the view stops its run loop and observers (${live0} live while open, ${fr1.live} after)`, live0 >= 1 && fr1.live === 0 && fr1.frames === fr0, JSON.stringify({ live0, fr0, fr1 }));
+}
+// the model on its own: honest, seeded, and the dials move it
+async function messModel(page) {
+  const m = await page.evaluate(() => { const P = { size: 2, rev: .5, fade: .04, turns: 40 }, out = {};
+    out.same = ['cautious', 'bold', 'gardener'].every(w => MX.run(7, w, P).join() === MX.run(7, w, P).join());
+    out.differ = [1, 2, 3, 4, 5].some(s => MX.run(s, 'bold', P).join() !== MX.run(s + 1, 'bold', P).join());
+    out.idle = Array.from({ length: 20 }, (_, s) => { const r = MX.run(s + 1, 'cautious', P); return r[r.length - 1] < r[0]; }).filter(Boolean).length;
+    out.still = Array.from({ length: 20 }, (_, s) => { const r = MX.run(s + 1, 'cautious', { ...P, fade: 0 }); return r.every(v => v === r[0]); }).filter(Boolean).length;
+    const wins = { bold: 0, gardener: 0 }; for (let s = 1; s <= 100; s++) { const b = MX.run(s, 'bold', P).pop(), g = MX.run(s, 'gardener', P).pop(); if (b > g) wins.bold++; else if (g > b) wins.gardener++; } out.wins = wins;
+    return out; });
+  check('mess model: the same seed gives the same run; different seeds differ', m.same && m.differ, JSON.stringify(m));
+  check(`mess model: doing nothing loses doors slowly (${m.idle}/20 seeds lose reach), and with no fading it holds (${m.still}/20)`, m.idle >= 15 && m.still === 20, JSON.stringify(m));
+  check(`mess model: not rigged: at the default dials both Bold and Gardener win some runs (${m.wins.bold} / ${m.wins.gardener} of 100)`, m.wins.bold >= 15 && m.wins.gardener >= 15, JSON.stringify(m.wins));
+}
+async function messReduced(browser, vp) {
+  const { ctx, page, errors } = await newPage(browser, vp, { reducedMotion: 'reduce' });
+  await explore(page); await page.evaluate(() => openSpec('mess')); await wait(300);
+  const A1 = '#spec-body [data-act="1"] .mx-garden'; let a = await mxGarden(page, A1), n = 0;
+  for (let k = 0; k < 10; k++) { await mxClickTile(page, A1, a.frontier[0]); n += await bodyAnims(page, '#spec-body *'); a = await mxGarden(page, A1); }
+  check(`${vp}: reduced motion: mess act 1 tries apply at once with nothing animating`, a.turn === 10 && n === 0, JSON.stringify({ turn: a.turn, n }));
+  await mxShow(page, 3); await wait(800);
+  const s0 = await page.evaluate(() => +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn);
+  await page.locator('#spec-body [data-act="3"] .mx-play').click(); await wait(80);
+  const s1 = await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'); return { turn: +r.querySelector('[data-turn]').dataset.turn, turns: +r.dataset.turns, lines: [...r.querySelectorAll('path[data-line]')].map(p => p.dataset.pts.split(',').length) }; });
+  const n3 = await bodyAnims(page, '#spec-body *');
+  check(`${vp}: reduced motion: act 3 does not play on its own; Play shows the whole run at once, drawn still`, s0 === 0 && s1.turn === s1.turns && s1.lines.every(l => l === s1.turns + 1) && n3 === 0, JSON.stringify({ s0, s1, n3 }));
+  await mxShow(page, 4); await page.locator('#spec-body [data-act="4"] [data-mode="many"]').click(); await wait(100);
+  const r = await mxRuns(page);
+  check(`${vp}: reduced motion: 100 runs draw at once`, r.bold.runs === 100 && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(r));
+  await closeEsc(page);
+  check(`${vp}: no errors in the reduced-motion mess pass`, errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 // ---------- polish checks: measured, not presence-only ----------
 // In-page helpers: colour parsing, WCAG contrast, and decoding a screenshot into pixels.
 const HELP = () => { window.__c = {
@@ -899,7 +1048,7 @@ async function specCards(page, vp) {
     return { plainPeek: !!plain.querySelector('.peek'), cards: [...document.querySelectorAll('[data-spec]')].map(el => { const pk = el.querySelector('.peek'), pr = pk && pk.getBoundingClientRect(), cr = el.getBoundingClientRect(), m = el.querySelector('.open-mark'), mr = m.getBoundingClientRect(), mb = getComputedStyle(m, '::before'), ms = getComputedStyle(m);
       return { id: el.dataset.spec, peek: !!pr && pk.offsetHeight >= 44 && pr.width >= .9 * cr.width && (getComputedStyle(pk).backgroundImage !== 'none' || !!pk.querySelector('svg, img')), top: !!pr && pr.top - cr.top < 2, badgeH: m.offsetHeight /* layout px: the canvas itself is zoomed */, glyph: mb.content !== 'none' && parseFloat(mb.width) >= 10, ratio: +__c.ratio(__c.rgb(ms.backgroundColor), __c.rgb(ms.color)).toFixed(2) }; }) }; });
   const bad = c.cards.filter(x => !x.peek || !x.top || x.badgeH < 22 || !x.glyph || x.ratio < 4.5);
-  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 9 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
+  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 10 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
 }
 
 // A specimen's timers and window listeners stop when its view closes, and at once when another specimen replaces it.
@@ -1447,6 +1596,8 @@ async function fullPass(browser, vp) {
   await landerCheck(page, vp);
   await streamCheck(page, vp);
   await agentCheck(page, vp);
+  await messCheck(page, vp);
+  if (vp === 'desktop') await messModel(page);
   await frame(page, vp, specs);
   await keyboard(page, vp, specs);
   if (vp !== 'desktop') await sheet(page, vp, specs);
@@ -1467,6 +1618,8 @@ async function fullPass(browser, vp) {
     }
     if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); await morph(browser); throw 'only'; }
     if (process.env.ONLY === 'pill') { for (let k = 0; k < 3; k++) { const { ctx, page } = await newPage(browser, 'desktop'); await explore(page); await pillClear(page, 'desktop'); await ctx.close(); } throw 'only'; }
+    if (process.env.ONLY === 'mess') { for (const vp of (process.env.VPS || 'desktop,phone').split(',')) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); await messCheck(page, vp); if (vp === 'desktop') await messModel(page);
+        check(`${vp}: no errors in the mess pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await messReduced(browser, vp); } throw 'only'; }
     if (process.env.ONLY === 'agentmade') { await agentMade(browser); throw 'only'; }
     if (process.env.ONLY === 'bump') { await bumpContrast(browser); throw 'only'; }
     if (process.env.ONLY === 'speed') { await loadSpeed(browser); throw 'only'; }
@@ -1483,8 +1636,9 @@ async function fullPass(browser, vp) {
     { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
       await page.evaluate(() => openSpec('stream')); await wait(400); { const o = await overflow(page); check('small: stream view has no horizontal overflow', noOverflow(o), JSON.stringify(o)); }
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/small-stream-initial.png` }); await closeEsc(page);
+      await page.evaluate(() => openSpec('mess')); await wait(400); for (const k of [1, 2, 3, 4]) { await mxShow(page, k); await wait(150); const o = await overflow(page); check(`small: mess act ${k} has no horizontal overflow`, noOverflow(o), JSON.stringify(o)); } await closeEsc(page);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
-    await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone'); await openingPolish(browser, 'desktop'); await openingPolish(browser, 'phone');
+    await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone'); await messReduced(browser, 'desktop'); await messReduced(browser, 'phone'); await openingPolish(browser, 'desktop'); await openingPolish(browser, 'phone');
     await motion(browser, 'desktop', specs);
     await motion(browser, 'phone', specs);
     await pulse(browser, 'desktop', true);
