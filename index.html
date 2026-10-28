@@ -915,7 +915,8 @@ function savings(el) {
   const fill = i => i.style.setProperty('--p', ((i.value - i.min) / (i.max - i.min) * 100) + '%');
   const draw = anim => { const m = +mo.value, years = +yr.value, n = years * 12, r = .04 / 12, grow = [0], put = [0];
     for (let i = 1; i <= n; i++) { grow.push(grow[i - 1] * (1 + r) + m); put.push(m * i); }
-    const p10 = 10 ** Math.floor(Math.log10(grow[n])), top = [1, 1.5, 2, 3, 4, 5, 6, 8, 10].map(k => k * p10).find(v => v >= grow[n] * 1.04), X = i => (i / n * 600).toFixed(1), Y = v => (220 - v / top * 210).toFixed(1);
+    // the top tick: the first nice number above the end value plus 4% headroom; the power of ten comes from the padded value, so 10× always fits
+    const want = grow[n] * 1.04, p10 = 10 ** Math.floor(Math.log10(want)), top = [1, 1.5, 2, 3, 4, 5, 6, 8, 10].map(k => k * p10).find(v => v >= want), X = i => (i / n * 600).toFixed(1), Y = v => (220 - v / top * 210).toFixed(1);
     $('[data-grow]').setAttribute('d', `M0 220 ${grow.map((v, i) => `L${X(i)} ${Y(v)}`).join(' ')} L600 220 Z`);
     $('.gline').setAttribute('d', grow.map((v, i) => `${i ? 'L' : 'M'}${X(i)} ${Y(v)}`).join(' '));
     $('[data-put]').setAttribute('d', put.map((v, i) => `${i ? 'L' : 'M'}${X(i)} ${Y(v)}`).join(' '));

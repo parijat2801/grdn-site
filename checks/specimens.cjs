@@ -602,6 +602,22 @@ async function savingsPolish(page, vp) {
   const n = await bodyAnims(page, '#spec-body [data-total]');
   const b = await read();
   check(`${vp}: the jar total animates when it changes, and the end labels follow`, n >= 1 && b.total !== a.total && b.grow.t.includes(b.total), JSON.stringify({ n, a: a.total, b: b.total, g: b.grow && b.grow.t }));
+  // every allowed slider pair draws finite coordinates, and the end value fits under the top tick
+  const sweep = await page.evaluate(() => { const j = document.querySelector('#spec-body .jar'), mo = j.querySelector('[data-monthly]'), yr = j.querySelector('[data-years]'), bad = [], num = s => +String(s).replace(/[^\d.]/g, '');
+    let pairs = 0;
+    for (let m = +mo.min; m <= +mo.max; m += +mo.step) for (let y = +yr.min; y <= +yr.max; y += +yr.step) {
+      mo.value = m; yr.value = y; mo.dispatchEvent(new Event('input')); pairs++;
+      const attrs = [...j.querySelectorAll('svg, svg *')].flatMap(e => [...e.attributes].map(a => a.value)), styles = [...j.querySelectorAll('[style]')].map(e => e.getAttribute('style'));
+      const ticks = [...j.querySelectorAll('.yt')].map(e => num(e.textContent)), total = num(j.querySelector('[data-total]').textContent), top = Math.max(...ticks);
+      const why = [];
+      if ([...attrs, ...styles].some(v => /NaN|undefined|Infinity/.test(v))) why.push('non-finite coordinate');
+      if (!(ticks.length >= 3 && new Set(ticks).size === ticks.length && Number.isFinite(top) && top > 0)) why.push('ticks ' + ticks.join('/'));
+      if (!(total <= top)) why.push(`total ${total} over top tick ${top}`);
+      if (why.length) bad.push(`£${m} × ${y}y: ${why.join(', ')}`);
+    }
+    mo.value = 10; yr.value = 10; mo.dispatchEvent(new Event('input'));
+    return { pairs, bad }; });
+  check(`${vp}: every slider pair (${sweep.pairs}) draws finite coordinates with the end value under the top tick`, sweep.pairs === 900 && sweep.bad.length === 0, `${sweep.bad.length} bad: ${sweep.bad.slice(0, 5).join(' | ')}`);
   await closeEsc(page);
 }
 
