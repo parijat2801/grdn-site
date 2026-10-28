@@ -45,23 +45,21 @@ async function openViaCard(page, id, spec) {
 }
 async function closeEsc(page) { await page.keyboard.press('Escape'); await wait(450); }
 
-const WAIT = 'Grdn opens soon. Explore example gardens while you wait.';
 async function openingCard(page, vp) {
   const c = await page.evaluate(() => {
     const t = s => (document.querySelector(s)?.textContent || '').replace(/ /g, ' ').trim();
     const visible = s => { const el = document.querySelector(s); if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'; };
     return { h1: t('#card h1'), lede: t('#card .lede'), btn: t('#f button'), email: !!document.querySelector('#f input[type=email][required]'), reassure: t('#reassure'), explore: t('#explore'), oldWander: !!document.getElementById('wander'),
-      ledeVisible: visible('#card .lede'), wait: t('#waitnote'), waitVisible: visible('#waitnote'), pill: t('#pill'), label: document.getElementById('card').getAttribute('aria-label'),
+      ledeVisible: visible('#card .lede'), wait: document.getElementById('waitnote') ? t('#waitnote') : null, pill: t('#pill'), label: document.getElementById('card').getAttribute('aria-label'),
       lowerName: (document.body.innerText.match(/\bgrdn\b/g) || []).length };
   });
   check(`${vp}: headline unchanged`, c.h1 === 'Everything worth a revisit.', c.h1);
-  const words = c.lede.split(/\s+/).filter(Boolean).length;
-  check(`${vp}: definition line says what a garden is: a page of what one person keeps (${words} words)`, c.ledeVisible && words <= 22 && /garden is/i.test(c.lede) && /\bpage\b/i.test(c.lede) && /\bkeep\b/i.test(c.lede) && /visit/i.test(c.lede) && /\bmakes?\b/i.test(c.lede) && /web/i.test(c.lede), c.lede);
+  check(`${vp}: definition line is the owner's line: keep, build on it with your agents, share`, c.ledeVisible && c.lede === 'Keep what you find online, build on it with your agents, share it with the people who’d love it.', c.lede);
   check(`${vp}: form button says "Reserve your Grdn"`, c.email && c.btn === 'Reserve your Grdn', c.btn);
   check(`${vp}: pill and card label say "Reserve your Grdn"`, c.pill === 'Reserve your Grdn' && c.label === 'Reserve your Grdn', `${c.pill} / ${c.label}`);
   check(`${vp}: no lower-case "grdn" in visible text`, c.lowerName === 0, String(c.lowerName));
   check(`${vp}: reassure line unchanged`, c.reassure === 'We’ll email you once, when your garden is ready.', c.reassure);
-  check(`${vp}: the wait line is honest: Grdn opens soon, these are example gardens`, c.waitVisible && c.wait === WAIT && !/\breal\b/i.test(c.wait), c.wait);
+  check(`${vp}: no opens-soon line on the opening card (owner: the gardens behind it are clearly examples)`, c.wait === null && !/opens soon|example gardens/i.test(c.lede), c.wait);
   await widows(page, vp); // every line on the card, not only the wait line
   check(`${vp}: Wander is now "Explore the gardens"`, c.explore === 'Explore the gardens' && !c.oldWander, c.explore);
 }
@@ -681,8 +679,8 @@ async function openingPolish(browser, vp) {
       .map(t => { const cs = getComputedStyle(t); return parseFloat(cs.animationDelay) + parseFloat(cs.animationDuration); }).sort((a, b) => a - b); return { n: xs.length, median: xs[Math.floor(xs.length / 2)], last: xs[xs.length - 1] }; });
   check(`${vp}: gardens around the opening card have risen in by 1.2 s (median ${op.median}s, last ${op.last}s)`, op.n >= 3 && op.median <= 1.2 && op.last <= 1.6, JSON.stringify(op));
   await wait(1200); await page.evaluate(HELP);
-  const tc = await textContrast(page, '#card .mark, #card h1, #card .lede, #card .waitnote, #card .reassure, #card .explore');
-  check(`${vp}: every line on the opening card has ≥4.5:1 contrast against what is behind it (pixels)`, tc.length >= 6 && tc.every(x => x.ratio >= 4.5), JSON.stringify(tc));
+  const tc = await textContrast(page, '#card .mark, #card h1, #card .lede, #card .reassure, #card .explore');
+  check(`${vp}: every line on the opening card has ≥4.5:1 contrast against what is behind it (pixels)`, tc.length >= 5 && tc.every(x => x.ratio >= 4.5), JSON.stringify(tc));
   if (vp !== 'desktop') {
     await explore(page); await page.evaluate(() => { px -= 120; py -= 700; apply(); }); await wait(400);
     const b = await page.evaluate(() => { const p = document.getElementById('pill'), bar = document.getElementById('pillbar'), pr = p.getBoundingClientRect(), br = bar.getBoundingClientRect(), bg = __c.rgb(getComputedStyle(p).backgroundColor), fg = __c.rgb(getComputedStyle(p).color);
@@ -867,7 +865,7 @@ async function entrance(browser) {
 }
 
 // No line on the opening card ends on one word alone (phones). Owner copy is unchanged; only wrapping may change.
-const OPENING_LINES = ['#card h1', '#card .lede', '#card .waitnote', '#card .reassure', '#card .explore'];
+const OPENING_LINES = ['#card h1', '#card .lede', '#card .reassure', '#card .explore'];
 async function widows(page, vp) {
   const r = await page.evaluate(sels => sels.map(sel => { const el = document.querySelector(sel); if (!el || !el.getClientRects().length) return { sel, missing: true };
     const tops = [], walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
