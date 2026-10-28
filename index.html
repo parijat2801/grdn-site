@@ -127,7 +127,8 @@
   input[type=email]:focus-visible, .btn:focus-visible, .explore:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
   .btn { font: 600 16px 'Bricolage Grotesque'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
-  .explore { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  /* a 45px tall hit area; the negative margin keeps the card's layout where it was */
+  .explore { padding: 14px 16px; margin: -14px -16px; border-radius: var(--r-pill); background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .form-error { font-size: 14px; margin-top: 10px; color: var(--muted); }
   .reassure { text-wrap: balance; margin-top: 12px; font-size: 14px; color: var(--muted-strong); }
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal-ink); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }

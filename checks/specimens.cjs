@@ -876,6 +876,20 @@ async function widowPass(browser) {
   for (const vp of ['phone', 'small']) { const { ctx, page, errors } = await newPage(browser, vp); await wait(1000); await widows(page, vp); await ctx.close(); }
 }
 
+// Tap targets on phones: Explore, the email field, Reserve and the pill are at least 44px tall.
+async function tapTargets(browser) {
+  for (const vp of ['phone', 'small']) {
+    const { ctx, page, errors } = await newPage(browser, vp); await wait(1000);
+    const a = await page.evaluate(() => ['#explore', '#f input[type=email]', '#f button'].map(s => { const r = document.querySelector(s).getBoundingClientRect(); return { s, w: Math.round(r.width), h: Math.round(r.height) }; }));
+    await explore(page);
+    const p = await page.evaluate(() => { const r = document.getElementById('pill').getBoundingClientRect(); return { s: '#pill', w: Math.round(r.width), h: Math.round(r.height) }; });
+    const all = [...a, p], bad = all.filter(x => x.h < 44 || x.w < 44);
+    check(`${vp}: Explore, the email field, Reserve and the pill are ≥44px tap targets`, bad.length === 0, JSON.stringify(all));
+    check(`${vp}: no errors in the tap target pass`, errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+}
+
 // Small grey text (meta, counts, captions, bylines, why lines) reaches 4.5:1 against its real background, by computed colours,
 // over the whole canvas and inside every specimen view. "Grey" is any text colour whose channels sit within 60 of each other (the ink family, and white).
 // Text over a picture or a gradient is skipped here (the pixel checks above cover the opening card and the HUD).
@@ -915,6 +929,7 @@ async function audit(browser) {
   await emailFocus(browser);
   await entrance(browser);
   await widowPass(browser);
+  await tapTargets(browser);
   await greyContrast(browser);
 }
 
