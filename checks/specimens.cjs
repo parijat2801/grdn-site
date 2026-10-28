@@ -944,6 +944,25 @@ async function videosAndWords(browser) {
   await ctx.close();
 }
 
+// Sharing basics: description, Open Graph and Twitter tags with absolute https images, theme colour, favicon, and the title without an em dash.
+async function sharing(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop');
+  const h = await page.evaluate(() => { const m = q => document.querySelector(q)?.getAttribute('content') || ''; const icon = document.querySelector('link[rel~="icon"]');
+    return { title: document.title, desc: m('meta[name="description"]'), ogTitle: m('meta[property="og:title"]'), ogDesc: m('meta[property="og:description"]'), ogImage: m('meta[property="og:image"]'), ogType: m('meta[property="og:type"]'),
+      ogW: m('meta[property="og:image:width"]'), ogH: m('meta[property="og:image:height"]'), tw: m('meta[name="twitter:card"]'), twTitle: m('meta[name="twitter:title"]'), twDesc: m('meta[name="twitter:description"]'), twImage: m('meta[name="twitter:image"]'),
+      theme: m('meta[name="theme-color"]'), icon: icon ? icon.getAttribute('href') : '' }; });
+  check('title is "Grdn: everything worth a revisit" (no em dash)', h.title === 'Grdn: everything worth a revisit' && !/—/.test(h.title), h.title);
+  check('meta description, og:title, og:description, og:type and the twitter card are present', h.desc.length >= 40 && h.ogTitle && h.ogDesc.length >= 40 && h.ogType === 'website' && h.tw === 'summary_large_image' && h.twTitle && h.twDesc, JSON.stringify(h));
+  const abs = u => /^https:\/\/[^/]+\/.+/.test(u);
+  check('og:image and twitter:image are absolute https URLs', abs(h.ogImage) && abs(h.twImage), `${h.ogImage} / ${h.twImage}`);
+  const local = h.ogImage.match(/^https:\/\/grdn-site\.vercel\.app\/web\/([\w.-]+\.png)$/), file = local && path.join(ROOT, 'web', local[1]);
+  let dims = null; if (file && fs.existsSync(file)) { const b = fs.readFileSync(file); dims = b.slice(1, 4).toString() === 'PNG' ? [b.readUInt32BE(16), b.readUInt32BE(20)] : null; }
+  check('the og image is a 1200×630 PNG in web/ and the tags say so', !!dims && dims[0] === 1200 && dims[1] === 630 && h.ogW === '1200' && h.ogH === '630', JSON.stringify({ og: h.ogImage, dims, w: h.ogW, h: h.ogH }));
+  check('theme-color and a favicon (inline SVG or absolute https) are set', /^#[0-9a-f]{6}$/i.test(h.theme) && (/^data:image\/svg\+xml/.test(h.icon) || abs(h.icon)), JSON.stringify({ theme: h.theme, icon: h.icon.slice(0, 40) }));
+  check('no errors in the sharing pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
@@ -953,6 +972,7 @@ async function audit(browser) {
   await tapTargets(browser);
   await greyContrast(browser);
   await videosAndWords(browser);
+  await sharing(browser);
 }
 
 async function fullPass(browser, vp) {
