@@ -488,6 +488,40 @@ async function sheetReach(page, vp) {
   await closeEsc(page);
 }
 
+// Running animations inside the open view's body, right after an action.
+const bodyAnims = (page, sel) => page.evaluate(sel => [...document.querySelectorAll(sel)].reduce((n, e) => n + e.getAnimations().filter(a => a.playState === 'running').length, 0), sel);
+
+async function recipePolish(page, vp) {
+  await page.evaluate(() => openSpec('recipe')); await wait(400);
+  const r = await page.evaluate(() => { const rec = document.querySelector('#spec-body .recipe'), rr = rec.getBoundingClientRect(), hero = rec.querySelector('.hero'), hr = hero && hero.getBoundingClientRect(), art = hero && hero.querySelector('svg, img'), ar = art && art.getBoundingClientRect();
+    const nums = [...rec.querySelectorAll('.steps .n')].map(n => ({ t: n.textContent.trim(), fs: parseFloat(getComputedStyle(n).fontSize) }));
+    const sv = rec.querySelector('[data-serves]'), btns = [...rec.querySelectorAll('[data-step]')].map(b => { const q = b.getBoundingClientRect(); return [Math.round(q.width), Math.round(q.height)]; });
+    return { hero: !!hr && hr.height >= 120 && Math.abs(hr.top - rr.top) < 4 && !!ar && ar.width * ar.height >= .5 * hr.width * hr.height, nums, servesFs: parseFloat(getComputedStyle(sv).fontSize), btns }; });
+  check(`${vp}: recipe opens on an illustrated header at least 120px tall`, r.hero, JSON.stringify(r));
+  check(`${vp}: recipe steps have big numbers (1, 2, 3 at ≥28px)`, r.nums.length === 3 && r.nums.every((n, i) => n.t === String(i + 1) && n.fs >= 28), JSON.stringify(r.nums));
+  check(`${vp}: recipe servings control is prominent (count ≥28px, buttons ≥44px)`, r.servesFs >= 28 && r.btns.length === 2 && r.btns.every(([w, h]) => w >= 44 && h >= 44), JSON.stringify(r));
+  await page.locator('#spec-body button[data-step="1"]').click();
+  const n = await bodyAnims(page, '#spec-body .amt');
+  check(`${vp}: recipe quantities animate when the servings change`, n >= 3, String(n));
+  await closeEsc(page);
+}
+
+// With reduced motion, the same actions change content with no animation.
+async function reducedPolish(browser, vp) {
+  const { ctx, page, errors } = await newPage(browser, vp, { reducedMotion: 'reduce' });
+  await explore(page); await page.evaluate(HELP);
+  await page.evaluate(() => openSpec('recipe')); await wait(300);
+  const q0 = await page.evaluate(() => document.querySelector('#spec-body .amt').dataset.q);
+  await page.locator('#spec-body button[data-step="1"]').click();
+  const q1 = await page.evaluate(() => document.querySelector('#spec-body .amt').dataset.q), n = await bodyAnims(page, '#spec-body *');
+  check(`${vp}: reduced motion: recipe amounts change with no animation`, q1 !== q0 && n === 0, JSON.stringify({ q0, q1, n }));
+  await closeEsc(page);
+  await reducedMore(page, vp);
+  check(`${vp}: no errors in the reduced-motion polish pass`, errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+async function reducedMore(page, vp) {}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
@@ -495,6 +529,7 @@ async function polish(page, vp, specs) {
   await whereNextPanel(page, vp, specs);
   await titanPolish(page, vp);
   if (vp !== 'desktop') await sheetReach(page, vp);
+  await recipePolish(page, vp);
 }
 
 async function fullPass(browser, vp) {
@@ -529,7 +564,7 @@ async function fullPass(browser, vp) {
   try {
     if (process.env.ONLY === 'polish') { // quick loop while building: only the polish checks
       for (const vp of ['desktop', 'phone']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); const specs = await specInfo(page); await polish(page, vp, specs);
-        check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); }
+        check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); }
       throw 'only';
     }
     const specs = await fullPass(browser, 'desktop');
@@ -537,6 +572,7 @@ async function fullPass(browser, vp) {
     // small phone: sheet behaviour only
     { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
+    await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone');
     await motion(browser, 'desktop', specs);
     await motion(browser, 'phone', specs);
     await pulse(browser, 'desktop', true);
