@@ -32,6 +32,7 @@
     --made-bg: #EAF4EF; --made-line: rgba(15,143,128,.20); --made-ring: rgba(15,143,128,.16); --fs-made: 16px;
     --muted-strong: rgba(16,36,58,.70); --nx-top: 68px;
     --rice-bg-1: #FCEBC2; --rice-bg-2: #F4CF94; --rice-steam: #fff; --rice-bowl: #2f6db5; --rice-bowl-hi: #5d91d0; --rice-grain-bg: #FFF7E6; --rice-grain: #F2E3C2; --rice-egg: #F5B83D; --rice-onion: #5E9E4A; --rice-chop: #8A5A2B; --rice-num: #c4552f;
+    --kyo-time: 46px; --kyo-sky: #FCEFD3; --kyo-rain: #DCE6F3; --kyo-spine: #C9BFA9; --kyo-stop: #F6F3EA; --kyo-swap: #E3ECF8;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -275,16 +276,25 @@
   .mood .first { grid-row: span 2; }
   .mood .swatches { display: flex; border-radius: 10px; overflow: hidden; cursor: pointer; } .mood .swatches div { flex: 1; }
   .mood .type { display: grid; place-items: center; background: #F3EBDD; border-radius: 10px; font-family: 'Newsreader', serif; font-size: 26px; font-style: italic; color: #263B42; }
-  .plan .toggle { display: inline-flex; padding: 3px; border-radius: var(--r-pill); background: #F1ECE0; }
-  .plan .toggle button { border: 0; background: none; padding: 7px 16px; border-radius: var(--r-pill); font: 600 14px 'Bricolage Grotesque'; color: var(--muted); cursor: pointer; }
-  .plan .toggle button.on { background: #fff; color: var(--ink); box-shadow: var(--shadow-card); }
-  .plan ol { list-style: none; margin-top: 14px; }
-  .plan li { display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: start; }
-  .plan li .time { font-weight: 700; font-size: 15px; padding-top: 12px; }
-  .plan li .stop { background: #F4F6FB; border-radius: 12px; padding: 10px 12px; transition: background .3s; }
-  .plan li .stop.swapped { background: #E3ECF8; }
-  .plan li .stop b { display: block; font-size: 16px; } .plan li .stop small { font-size: var(--fs-meta); color: var(--muted); }
-  .plan .walk { grid-column: 2; font-size: var(--fs-tag); color: var(--muted); padding: 4px 0 4px 12px; }
+  /* Kyoto: the day's weather and the toggle, then a timeline: times, a spine with an icon per stop, and the walks between */
+  .plan .plan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-radius: var(--r-card); background: var(--kyo-sky); transition: background var(--hover) ease; }
+  .plan[data-k="rain"] .plan-head { background: var(--kyo-rain); }
+  .plan .wx { display: flex; align-items: center; gap: var(--sp-3); } .plan .wx-ic { font-size: 30px; line-height: 1; }
+  .plan .wx b { display: block; font-size: var(--fs-row); font-weight: 700; } .plan .wx small { display: block; font-size: var(--fs-meta); color: var(--muted-strong); }
+  .plan .toggle { position: relative; display: inline-flex; padding: 3px; border-radius: var(--r-pill); background: rgba(255,255,255,.55); }
+  .plan .toggle .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; border-radius: var(--r-pill); background: var(--card); box-shadow: var(--shadow-card); transition: transform var(--hover) var(--ease), width var(--hover) var(--ease); }
+  .plan .toggle button { position: relative; border: 0; background: none; padding: 8px 16px; border-radius: var(--r-pill); font: 600 14px 'Bricolage Grotesque'; color: var(--muted-strong); cursor: pointer; transition: color var(--fade) ease; }
+  .plan .toggle button.on { color: var(--ink); } .plan .toggle button:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+  .plan ol { position: relative; list-style: none; margin-top: var(--sp-4); }
+  .plan ol::before { content: ''; position: absolute; left: calc(var(--kyo-time) + var(--sp-3) + 15px); top: 22px; bottom: 34px; width: 2px; background: repeating-linear-gradient(to bottom, var(--kyo-spine) 0 6px, transparent 6px 11px); }
+  .plan li { position: relative; display: grid; grid-template-columns: var(--kyo-time) 32px minmax(0, 1fr); column-gap: var(--sp-3); align-items: start; }
+  .plan li .time { font-weight: 700; font-size: 15px; padding-top: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .plan li .dot { position: relative; margin-top: 7px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: var(--card); border: 2px solid var(--kyo-spine); font-size: 15px; line-height: 1; }
+  .plan li .stop { background: var(--kyo-stop); border-radius: 12px; padding: 10px 12px; transform-origin: 50% 0; }
+  .plan li .stop.swapped { background: var(--kyo-swap); box-shadow: inset 3px 0 0 var(--c-tom); }
+  .plan li .stop b { display: block; font-size: 16px; } .plan li .stop small { font-size: var(--fs-meta); color: var(--muted-strong); }
+  .plan .walk { grid-column: 3; font-size: var(--fs-tag); color: var(--muted-strong); padding: 6px 0 8px 12px; }
+  .plan .walk::before { content: '🚶 '; }
   .recipe .hero { position: relative; height: 170px; border-radius: var(--r-stage); overflow: hidden; background: linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2)); box-shadow: inset 0 0 0 1px var(--line); }
   .recipe .hero svg { display: block; width: 100%; height: 100%; }
   .recipe .serves { position: absolute; right: var(--sp-5); top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 10px; padding: 6px 6px 6px 18px; border-radius: var(--r-pill); background: var(--card); box-shadow: var(--shadow-lift); font-weight: 700; font-size: var(--fs-meta); }
@@ -730,12 +740,22 @@ const SPECS = {
       const sw = el.querySelector('.swatches'); sw.onclick = () => { const h = 15 + Math.random() * 40; [...sw.children].forEach((c, i) => c.style.background = hsl((h + i * 18) % 360, 30 + i * 8, 88 - i * 16)); }; } },
   kyoto: { act: 'Try', noun: 'planner', kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: [{ t: 'Temples we can walk between', icon: '🗺️', became: 'the walking times between stops' }, { t: 'Their note: Fushimi Inari before 7am', icon: '📝', became: 'the 6:30 start' }, { t: '6 places they kept', icon: '📍', became: 'the stops, and indoor swaps for rain' }],
     next: [{ t: 'The map and the 7am note', s: 'Mei & Jo', why: 'What this plan was built from', garden: 'Trip to Kyoto' }, { t: 'Kitchen', s: 'Priya & Sam', why: 'Fried rice after a long walking day', garden: 'Kitchen' }, { t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'Windows onto other cities, every Sunday', open: 'paper' }],
-    render: el => { const days = {
-        sun: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20], ['9:30', 'Arashiyama bamboo grove', 'walk the river after', 25], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15], ['15:00', 'Philosopher’s Path', 'two hours, slowly', 10], ['18:30', 'Gion at dusk', 'lanterns come on']],
-        rain: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20], ['9:30', 'Kyoto National Museum', 'indoors, swapped for the rain', 25, 1], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15], ['15:00', 'Nishiki Market', 'covered, swapped for the rain', 10, 1], ['18:30', 'Gion at dusk', 'lanterns come on']] };
-      const draw = k => { el.querySelector('ol').innerHTML = days[k].map(([t, n, s, w, sw]) => `<li><div class="time">${t}</div><div class="stop${sw ? ' swapped' : ''}"><b>${n}</b><small>${s}</small></div>${w ? `<div class="walk">${w} min walk</div>` : ''}</li>`).join('');
-        el.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); };
-      el.innerHTML = `<div class="plan"><div class="toggle"><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div><ol></ol></div>`;
+    render: el => { const days = { // [time, place, note, walk minutes to the next stop, swapped for rain, icon]
+        sun: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20, 0, '⛩️'], ['9:30', 'Arashiyama bamboo grove', 'walk the river after', 25, 0, '🎋'], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15, 0, '🍜'], ['15:00', 'Philosopher’s Path', 'two hours, slowly', 10, 0, '🌸'], ['18:30', 'Gion at dusk', 'lanterns come on', 0, 0, '🏮']],
+        rain: [['6:30', 'Fushimi Inari', 'before 7am, nobody else there', 20, 0, '⛩️'], ['9:30', 'Kyoto National Museum', 'indoors, swapped for the rain', 25, 1, '🏛️'], ['13:00', 'Lunch on Kiyamachi', 'by the canal', 15, 0, '🍜'], ['15:00', 'Nishiki Market', 'covered, swapped for the rain', 10, 1, '🛍️'], ['18:30', 'Gion at dusk', 'lanterns come on', 0, 0, '🏮']] };
+      const wx = { sun: ['☀️', 'Sunny all day, 19°', 'light breeze, dry paths'], rain: ['🌧', 'Rain from 9am, 14°', '80% chance until 5pm'] };
+      let cur = null;
+      const draw = k => { const ol = el.querySelector('ol'), was = cur && days[cur];
+        ol.innerHTML = days[k].map(([t, n, s, w, sw, ic]) => `<li><div class="time">${t}</div><div class="dot" aria-hidden="true">${ic}</div><div class="stop${sw ? ' swapped' : ''}"><b>${n}</b><small>${s}</small></div>${w ? `<div class="walk">${w} min walk</div>` : ''}</li>`).join('');
+        const [ic, head, sub] = wx[k]; el.querySelector('.wx').innerHTML = `<span class="wx-ic" aria-hidden="true">${ic}</span><span><b>Kyoto, Saturday</b><small>${head} · ${sub}</small></span>`;
+        el.querySelectorAll('.toggle button').forEach(b => { b.classList.toggle('on', b.dataset.k === k); b.setAttribute('aria-pressed', b.dataset.k === k); });
+        const on = el.querySelector(`.toggle button[data-k="${k}"]`), th = el.querySelector('.toggle .thumb'); th.style.width = on.offsetWidth + 'px'; th.style.transform = `translateX(${on.offsetLeft - 3}px)`;
+        // the stops that changed flip in, one after another
+        if (was && !still()) [...ol.querySelectorAll('li')].forEach((li, i) => { if (was[i][1] === days[k][i][1]) return;
+          li.querySelector('.stop').animate([{ transform: 'perspective(600px) rotateX(-80deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 480, delay: 90 * i, easing: EASE, fill: 'backwards' });
+          li.querySelector('.dot').animate([{ transform: 'scale(.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, delay: 90 * i, easing: EASE, fill: 'backwards' }); });
+        el.querySelector('.plan').dataset.k = cur = k; };
+      el.innerHTML = `<div class="plan"><div class="plan-head"><div class="wx"></div><div class="toggle" role="group" aria-label="Weather"><span class="thumb" aria-hidden="true"></span><button data-k="sun">☀️ Sun</button><button data-k="rain">🌧 Rain</button></div></div><ol></ol></div>`;
       el.querySelectorAll('.toggle button').forEach(b => b.onclick = () => draw(b.dataset.k)); draw('sun'); } },
   recipe: { act: 'Try', noun: 'scaler', kind: 'Recipe', title: 'Fried rice for however many', owner: 'Priya & Sam', garden: 'Kitchen', from: [{ t: 'The food lab: eggs · seriouseats.com', icon: '🥚', became: 'step 1: soft eggs, taken out' }, { t: 'Egg fried rice · thewoksoflife.com', icon: '🍳', became: 'the amounts for 2 people' }, { t: 'Note: fried, never microwaved', icon: '📝', became: 'step 2: day-old rice, hot and fast' }],
     next: [{ t: 'Day planner, rain or shine', s: 'Mei & Jo · Kyoto', why: 'Another plan that bends to the day', open: 'kyoto' }, { t: 'The links behind this recipe', s: 'Priya & Sam', why: 'The food lab eggs and the Woks of Life', garden: 'Kitchen' }, { t: 'Board game night', s: 'the Friday table', why: 'Cooking for however many? Try six', garden: 'Board game night' }],

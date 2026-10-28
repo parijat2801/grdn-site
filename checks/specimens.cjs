@@ -520,7 +520,32 @@ async function reducedPolish(browser, vp) {
   check(`${vp}: no errors in the reduced-motion polish pass`, errors.length === 0, errors.join(' | '));
   await ctx.close();
 }
-async function reducedMore(page, vp) {}
+async function reducedMore(page, vp) {
+  await page.evaluate(() => openSpec('kyoto')); await wait(300);
+  await page.locator('#spec-body .toggle button[data-k="rain"]').click();
+  const k = await page.evaluate(() => ({ swapped: document.querySelectorAll('#spec-body .stop.swapped').length, n: [...document.querySelectorAll('#spec-body *')].reduce((n, e) => n + e.getAnimations().filter(a => a.playState === 'running').length, 0) }));
+  check(`${vp}: reduced motion: kyoto swaps to rain with no animation`, k.swapped >= 2 && k.n === 0, JSON.stringify(k));
+  await closeEsc(page);
+  await reducedMore2(page, vp);
+}
+async function reducedMore2(page, vp) {}
+
+async function kyotoPolish(page, vp) {
+  await page.evaluate(() => openSpec('kyoto')); await wait(400);
+  const read = () => page.evaluate(() => { const plan = document.querySelector('#spec-body .plan'), ol = plan.querySelector('ol'), sp = getComputedStyle(ol, '::before'), olr = ol.getBoundingClientRect();
+    const wx = plan.querySelector('.wx'), th = plan.querySelector('.toggle .thumb');
+    return { spine: { w: parseFloat(sp.width), h: parseFloat(sp.height), olH: olr.height, bg: sp.backgroundColor }, stops: [...ol.querySelectorAll('li')].map(li => { const d = li.querySelector('.dot'), r = d && d.getBoundingClientRect(); return { time: (li.querySelector('.time') || {}).textContent, dot: !!r && r.width >= 24 && r.height >= 24 && d.textContent.trim().length > 0 }; }),
+      wx: wx ? wx.textContent.replace(/\s+/g, ' ').trim() : '', thumb: th ? th.getBoundingClientRect().left : null, names: [...ol.querySelectorAll('.stop b')].map(b => b.textContent) }; });
+  const a = await read();
+  check(`${vp}: kyoto timeline has a spine down the stops (≥2px wide, ≥70% of the list)`, a.spine.w >= 2 && a.spine.h >= .7 * a.spine.olH, JSON.stringify(a.spine));
+  check(`${vp}: kyoto every stop has a time and an icon marker on the spine`, a.stops.length >= 5 && a.stops.every(x => /^\d{1,2}:\d{2}$/.test((x.time || '').trim()) && x.dot), JSON.stringify(a.stops));
+  await page.locator('#spec-body .toggle button[data-k="rain"]').click(); await wait(40);
+  const n = await bodyAnims(page, '#spec-body .stop.swapped');
+  await wait(600); const b = await read();
+  check(`${vp}: kyoto weather header shows the day's weather and changes with the toggle`, /\d+°/.test(a.wx) && /\d+°|%/.test(b.wx) && a.wx !== b.wx, `${a.wx} / ${b.wx}`);
+  check(`${vp}: kyoto Rain swap animates the swapped stops and slides the toggle`, n >= 2 && a.thumb !== null && Math.abs(b.thumb - a.thumb) > 20 && b.names.join() !== a.names.join(), JSON.stringify({ n, t0: a.thumb, t1: b.thumb }));
+  await closeEsc(page);
+}
 
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
@@ -530,6 +555,7 @@ async function polish(page, vp, specs) {
   await titanPolish(page, vp);
   if (vp !== 'desktop') await sheetReach(page, vp);
   await recipePolish(page, vp);
+  await kyotoPolish(page, vp);
 }
 
 async function fullPass(browser, vp) {
