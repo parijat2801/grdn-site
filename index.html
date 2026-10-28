@@ -20,8 +20,16 @@
 <meta name="twitter:description" content="Keep what you find online, build on it with your agents, share it with the people who’d love it.">
 <meta name="twitter:image" content="https://grdn-site.vercel.app/web/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- the font stylesheet loads without blocking the first paint; text shows at once in a metric-matched fallback, then swaps -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap"></noscript>
 <style>
+  /* Fallbacks sized to the web fonts (advance widths and ascent/descent measured from the Google files), so the swap barely moves a line */
+  @font-face { font-family: 'Bricolage Fallback'; font-weight: 100 650; src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Roboto'); size-adjust: 108%; ascent-override: 86%; descent-override: 25%; line-gap-override: 0%; }
+  @font-face { font-family: 'Bricolage Fallback'; font-weight: 651 900; src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Roboto Bold'); size-adjust: 97%; ascent-override: 96%; descent-override: 28%; line-gap-override: 0%; }
+  @font-face { font-family: 'Newsreader Fallback'; font-style: normal; src: local('Georgia'), local('Times New Roman'), local('Noto Serif'); size-adjust: 96%; ascent-override: 77%; descent-override: 28%; line-gap-override: 0%; }
+  @font-face { font-family: 'Newsreader Fallback'; font-style: italic; src: local('Georgia Italic'), local('Georgia-Italic'), local('Times New Roman Italic'), local('Noto Serif Italic'); size-adjust: 96%; ascent-override: 77%; descent-override: 28%; line-gap-override: 0%; }
   /* Design tokens (from the scene work on feature/grdn-page-deploy): colour, people colours, type, space, radius, shadow, motion. */
   :root {
     --ink:#10243A; --paper:#F8F5EC; --teal:#0f8f80; --coral:#c4552f; --line:rgba(16,36,58,.10); --muted:rgba(16,36,58,.66);
@@ -57,8 +65,8 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; background: var(--paper); color: var(--ink);
-    font-family: 'Bricolage Grotesque', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  .serif { font-family: 'Newsreader', Georgia, serif; }
+    font-family: 'Bricolage Grotesque', 'Bricolage Fallback', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .serif { font-family: 'Newsreader', 'Newsreader Fallback', Georgia, serif; }
 
   #view { position: fixed; inset: 0; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
     background: radial-gradient(circle at 1px 1px, rgba(16,36,58,.07) 1.2px, transparent 0) 0 0/28px 28px; }
@@ -68,7 +76,7 @@
   .garden { position: absolute; width: 580px; }
   .garden header { display: flex; align-items: baseline; gap: 10px; margin: 0 4px 14px; }
   .garden h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
-  .garden .by { font-family: 'Newsreader', serif; font-style: italic; font-size: 16px; color: var(--muted); }
+  .garden .by { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: 16px; color: var(--muted); }
   .cols { display: flex; gap: 14px; align-items: flex-start; }
   .col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 
@@ -93,7 +101,7 @@
     -webkit-mask: var(--spark) center/contain no-repeat; mask: var(--spark) center/contain no-repeat; }
   .row { display: flex; gap: 12px; align-items: center; }
   .ic { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
-  .note p { font-family: 'Newsreader', serif; font-size: 18px; line-height: 1.4; }
+  .note p { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 18px; line-height: 1.4; }
   .link .dom { font-size: 13px; color: var(--muted); }
   .link .strip { height: 70px; border-radius: 10px; margin-bottom: 10px; }
   .link img { display: block; width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; background: #F1ECE0; }
@@ -115,7 +123,7 @@
   .palette { display: flex; height: 64px; border-radius: 10px; overflow: hidden; margin-top: 10px; cursor: pointer; }
   .palette div { flex: 1; transition: background .3s; }
   .keys { display: flex; gap: 4px; margin-top: 10px; }
-  .keys button { flex: 1; height: 64px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 12px 'Bricolage Grotesque'; color: var(--muted); }
+  .keys button { flex: 1; height: 64px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 12px 'Bricolage Grotesque', 'Bricolage Fallback'; color: var(--muted); }
   .keys button:active, .keys button.on { background: #DDF3EF; }
   .dice { font-size: 54px; line-height: 1; margin-top: 8px; cursor: pointer; user-select: none; letter-spacing: 6px; }
   .moon { font-size: 54px; line-height: 1; margin-top: 8px; }
@@ -137,21 +145,21 @@
   #card.away { opacity: 0; pointer-events: none; }
   .mark { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
   #card h1 { text-wrap: balance; font-size: clamp(34px, 5vw, 50px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.04; margin-top: 22px; }
-  #card .lede { text-wrap: pretty; font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; color: rgba(16,36,58,.75); margin-top: 16px; }
+  #card .lede { text-wrap: pretty; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 21px; line-height: 1.45; color: rgba(16,36,58,.75); margin-top: 16px; }
   #card .stance { font-size: 16px; font-weight: 600; letter-spacing: -0.005em; color: #0a5a51; margin-top: 14px; }
   form { display: flex; gap: 8px; margin-top: 26px; }
-  input[type=email] { flex: 1; min-width: 0; font: 400 17px 'Bricolage Grotesque'; padding: 14px 18px; border-radius: 999px;
+  input[type=email] { flex: 1; min-width: 0; font: 400 17px 'Bricolage Grotesque', 'Bricolage Fallback'; padding: 14px 18px; border-radius: 999px;
     border: 1px solid rgba(16,36,58,.18); background: #fff; color: var(--ink); outline: none; }
   input[type=email]:focus { border-color: var(--teal); }
   /* a clear 3px teal ring on the form and Explore, the same ring the specimen controls use */
   input[type=email]:focus-visible, .btn:focus-visible, .explore:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
-  .btn { font: 600 16px 'Bricolage Grotesque'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
+  .btn { font: 600 16px 'Bricolage Grotesque', 'Bricolage Fallback'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
   /* a 45px tall hit area; the negative margin keeps the card's layout where it was */
-  .explore { padding: 14px 16px; margin: -14px -16px; border-radius: var(--r-pill); background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .explore { padding: 14px 16px; margin: -14px -16px; border-radius: var(--r-pill); background: none; border: 0; font: 600 14px 'Bricolage Grotesque', 'Bricolage Fallback'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .form-error { font-size: 14px; margin-top: 10px; color: var(--muted); }
   .reassure { text-wrap: balance; text-align: center; margin-top: 12px; font-size: 14px; color: var(--muted-strong); }
-  .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal-ink); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
+  .thanks { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal-ink); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
   /* solid paper only in an ellipse around the pill; elsewhere a soft fade, so cards visibly slide under it instead of looking cut off */
@@ -190,7 +198,7 @@
   #spec .main { padding: var(--sp-6) var(--sp-7) var(--sp-6); overflow: auto; }
   #spec .kicker { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-2); }
   #spec .kicker .kind { align-self: center; padding: 3px 10px 4px; border-radius: var(--r-pill); background: var(--teal-tint); color: var(--teal-ink); font-size: var(--fs-tag); font-weight: 700; letter-spacing: .01em; }
-  #spec .kicker .home { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); }
+  #spec .kicker .home { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); }
   #spec h3 { font-size: var(--fs-spec-title); font-weight: 800; letter-spacing: -.028em; line-height: 1.04; margin-top: var(--sp-2); text-wrap: balance; }
   #spec.masthead h3 { position: absolute; width: 1px; height: 1px; padding: 0; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   #spec .body { margin-top: var(--sp-5); }
@@ -212,20 +220,20 @@
   #spec .src-ic img { width: 100%; height: 100%; object-fit: cover; display: block; }
   #spec .src { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   #spec .src b { font-size: var(--fs-tag); font-weight: 650; line-height: 1.25; color: var(--ink); }
-  #spec .became { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); text-wrap: pretty; }
-  #spec .became::before { content: '→ '; font-family: 'Bricolage Grotesque', sans-serif; font-style: normal; font-weight: 700; font-size: var(--fs-tag); color: var(--teal); }
+  #spec .became { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); text-wrap: pretty; }
+  #spec .became::before { content: '→ '; font-family: 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; font-style: normal; font-weight: 700; font-size: var(--fs-tag); color: var(--teal); }
   /* Where next: what to open after this */
   /* on desktop Where next is its own card, as tall as its rows, beside the view */
   #spec .next { align-self: start; margin: var(--nx-top) var(--sp-5) var(--sp-5) 0; background: var(--bubble); border: 1px solid var(--line); border-radius: var(--r-card); padding: var(--sp-4) var(--sp-3) var(--sp-3); }
   #spec .nx-head { font-size: var(--fs-title); font-weight: 700; letter-spacing: -.01em; padding: 0 var(--sp-1); }
-  #spec .next .sub { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); margin: 2px 0 var(--sp-2); padding: 0 var(--sp-1); }
+  #spec .next .sub { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); margin: 2px 0 var(--sp-2); padding: 0 var(--sp-1); }
   #spec .nx { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--sp-3); width: 100%; text-align: left; margin-top: var(--sp-2); padding: 11px 12px 11px 11px;
     border-radius: var(--r-bubble); border: 1px solid var(--line); background: var(--card); font: inherit; color: var(--ink); cursor: pointer;
     transition: border-color var(--fade) ease, transform var(--hover) var(--ease), box-shadow var(--hover) ease; }
   @media (hover: hover) { #spec .nx:hover { border-color: var(--teal); transform: translateY(-1px); box-shadow: var(--shadow-card); } }
   #spec .nx b { display: block; padding-right: 58px; font-size: var(--fs-row); font-weight: 600; line-height: 1.2; }
   #spec .nx small { display: block; margin-top: 2px; font-size: var(--fs-tag); color: var(--muted); }
-  #spec .nx .why { display: block; margin-top: 4px; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--muted-strong); text-wrap: pretty; }
+  #spec .nx .why { display: block; margin-top: 4px; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--muted-strong); text-wrap: pretty; }
   #spec .nx-th { width: 44px; height: 44px; align-self: start; display: grid; place-items: center; border-radius: 11px; background: var(--paper-deep); font-size: 22px; line-height: 1; overflow: hidden; }
   #spec .nx-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
   #spec .nx .go { position: absolute; top: 11px; right: 11px; font-size: var(--fs-tag); font-weight: 700; white-space: nowrap; color: var(--muted); }
@@ -290,12 +298,12 @@
   .lander .msg .best, .lander .msg .act { display: none; }
   .lander:not([data-state="play"]) .msg .best:not(:empty) { display: block; margin-top: 2px; font-size: var(--fs-tag); font-weight: 700; color: var(--teal-ink); }
   .lander:not([data-state="play"]) .msg .act { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .lander .msg .act small { font-size: var(--fs-tag); color: var(--muted-strong); } .lander .msg .act kbd { font: 700 11px 'Bricolage Grotesque'; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); background: var(--paper-deep); }
+  .lander .msg .act small { font-size: var(--fs-tag); color: var(--muted-strong); } .lander .msg .act kbd { font: 700 11px 'Bricolage Grotesque', 'Bricolage Fallback'; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); background: var(--paper-deep); }
   .lander:not([data-state="play"]) .msg [data-s] { display: block; padding: 0; background: none; color: var(--ink); font-size: var(--fs-garden); font-weight: 800; letter-spacing: -.02em; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .lander[data-state="crashed"] .msg [data-s] { color: var(--coral); }
-  .lander:not([data-state="play"]) .msg .sub { display: block; margin-top: 0; text-wrap: pretty; font-family: 'Newsreader', serif; font-size: var(--fs-lead); line-height: 1.4; color: var(--muted); }
+  .lander:not([data-state="play"]) .msg .sub { display: block; margin-top: 0; text-wrap: pretty; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); line-height: 1.4; color: var(--muted); }
   .lander:not([data-state="play"]) .msg .again { display: inline-block; }
-  .lander .again { font: 600 var(--fs-meta) 'Bricolage Grotesque'; padding: 10px 18px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); cursor: pointer; }
+  .lander .again { font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback'; padding: 10px 18px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); cursor: pointer; }
   .lander .howto { margin-top: var(--sp-3); font-size: var(--fs-meta); color: var(--muted); }
   .lander .howto b { color: var(--ink); font-weight: 600; }
   @media (max-width: 520px) { .lander:not([data-state="play"]) .msg { grid-template-columns: 1fr; } .lander:not([data-state="play"]) .msg .act { grid-column: 1; grid-row: auto; flex-direction: row; justify-content: flex-start; gap: var(--sp-3); margin-top: var(--sp-2); } }
@@ -305,20 +313,20 @@
   .dash .tile.big { grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; background: #10243A; color: #fff; }
   .dash .tile { position: relative; } .dash .ti { position: absolute; top: 12px; right: 12px; display: block; } .dash .ti svg { display: block; height: 20px; width: auto; max-width: 54px; }
   .dash .tile:not(.big) .k { padding-right: 58px; }
-  .dash .ti text { font: 600 6px 'Bricolage Grotesque'; fill: var(--muted-strong); }
+  .dash .ti text { font: 600 6px 'Bricolage Grotesque', 'Bricolage Fallback'; fill: var(--muted-strong); }
   .dash .moonrow { display: flex; align-items: center; gap: var(--sp-3); margin: var(--sp-2) 0; } .dash .moonsvg { width: 92px; height: 92px; flex: none; filter: drop-shadow(0 0 14px rgba(243,231,200,.25)); }
-  .dash .phasearc { display: block; width: 100%; max-width: 220px; height: auto; } .dash .phasearc text { font: 600 8px 'Bricolage Grotesque'; fill: rgba(255,255,255,.65); }
+  .dash .phasearc { display: block; width: 100%; max-width: 220px; height: auto; } .dash .phasearc text { font: 600 8px 'Bricolage Grotesque', 'Bricolage Fallback'; fill: rgba(255,255,255,.65); }
   .dash .countdown { font-variant-numeric: tabular-nums; }
   .dash .eg { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid currentColor; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: none; line-height: 15px; vertical-align: 1px; color: var(--muted-strong); }
   .dash .k { margin-bottom: 4px; } .dash .big .k { color: rgba(255,255,255,.6); }
   .dash .v { font-size: 20px; font-weight: 700; letter-spacing: -.01em; } .dash .s { font-size: var(--fs-meta); color: var(--muted); margin-top: 2px; } .dash .big .s { color: rgba(255,255,255,.7); }
-  .paper { font-family: 'Newsreader', serif; }
+  .paper { font-family: 'Newsreader', 'Newsreader Fallback', serif; }
   /* the paper: masthead and dateline, a lead story across the page, three stories in even columns, and when the next one comes */
   .paper .mast { text-align: center; }
   .paper .mast b { display: block; font-size: 44px; font-weight: 500; letter-spacing: -.015em; line-height: 1.05; }
-  .paper .dateline { display: flex; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-2); padding: 5px 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); font-weight: 600; letter-spacing: .02em; color: var(--muted-strong); }
+  .paper .dateline { display: flex; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-2); padding: 5px 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); font-family: 'Bricolage Grotesque', 'Bricolage Fallback'; font-size: var(--fs-tag); font-weight: 600; letter-spacing: .02em; color: var(--muted-strong); }
   .paper article img { width: 100%; object-fit: cover; border-radius: 6px; display: block; background: var(--art-bg); }
-  .paper article small { display: block; font-family: 'Bricolage Grotesque'; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--coral); }
+  .paper article small { display: block; font-family: 'Bricolage Grotesque', 'Bricolage Fallback'; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--coral); }
   .paper article h4 { font-weight: 500; line-height: 1.12; margin-top: 4px; } .paper article p { font-size: 15px; line-height: 1.4; color: var(--muted-strong); margin-top: 4px; }
   .paper .lead { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--sp-4); align-items: center; margin-top: var(--sp-4); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--line); }
   .paper .lead img { height: 210px; } .paper .lead h4 { font-size: 30px; letter-spacing: -.01em; } .paper .lead p { font-size: 16px; }
@@ -326,7 +334,7 @@
   .paper .stories article { padding: 0 var(--sp-3); } .paper .stories article:first-child { padding-left: 0; } .paper .stories article:last-child { padding-right: 0; }
   .paper .stories article + article { border-left: 1px solid var(--line); } .paper .stories img { height: 96px; margin-bottom: var(--sp-2); } .paper .stories h4 { font-size: 19px; }
   .paper .next-issue { margin-top: var(--sp-4); padding-top: var(--sp-2); border-top: 2px solid var(--ink); font-style: italic; font-size: 15px; text-align: center; color: var(--muted-strong); }
-  .paper .next-issue b { font-family: 'Bricolage Grotesque'; font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
+  .paper .next-issue b { font-family: 'Bricolage Grotesque', 'Bricolage Fallback'; font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
   /* moodboard: four equal tiles with captions, then the palette as labelled swatches */
   .mood .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
   .mood figure { position: relative; aspect-ratio: 4 / 5; border-radius: var(--r-small); overflow: hidden; background: var(--mood-paper); transition: opacity var(--hover) ease, box-shadow var(--hover) ease; }
@@ -335,8 +343,8 @@
   .mood figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 10px 9px; font-size: var(--fs-tag); line-height: 1.25; color: #fff; background: linear-gradient(transparent, rgba(12,16,24,.62) 38%, rgba(12,16,24,.86)); }
   .mood figcaption b { font-weight: 700; }
   .mood .tnote, .mood .ttype { display: flex; align-items: center; justify-content: center; padding: var(--sp-3) var(--sp-3) 44px; }
-  .mood .tnote { background: var(--mood-paper); } .mood .tnote blockquote { font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.3; color: var(--mood-ink); }
-  .mood .ttype { background: var(--mood-ink); } .mood .ttype div { font-family: 'Newsreader', serif; font-style: italic; font-size: 28px; line-height: 1.05; color: var(--mood-paper); text-align: center; }
+  .mood .tnote { background: var(--mood-paper); } .mood .tnote blockquote { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 17px; line-height: 1.3; color: var(--mood-ink); }
+  .mood .ttype { background: var(--mood-ink); } .mood .ttype div { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: 28px; line-height: 1.05; color: var(--mood-paper); text-align: center; }
   .mood .tnote figcaption, .mood .ttype figcaption { background: none; color: inherit; } .mood .tnote figcaption { color: var(--muted-strong); } .mood .ttype figcaption { color: rgba(245,237,213,.8); }
   .mood .pal { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); margin-top: var(--sp-3); }
   .mood .sw { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: var(--r-small); background: var(--card); overflow: hidden; cursor: pointer; font: inherit; color: var(--ink); transition: transform var(--hover) var(--ease), box-shadow var(--hover) ease; }
@@ -353,7 +361,7 @@
   .plan .wx b { display: block; font-size: var(--fs-row); font-weight: 700; } .plan .wx small { display: block; font-size: var(--fs-meta); color: var(--muted-strong); }
   .plan .toggle { position: relative; display: inline-flex; padding: 3px; border-radius: var(--r-pill); background: rgba(255,255,255,.55); }
   .plan .toggle .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; border-radius: var(--r-pill); background: var(--card); box-shadow: var(--shadow-card); transition: transform var(--hover) var(--ease), width var(--hover) var(--ease); }
-  .plan .toggle button { position: relative; border: 0; background: none; padding: 8px 16px; border-radius: var(--r-pill); font: 600 14px 'Bricolage Grotesque'; color: var(--muted-strong); cursor: pointer; transition: color var(--fade) ease; }
+  .plan .toggle button { position: relative; border: 0; background: none; padding: 8px 16px; border-radius: var(--r-pill); font: 600 14px 'Bricolage Grotesque', 'Bricolage Fallback'; color: var(--muted-strong); cursor: pointer; transition: color var(--fade) ease; }
   .plan .toggle button.on { color: var(--ink); } .plan .toggle button:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
   .plan ol { position: relative; list-style: none; margin-top: var(--sp-4); }
   .plan ol::before { content: ''; position: absolute; left: calc(var(--kyo-time) + var(--sp-3) + 15px); top: 22px; bottom: 34px; width: 2px; background: repeating-linear-gradient(to bottom, var(--kyo-spine) 0 6px, transparent 6px 11px); }
@@ -368,7 +376,7 @@
   .recipe .hero { position: relative; height: 170px; border-radius: var(--r-stage); overflow: hidden; background: linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2)); box-shadow: inset 0 0 0 1px var(--line); }
   .recipe .hero svg { display: block; width: 100%; height: 100%; }
   .recipe .serves { position: absolute; right: var(--sp-5); top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 10px; padding: 6px 6px 6px 18px; border-radius: var(--r-pill); background: var(--card); box-shadow: var(--shadow-lift); font-weight: 700; font-size: var(--fs-meta); }
-  .recipe .serves button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--paper-deep); font: 600 24px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; transition: background var(--fade) ease; }
+  .recipe .serves button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--paper-deep); font: 600 24px 'Bricolage Grotesque', 'Bricolage Fallback'; color: var(--ink); cursor: pointer; transition: background var(--fade) ease; }
   @media (hover: hover) { .recipe .serves button:hover:not(:disabled) { background: var(--teal-tint); } }
   .recipe .serves button:disabled { opacity: .35; cursor: default; }
   .recipe .serves button:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
@@ -379,8 +387,8 @@
   .recipe .steps { list-style: none; margin-top: var(--sp-5); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
   .recipe .steps li { display: flex; flex-direction: column; gap: 4px; padding-top: var(--sp-2); border-top: 2px solid var(--ink); }
   .recipe .steps .n { font-size: 36px; font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--rice-num); }
-  .recipe .steps p { font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.35; }
-  .recipe .steps small { display: block; margin-top: 4px; font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); color: var(--muted-strong); }
+  .recipe .steps p { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 17px; line-height: 1.35; }
+  .recipe .steps small { display: block; margin-top: 4px; font-family: 'Bricolage Grotesque', 'Bricolage Fallback'; font-size: var(--fs-tag); color: var(--muted-strong); }
   .jar .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .jar label { display: block; font-size: var(--fs-meta); color: var(--muted); } .jar label b { color: var(--ink); font-size: 16px; margin-left: 4px; }
   /* thick sliders: a filled track and a big thumb */
@@ -401,7 +409,7 @@
   .jar .endl b { font-size: var(--fs-row); font-weight: 800; } .jar .endl.end-put { transform: translateY(10%); color: var(--muted-strong); }
   .jar .sum { display: flex; gap: 28px; align-items: flex-end; margin-top: 12px; flex-wrap: wrap; }
   .jar .v { display: inline-block; font-size: 30px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .jar .v.muted { color: var(--muted-strong); font-weight: 600; }
-  .jar .note { font-family: 'Newsreader', serif; font-style: italic; font-size: 15px; color: var(--muted); }
+  .jar .note { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: 15px; color: var(--muted); }
   @media (max-width: 760px) { .recipe ul { columns: 1; } .recipe .hero { height: auto; overflow: visible; display: flex; flex-direction: column; align-items: center; padding-bottom: var(--sp-3); } .recipe .hero svg { height: 140px; border-radius: var(--r-stage) var(--r-stage) 0 0; }
     .recipe .serves { position: relative; right: auto; top: auto; transform: none; margin-top: -10px; }
     .recipe .steps { grid-template-columns: 1fr; gap: var(--sp-3); } .recipe .steps li { flex-direction: row; align-items: baseline; gap: var(--sp-3); } .recipe .steps .n { flex: none; width: 30px; } .jar .inputs { grid-template-columns: 1fr; } }
@@ -413,14 +421,14 @@
   .mg { padding: var(--sp-3); border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line); }
   .mg-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-2); margin: 0 2px var(--sp-3); }
   .mg-head b { font-size: var(--fs-row); font-weight: 800; letter-spacing: -.01em; }
-  .mg-by { font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); }
+  .mg-by { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted); }
   .mg-count { display: inline-block; margin-left: auto; padding: 2px 9px 3px; border-radius: var(--r-pill); background: var(--card); border: 1px solid var(--line); font-size: var(--fs-tag); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
   .mg-things { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
   .mg-thing { min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 9px 11px 10px; border-radius: var(--r-small); background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-card);
     transition: box-shadow var(--hover) ease, background-color var(--hover) ease; }
   .mg-k { font-size: var(--fs-k); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-strong); }
   .mg-t { font-size: var(--fs-meta); font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
-  .mg-thing.note .mg-t { font-family: 'Newsreader', serif; font-size: var(--fs-lead); font-weight: 500; line-height: 1.3; }
+  .mg-thing.note .mg-t { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); font-weight: 500; line-height: 1.3; }
   .mg-m { font-size: var(--fs-tag); color: var(--muted-strong); }
   .mg-thing.fresh { background: var(--teal-tint); border-color: var(--made-line); }
   .mg-thing.glow { animation: mgGlow 1.3s var(--ease); }
@@ -435,23 +443,23 @@
   .st-live::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); animation: stBeat 2.4s ease-in-out infinite; }
   .st-live.off { color: var(--muted-strong); } .st-live.off::before { background: var(--seen-line); animation: none; }
   @keyframes stBeat { 50% { opacity: .35; } }
-  .st-wait { padding: var(--sp-5) var(--sp-2); text-align: center; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
+  .st-wait { padding: var(--sp-5) var(--sp-2); text-align: center; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
   .st-list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
   .st-item, .st-fly { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-3); row-gap: 3px; align-items: start; padding: 11px 11px 12px 14px; border-radius: var(--r-bubble);
-    background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-card); color: var(--ink); font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+    background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-card); color: var(--ink); font-family: 'Bricolage Grotesque', 'Bricolage Fallback', system-ui, sans-serif; }
   .st-item { animation: stIn .5s var(--ease) backwards; }
   @keyframes stIn { from { opacity: 0; transform: translateY(-12px); } }
   .st-fly { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform-origin: 0 0; box-shadow: var(--shadow-lift); }
   .st-src { grid-column: 1; font-size: var(--fs-tag); font-weight: 650; color: var(--muted-strong); }
   .st-t { grid-column: 1; font-size: var(--fs-row); font-weight: 650; line-height: 1.22; letter-spacing: -.005em; text-wrap: pretty; }
-  .st-why { grid-column: 1; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); }
+  .st-why { grid-column: 1; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); }
   .st-acts { grid-column: 2; grid-row: 1 / span 3; align-self: center; display: flex; flex-direction: column; gap: 6px; }
-  .st-acts button { min-width: 64px; height: 36px; padding: 0 14px; border-radius: var(--r-pill); font: 600 var(--fs-meta) 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: background-color var(--fade) ease, color var(--fade) ease; }
+  .st-acts button { min-width: 64px; height: 36px; padding: 0 14px; border-radius: var(--r-pill); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; transition: background-color var(--fade) ease, color var(--fade) ease; }
   .st-keep { border: 0; background: var(--ink); color: var(--paper); }
   .st-skip { border: 1px solid var(--seen-line); background: var(--card); color: var(--ink); }
   @media (hover: hover) { .st-keep:hover { background: var(--teal-ink); } .st-skip:hover { background: var(--paper-deep); } }
   .st-acts button:focus-visible, .ag-line:focus-visible, .ag-again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
-  .st-end { display: none; margin-top: var(--sp-3); text-align: center; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
+  .st-end { display: none; margin-top: var(--sp-3); text-align: center; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
   .stream.done .st-end { display: block; animation: fadeIn .6s ease; }
   @media (max-width: 760px) { .stream { grid-template-columns: minmax(0, 1fr); } .st-feed { min-height: var(--stage-h-s); } .st-acts button { height: 44px; } }
   /* Arjun's agent: a plain transcript of its tool calls beside his garden (above it on a phone) */
@@ -480,8 +488,8 @@
   .ag-res { display: block; padding: 3px 0 0 30px; font: 500 var(--fs-tag) / 1.4 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--muted-strong); }
   .ag-detail { margin: 6px 0 0 30px; padding: 8px 10px; border-radius: var(--r-small); background: var(--card); font: 500 var(--fs-tag) / 1.5 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
   .ag-foot { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
-  .ag-about { flex: 1; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.3; color: var(--muted-strong); }
-  .ag-again { flex: none; height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); font: 600 var(--fs-meta) 'Bricolage Grotesque', sans-serif; cursor: pointer; }
+  .ag-about { flex: 1; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.3; color: var(--muted-strong); }
+  .ag-again { flex: none; height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; }
   @media (max-width: 760px) { .agent { grid-template-columns: minmax(0, 1fr); } .ag-line, .ag-again { min-height: 44px; } .ag-again { height: 44px; } }
   @media (min-width: 761px) and (max-width: 900px) {
     /* the paper's three stories become rows (picture beside text), as on the phone, so no column drops to three words a line */

@@ -1326,7 +1326,24 @@ async function assetBase(browser) {
   check('on production every image URL is absolute https://grdn-site.vercel.app/web/…', prod.img === 'https://grdn-site.vercel.app/web/x.webp' && prod.srcs.length > 20 && prod.srcs.every(s => s.startsWith('https://grdn-site.vercel.app/web/')), JSON.stringify({ img: prod.img, bad: prod.srcs.filter(s => !s.startsWith('https://grdn-site.vercel.app/web/')).slice(0, 3) }));
   await ctx.close();
 }
-async function loadSpeed(browser) { await assetBase(browser); await imageBytes(browser); await imagesShown(browser); }
+// The fonts never hold back the first paint: no blocking stylesheet in <head>, and with Google Fonts 3 s slow the headline still paints within 1 s.
+async function fontsNonBlocking(browser) {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), head = html.split('</head>')[0].replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+  const blocking = [...head.matchAll(/<link\b[^>]*>/g)].map(m => m[0]).filter(l => /\srel=["']?stylesheet/.test(l) && !/media=["']?print/.test(l));
+  check('no render-blocking stylesheet in <head> (only the inline CSS blocks)', blocking.length === 0, blocking.join(' | '));
+  check('fonts.gstatic.com is preconnected with crossorigin, and the fonts keep display=swap', /<link[^>]+rel=["']?preconnect[^>]+fonts\.gstatic\.com[^>]+crossorigin/.test(head) && /fonts\.googleapis\.com\/css2[^"']*display=swap/.test(head));
+  for (const vp of ['phone', 'desktop']) {
+    const ctx = await browser.newContext(VIEWPORTS[vp]), page = await ctx.newPage();
+    await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, async r => { await wait(3000); await r.continue().catch(() => {}); });
+    const t0 = Date.now(); await page.goto(BASE, { waitUntil: 'commit' });
+    let s = null; while (Date.now() - t0 < 1000) { s = await page.evaluate(() => { const h = document.querySelector('#card h1'); if (!h) return null; const r = h.getBoundingClientRect(); let o = 1; for (let e = h; e; e = e.parentElement) o *= +getComputedStyle(e).opacity;
+      return { fcp: performance.getEntriesByType('paint').some(p => p.name === 'first-contentful-paint'), w: r.width, h: r.height, o, font: [...document.fonts].some(f => /Bricolage Grotesque/.test(f.family) && f.status === 'loaded') }; }).catch(() => null);
+      if (s && s.fcp && s.w > 0 && s.o >= .99) break; await wait(50); }
+    check(`${vp}: with Google Fonts 3 s slow, the headline is painted at full opacity within 1 s, in the fallback font`, !!s && s.fcp && s.w > 0 && s.h > 0 && s.o >= .99 && !s.font, JSON.stringify({ ...s, ms: Date.now() - t0 }));
+    await ctx.close();
+  }
+}
+async function loadSpeed(browser) { await assetBase(browser); await fontsNonBlocking(browser); await imageBytes(browser); await imagesShown(browser); }
 
 async function audit(browser) {
   await agentMade(browser);
