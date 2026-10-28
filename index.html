@@ -756,8 +756,18 @@ if (!calm) setTimeout(function tick() { keepSomething(); setTimeout(tick, 1800 +
 // ---------- card ----------
 const card = document.getElementById('card'), pill = document.getElementById('pill'), pillbar = document.getElementById('pillbar');
 const scrim = document.getElementById('scrim');
-document.getElementById('explore').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); pillbar.classList.add('show'); drifting = false; };
-pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); pillbar.classList.remove('show'); };
+// While the opening card covers the canvas, the canvas and the hidden pill leave the tab order (pointer use is unchanged); after Explore they come back and the card leaves it.
+function canvasKeys(on) {
+  world.querySelectorAll('a[href], button, input, [data-spec]').forEach(el => { if (!on) el.tabIndex = -1; else if (el.dataset.spec) el.tabIndex = 0; else el.removeAttribute('tabindex'); });
+  pill.inert = !on; card.inert = on;
+}
+canvasKeys(false);
+document.getElementById('explore').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); pillbar.classList.add('show'); drifting = false; canvasKeys(true);
+  // a keyboard visitor lands on the specimen nearest the middle of the screen
+  if (keyNav) { let best = null, bd = Infinity; world.querySelectorAll('.thing.spec').forEach(el => { const r = onScreen(el); if (!r) return; const d = Math.hypot(r.left + r.width / 2 - innerWidth / 2, r.top + r.height / 2 - innerHeight / 2); if (d < bd) { bd = d; best = el; } });
+    if (best) best.focus({ preventScroll: true }); } };
+pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); pillbar.classList.remove('show'); canvasKeys(false);
+  if (keyNav) card.querySelector('input[type=email]').focus({ preventScroll: true }); };
 // Same-origin under grdn.page: the app's /api/waitlist answers 202 for every valid email.
 document.getElementById('f').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1081,7 +1091,7 @@ let opener = null, current = null, closing = null, everOpened = false, restoring
 addEventListener('keydown', e => { if (!e.metaKey && !e.ctrlKey && !e.altKey) keyNav = true; }, true); addEventListener('pointerdown', () => { keyNav = false; }, true);
 const onScreen = el => { if (!el) return null; const r = el.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth ? r : null; };
 const cardRect = r => { const p = panel.getBoundingClientRect(); return `translate(${r.left - p.left}px, ${r.top - p.top}px) scale(${r.width / p.width}, ${r.height / p.height})`; };
-const setInert = on => [view, card, pill].forEach(el => el.inert = on);
+const setInert = on => { const away = card.classList.contains('away'); view.inert = on; card.inert = on || away; pill.inert = on || !away; };
 // A Where next row's thumbnail: the specimen's own card icon, or the first picture (else icon) in the garden it goes to.
 function nxThumb(n) {
   const things = n.open ? G.flatMap(g => g.things).filter(th => th.spec === n.open) : (G.find(g => g.name === n.garden) || { things: [] }).things;

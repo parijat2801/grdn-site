@@ -802,8 +802,35 @@ async function tabletDialog(browser) {
   }
 }
 
+// Keyboard order: the first Tab lands in the opening card, never in the canvas behind it; after Explore the canvas is reachable.
+async function tabOrder(browser) {
+  for (const vp of ['desktop', 'phone']) {
+    const { ctx, page, errors } = await newPage(browser, vp);
+    const where = () => page.evaluate(() => { const a = document.activeElement; return { inCard: !!a.closest('#card'), inView: !!a.closest('#view'), pill: a.id === 'pill', tag: a.tagName, label: (a.getAttribute('aria-label') || a.textContent || '').trim().slice(0, 24) }; });
+    await page.keyboard.press('Tab'); const first = await where();
+    check(`${vp}: the first Tab from load lands in the opening card's email field`, first.inCard && first.tag === 'INPUT', JSON.stringify(first));
+    const seen = [first]; for (let k = 0; k < 8; k++) { await page.keyboard.press('Tab'); seen.push(await where()); }
+    const stray = seen.filter(s => s.inView || s.pill);
+    check(`${vp}: while the opening card shows, Tab never reaches the canvas or the hidden pill (9 presses)`, stray.length === 0, JSON.stringify(stray));
+    const covered = await page.evaluate(() => [...document.querySelectorAll('#world a[href], #world button, #world [tabindex], #world input, #pill')].filter(e => e.tabIndex >= 0 && !e.closest('[inert]') && !e.inert).length);
+    check(`${vp}: no canvas control or the pill is tabbable behind the opening card`, covered === 0, String(covered));
+    await page.click('#explore'); await wait(700);
+    const out = []; for (let k = 0; k < 6; k++) { await page.keyboard.press('Tab'); out.push(await where()); }
+    check(`${vp}: after Explore, Tab reaches the canvas and not the hidden card`, out.some(s => s.inView) && !out.some(s => s.inCard), JSON.stringify(out));
+    const specs = await page.evaluate(() => [...document.querySelectorAll('[data-spec]')].every(c => c.tabIndex === 0));
+    check(`${vp}: after Explore every specimen card is tabbable`, specs);
+    // back to the card with the pill: the canvas leaves the tab order again and focus goes to the email field
+    await page.evaluate(() => document.getElementById('pill').click()); await wait(500);
+    const back = await where(), covered2 = await page.evaluate(() => [...document.querySelectorAll('#world a[href], #world button, #world [tabindex], #world input')].filter(e => e.tabIndex >= 0 && !e.closest('[inert]')).length);
+    check(`${vp}: Reserve pill brings the card back with focus in the email field and the canvas out of the tab order`, back.inCard && back.tag === 'INPUT' && covered2 === 0, JSON.stringify({ back, covered2 }));
+    check(`${vp}: no errors in the tab order pass`, errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
+  await tabOrder(browser);
 }
 
 async function fullPass(browser, vp) {
