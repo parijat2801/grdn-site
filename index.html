@@ -266,13 +266,20 @@
   .dash .k { margin-bottom: 4px; } .dash .big .k { color: rgba(255,255,255,.6); }
   .dash .v { font-size: 20px; font-weight: 700; letter-spacing: -.01em; } .dash .s { font-size: var(--fs-meta); color: var(--muted); margin-top: 2px; } .dash .big .s { color: rgba(255,255,255,.7); }
   .paper { font-family: 'Newsreader', serif; }
-  .paper .mast { text-align: center; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
-  .paper .mast b { display: block; font-size: 40px; font-weight: 500; letter-spacing: -.01em; } .paper .mast span { font-size: 14px; font-style: italic; color: var(--muted); }
-  .paper .cols2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; margin-top: 14px; }
-  .paper article img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: block; }
-  .paper article h4 { font-size: 20px; font-weight: 500; line-height: 1.15; margin-top: 8px; } .paper article p { font-size: 15px; line-height: 1.4; color: rgba(16,36,58,.75); margin-top: 4px; }
-  .paper article small { display: block; margin-top: 4px; font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); color: var(--muted); }
-  .paper .side article + article { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  /* the paper: masthead and dateline, a lead story across the page, three stories in even columns, and when the next one comes */
+  .paper .mast { text-align: center; }
+  .paper .mast b { display: block; font-size: 44px; font-weight: 500; letter-spacing: -.015em; line-height: 1.05; }
+  .paper .dateline { display: flex; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-2); padding: 5px 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); font-weight: 600; letter-spacing: .02em; color: var(--muted-strong); }
+  .paper article img { width: 100%; object-fit: cover; border-radius: 6px; display: block; background: var(--art-bg); }
+  .paper article small { display: block; font-family: 'Bricolage Grotesque'; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--coral); }
+  .paper article h4 { font-weight: 500; line-height: 1.12; margin-top: 4px; } .paper article p { font-size: 15px; line-height: 1.4; color: var(--muted-strong); margin-top: 4px; }
+  .paper .lead { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--sp-4); align-items: center; margin-top: var(--sp-4); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--line); }
+  .paper .lead img { height: 210px; } .paper .lead h4 { font-size: 30px; letter-spacing: -.01em; } .paper .lead p { font-size: 16px; }
+  .paper .stories { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: var(--sp-4); }
+  .paper .stories article { padding: 0 var(--sp-3); } .paper .stories article:first-child { padding-left: 0; } .paper .stories article:last-child { padding-right: 0; }
+  .paper .stories article + article { border-left: 1px solid var(--line); } .paper .stories img { height: 96px; margin-bottom: var(--sp-2); } .paper .stories h4 { font-size: 19px; }
+  .paper .next-issue { margin-top: var(--sp-4); padding-top: var(--sp-2); border-top: 2px solid var(--ink); font-style: italic; font-size: 15px; text-align: center; color: var(--muted-strong); }
+  .paper .next-issue b { font-family: 'Bricolage Grotesque'; font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
   /* moodboard: four equal tiles with captions, then the palette as labelled swatches */
   .mood .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
   .mood figure { position: relative; aspect-ratio: 4 / 5; border-radius: var(--r-small); overflow: hidden; background: var(--mood-paper); transition: opacity var(--hover) ease, box-shadow var(--hover) ease; }
@@ -352,7 +359,9 @@
     .recipe .serves { position: relative; right: auto; top: auto; transform: none; margin-top: -10px; }
     .recipe .steps { grid-template-columns: 1fr; gap: var(--sp-3); } .recipe .steps li { flex-direction: row; align-items: baseline; gap: var(--sp-3); } .recipe .steps .n { flex: none; width: 30px; } .jar .inputs { grid-template-columns: 1fr; } }
   @media (max-width: 760px) { .dash { grid-template-columns: 1fr 1fr; } .dash .tile.big { grid-column: span 2; grid-row: auto; flex-direction: row; align-items: center; }
-    .paper .cols2 { grid-template-columns: 1fr; } .paper .mast { padding-right: 34px; padding-left: 34px; } .paper .mast b { font-size: 32px; } .mood .tiles { grid-template-columns: 1fr 1fr; } .mood figure { aspect-ratio: 1; } .mood .pal { grid-template-columns: repeat(6, 1fr); } .mood .sw { grid-column: span 2; } .mood .sw:nth-child(n+4) { grid-column: span 3; } }
+    .paper .mast b { padding: 0 34px; font-size: 32px; } .paper .dateline span:last-child { display: none; } .paper .lead { grid-template-columns: 1fr; } .paper .lead img { height: 180px; } .paper .lead h4 { font-size: 26px; }
+    .paper .stories { grid-template-columns: 1fr; gap: var(--sp-3); } .paper .stories article { display: grid; grid-template-columns: 96px 1fr; column-gap: var(--sp-3); padding: 0 0 var(--sp-3); } .paper .stories article + article { border-left: 0; border-top: 1px solid var(--line); padding-top: var(--sp-3); }
+    .paper .stories img { grid-row: span 3; height: 84px; margin: 0; } .mood .tiles { grid-template-columns: 1fr 1fr; } .mood figure { aspect-ratio: 1; } .mood .pal { grid-template-columns: repeat(6, 1fr); } .mood .sw { grid-column: span 2; } .mood .sw:nth-child(n+4) { grid-column: span 3; } }
 </style>
 </head>
 <body>
@@ -756,11 +765,13 @@ const SPECS = {
         <div class="tile"><div class="k">Space station</div><div class="v">21:14</div><div class="s">4 minutes, west to east</div></div></div>`; } },
   paper: { act: 'Read', noun: 'paper', verb: 'wrote', kind: 'Paper', title: 'The Sunday Garden', mast: true, owner: 'Amara', garden: 'Windows onto the world', fromWhat: 'gardens', fromVerb: 'follows', from: [{ t: 'Nico’s garden', icon: '⚙️', became: 'the lead: how a watch keeps time' }, { t: 'Sol’s garden', icon: '🌊', became: 'The Great Wave, up close' }, { t: 'Robin Sloan', icon: '🍲', became: 'the home-cooked app story' }, { t: 'Grandpa Tom’s garden', icon: '🌍', became: 'Pale Blue Dot, on the back page' }],
     next: [{ t: 'Café: warm, not cute', s: 'Mo · moodboard', why: 'Built from The Great Wave, like page two', open: 'mood' }, { t: 'Things that explain themselves', s: 'Nico', why: 'Where this week’s lead story came from', garden: 'Things that explain themselves' }, { t: 'Robin Sloan', s: 'love, not likes', why: 'More home-cooked software, at the source', garden: 'Robin Sloan' }],
-    render: el => { el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><span>No. 42 · made every Sunday from the gardens Amara follows</span></div><div class="cols2">
-        <article><img src="${IMG('ciechanow-ski-3.png')}" alt=""><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece.</p><small>from Nico’s garden · 5,120 people keep this</small></article>
-        <div class="side"><article><h4>The Great Wave, up close</h4><p>Hokusai’s print, and why the boats matter more than the wave.</p><small>from Sol’s garden</small></article>
-        <article><h4>An app can be a home-cooked meal</h4><p>Software made for four people, and loved by all four.</p><small>from Robin Sloan’s garden</small></article>
-        <article><h4>Pale Blue Dot</h4><p>Everyone you love, on a mote of dust in a sunbeam.</p><small>from Grandpa Tom’s garden</small></article></div></div></div>`; } },
+    render: el => { const sun = new Date(); sun.setDate(sun.getDate() - sun.getDay()); const nxt = new Date(sun); nxt.setDate(sun.getDate() + 7);
+      const day = d => d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+      const story = (img, from, h, p) => `<article><img src="${IMG(img)}" alt=""><small>from ${from}</small><h4>${h}</h4><p>${p}</p></article>`;
+      el.innerHTML = `<div class="paper"><div class="mast"><b aria-hidden="true">The Sunday Garden</b><div class="dateline"><span>No. 42</span><span>${day(sun)} ${sun.getFullYear()}</span><span>from 4 gardens Amara follows</span></div></div>
+        <article class="lead"><img src="${IMG('ciechanow-ski-3.png')}" alt=""><div><small>from Nico’s garden · 5,120 people keep this</small><h4>How a mechanical watch keeps time</h4><p>Bartosz Ciechanowski takes one apart, gear by gear, and you can turn every piece. Start with the mainspring; by the escapement you will hear it tick.</p></div></article>
+        <div class="stories">${story('great-wave.jpg', 'Sol’s garden', 'The Great Wave, up close', 'Hokusai’s print, and why the boats matter more than the wave.')}${story('sloan-home-cooked.png', 'Robin Sloan’s garden', 'An app can be a home-cooked meal', 'Software made for four people, and loved by all four.')}${story('pale-blue-dot.png', 'Grandpa Tom’s garden', 'Pale Blue Dot', 'Everyone you love, on a mote of dust in a sunbeam.')}</div>
+        <p class="next-issue"><b>Next issue</b> ${day(nxt)}, from whatever the four gardens keep this week.</p></div>`; } },
   mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: [{ t: 'Mo’s palette', icon: '🎨', became: 'five swatches, each with its hex' }, { t: 'The Starry Night', img: 'starry-night.jpg', became: 'the night blue and the ochre accent' }, { t: 'The Great Wave', img: 'great-wave.jpg', became: 'the paper, the blush and the ink' }, { t: 'Mo’s note: one ink, one accent', icon: '📝', became: 'the rule the palette keeps' }],
     next: [{ t: 'Walls I’d hang', s: 'Sol', why: 'The two paintings this palette came from', garden: 'Walls I’d hang' }, { t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'The Great Wave again, on page two', open: 'paper' }, { t: 'Type & letters', s: 'Wen', why: 'The other half of a café sign', garden: 'Type & letters' }],
     render: el => moodboard(el) },

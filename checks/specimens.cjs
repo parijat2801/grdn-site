@@ -605,6 +605,22 @@ async function savingsPolish(page, vp) {
   await closeEsc(page);
 }
 
+async function paperPolish(page, vp) {
+  await page.evaluate(() => openSpec('paper')); await wait(400);
+  await page.evaluate(() => Promise.all([...document.querySelectorAll('#spec-body img')].map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }))));
+  const p = await page.evaluate(() => { const P = document.querySelector('#spec-body .paper'), pr = P.getBoundingClientRect(), lead = P.querySelector('.lead'), lr = lead && lead.getBoundingClientRect(), li = lead && lead.querySelector('img'), lh = lead && lead.querySelector('h4');
+    const sun = new Date(); sun.setDate(sun.getDate() - sun.getDay()); const nxt = new Date(sun); nxt.setDate(sun.getDate() + 7);
+    const fmt = d => d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    return { pw: pr.width, lead: lr ? { w: lr.width, imgH: li ? li.getBoundingClientRect().height : 0, imgOk: !!li && li.naturalWidth > 0, h: lh ? parseFloat(getComputedStyle(lh).fontSize) : 0 } : null,
+      stories: [...P.querySelectorAll('.stories article')].map(a => { const r = a.getBoundingClientRect(), im = a.querySelector('img, svg'); return { l: Math.round(r.left), h: Math.round(r.height), art: !!im && (im.tagName === 'svg' || im.naturalWidth > 0) && im.getBoundingClientRect().height >= 60 }; }),
+      mast: P.querySelector('.mast').textContent.replace(/\s+/g, ' '), next: (P.querySelector('.next-issue') || {}).textContent || '', want: fmt(sun), wantNext: fmt(nxt), year: String(sun.getFullYear()) }; });
+  check(`${vp}: paper has a full-width lead story with a big picture and headline`, !!p.lead && p.lead.w >= .9 * p.pw && p.lead.imgOk && p.lead.imgH >= 160 && p.lead.h >= 26, JSON.stringify(p.lead));
+  const hs = p.stories.map(x => x.h), cols = new Set(p.stories.map(x => x.l)).size;
+  check(`${vp}: paper has 3 more stories, each with a picture${vp === 'desktop' ? ', side by side in balanced columns' : ''}`, p.stories.length === 3 && p.stories.every(x => x.art) && (vp !== 'desktop' || (cols === 3 && Math.max(...hs) - Math.min(...hs) <= .25 * Math.max(...hs))), JSON.stringify(p.stories));
+  check(`${vp}: paper masthead carries this Sunday's date and a next-issue cue names next Sunday`, p.mast.includes(p.want) && p.mast.includes(p.year) && /Next issue/.test(p.next) && p.next.includes(p.wantNext), JSON.stringify({ mast: p.mast, next: p.next, want: p.want, wantNext: p.wantNext }));
+  await closeEsc(page);
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
@@ -616,6 +632,7 @@ async function polish(page, vp, specs) {
   await kyotoPolish(page, vp);
   await moodPolish(page, vp);
   await savingsPolish(page, vp);
+  await paperPolish(page, vp);
 }
 
 async function fullPass(browser, vp) {
