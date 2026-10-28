@@ -36,6 +36,7 @@
     --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
     --jar-bg: #F4F6FB; --jar-fill: rgba(15,143,128,.14); --jar-put: rgba(16,36,58,.5); --jar-track: #E3E6EE;
     --moon-dark: #24394F; --moon-lit: #F3E7C8; --moon-crater: rgba(170,150,110,.22);
+    --card-glass: rgba(250,248,242,.9); --rise: .65s; --peek-h: 56px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,7 +60,7 @@
     border-radius: 18px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(16,36,58,.04), 0 4px 14px rgba(16,36,58,.035);
     transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
   @media (hover: hover) { .thing:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(16,36,58,.05), 0 12px 28px rgba(16,36,58,.08); } }
-  .thing.enter, .garden header.enter { animation: rise .8s cubic-bezier(.2,.7,.2,1) backwards; }
+  .thing.enter, .garden header.enter { animation: rise var(--rise) cubic-bezier(.2,.7,.2,1) backwards; }
   @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.975); } }
   .kept { display: inline-block; transition: color .3s; }
   .kept.bump { animation: bump .6s cubic-bezier(.2,.7,.2,1); color: #c4552f; }
@@ -100,7 +101,7 @@
 
   /* the quiet card */
   #card { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(600px, calc(100vw - 32px));
-    background: #FAF8F2; border: 1px solid rgba(16,36,58,.08); border-radius: 28px; padding: 44px 44px 34px;
+    background: var(--card-glass); backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); border: 1px solid rgba(16,36,58,.08); border-radius: 28px; padding: 44px 44px 34px;
     box-shadow: 0 2px 6px rgba(16,36,58,.04), 0 24px 60px rgba(16,36,58,.10);
     transition: opacity .5s cubic-bezier(.2,.7,.2,1), transform .5s cubic-bezier(.2,.7,.2,1);
     animation: cardIn .9s .1s cubic-bezier(.2,.7,.2,1) backwards; }
@@ -125,7 +126,7 @@
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
   .explore { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .form-error { font-size: 14px; margin-top: 10px; color: var(--muted); }
-  .reassure { margin-top: 12px; font-size: 14px; color: var(--muted); }
+  .reassure { margin-top: 12px; font-size: 14px; color: var(--muted-strong); }
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
@@ -146,7 +147,12 @@
   .thing.spec.pulse { animation: specPulse 1.5s var(--ease); }
   @keyframes specPulse { 35% { box-shadow: 0 0 0 3px var(--teal), 0 0 0 12px rgba(15,143,128,.16), 0 4px 14px rgba(16,36,58,.035); } }
   @media (prefers-reduced-motion: reduce) { .thing.spec.pulse { box-shadow: 0 0 0 4px var(--teal), var(--shadow-card); } }
-  .open-mark { position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: var(--r-pill); background: var(--teal); color: #fff; font-size: var(--fs-tag); font-weight: 700; }
+  .open-mark { position: absolute; top: 10px; right: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px 5px 7px; border-radius: var(--r-pill); background: var(--teal-ink); color: #fff; font-size: var(--fs-tag); font-weight: 700; line-height: 1.2; box-shadow: 0 2px 8px rgba(10,90,81,.28); }
+  .open-mark::before { content: ''; width: 14px; height: 14px; border-radius: 50%; background: var(--teal) var(--seed) center/10px no-repeat; }
+  /* a specimen card opens on a small preview of what it is */
+  .thing.spec .peek { display: block; height: var(--peek-h); margin: -14px -16px 12px; border-radius: 17px 17px 0 0; background-size: cover; background-position: center; overflow: hidden; position: relative; }
+  .thing.spec .peek span { position: absolute; left: 14px; bottom: 7px; font-size: 22px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+  .thing.spec .peek svg { display: block; width: 100%; height: 100%; }
   .open-mark::after { content: ' ↗'; }
   .live.spec .tag { display: none; }
   /* the specimen view: a warm sheet of paper over the dimmed canvas. Header (kind, home garden, title), the live thing, how Grdn made it, and Where next beside it. */
@@ -615,6 +621,7 @@ G.forEach((g, i) => {
   const cols = d.querySelectorAll('.col'), tmp = document.createElement('div');
   g.things.forEach(th => { tmp.innerHTML = thingHTML(th); const el = tmp.firstElementChild;
     if (th.spec) { el.classList.add('spec'); el.dataset.spec = th.spec; el.insertAdjacentHTML('beforeend', '<span class="open-mark" aria-hidden="true"></span>');
+      el.insertAdjacentHTML('afterbegin', '<span class="peek" aria-hidden="true"></span>'); // filled from SPECS below; its height is fixed, so the layout holds
       el.setAttribute('role', 'button'); el.tabIndex = 0; } // the badge verb and label come from SPECS, once it exists (see below)
     (cols[0].offsetHeight <= cols[1].offsetHeight ? cols[0] : cols[1]).appendChild(el); });
   let c = order[0]; for (const k of order) if (heights[k] < heights[c] - 40) c = k;
@@ -711,7 +718,7 @@ if (!calm) {
   document.querySelectorAll('.thing, .garden header').forEach(el => { const r = el.getBoundingClientRect();
     if (r.bottom < -200 || r.top > innerHeight + 200 || r.right < -200 || r.left > innerWidth + 200) return;
     const d = Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy);
-    el.style.animationDelay = (1.1 + Math.min(1.1, d / 1400)).toFixed(2) + 's'; /* the card first, then the garden grows around it */ el.classList.add('enter'); });
+    el.style.animationDelay = (.2 + Math.min(.4, d / 2200)).toFixed(2) + 's'; /* the gardens rise around the card as it arrives, so they show through from the start */ el.classList.add('enter'); });
 }
 
 // ---------- life: now and then, someone keeps a thing you can see ----------
@@ -802,8 +809,19 @@ const SPECS = {
     next: [{ t: 'Land on Titan', s: 'Leo, age 11 · game', why: 'Made by a kid from his space links', open: 'titan' }, { t: 'Fractions, by hand', s: 'Ms. Rao’s class 4B', why: 'More maths you can poke', garden: 'Fractions, by hand' }, { t: 'The jar game and the toy', s: 'Dami', why: 'The two things this chart came from', garden: 'Money basics' }],
     render: el => savings(el) },
 };
+// Each specimen card's preview strip: a background, and sometimes a small drawing on it.
+const PEEK = {
+  titan: ['radial-gradient(circle at 74% 46%, var(--titan-saturn) 0 9px, transparent 10px), radial-gradient(ellipse 30px 6px at 74% 46%, transparent 0 60%, rgba(255,231,189,.7) 62% 78%, transparent 80%), linear-gradient(to top, var(--titan-ground) 0 24%, var(--titan-dune) 24% 30%, transparent 30%), linear-gradient(var(--titan-sky-1), var(--titan-sky-2) 60%, var(--titan-sky-3))', '<span>🚀</span>'],
+  moon: ['radial-gradient(circle at 18% 50%, var(--moon-lit) 0 15px, transparent 16px), radial-gradient(1.5px 1.5px at 40% 30%, #fff, transparent), radial-gradient(1.5px 1.5px at 62% 64%, #fff, transparent), radial-gradient(1px 1px at 80% 26%, #fff, transparent), radial-gradient(1px 1px at 52% 48%, #fff, transparent), linear-gradient(#10243A, #24394F)'],
+  paper: [`linear-gradient(rgba(16,36,58,.12), rgba(16,36,58,.12)), url(${IMG('great-wave.jpg')}) center 40%/cover`],
+  mood: ['linear-gradient(90deg, #F5EDD5 0 20%, #E4B494 20% 40%, #B0A54B 40% 60%, #47658F 60% 80%, #2C4C6A 80%)'],
+  kyoto: ['linear-gradient(100deg, var(--kyo-sky) 0 50%, var(--kyo-rain) 50%)', '<span>⛩️</span><span style="left:auto;right:84px">☀️ 🌧</span>'],
+  recipe: ['linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2))', '<span>🍚</span><span style="left:46px">🥢</span>'],
+  savings: ['var(--jar-bg)', '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M0 40 L0 36 C30 32 60 24 100 6 L100 40Z" fill="rgba(15,143,128,.18)"/><path d="M0 36 C30 32 60 24 100 6" fill="none" stroke="var(--teal)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path d="M0 36 L100 16" fill="none" stroke="var(--jar-put)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/></svg>'],
+};
 // Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
-document.querySelectorAll('[data-spec]').forEach(el => { const s = SPECS[el.dataset.spec]; el.querySelector('.open-mark').textContent = s.act;
+document.querySelectorAll('[data-spec]').forEach(el => { const s = SPECS[el.dataset.spec], pk = PEEK[el.dataset.spec]; el.querySelector('.open-mark').textContent = s.act;
+  el.querySelector('.peek').style.background = pk[0]; el.querySelector('.peek').innerHTML = pk[1] || '';
   el.setAttribute('aria-label', `${s.act} ${s.title}, made with Grdn`); });
 // Moon tonight: the real phase drawn as a lit disc, its place on the cycle, and a live countdown; each small tile carries a little picture of its own.
 function moonDisc(age, syn, R = 44) {

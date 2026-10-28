@@ -642,6 +642,35 @@ async function moonPolish(page, vp) {
   await closeEsc(page);
 }
 
+// The opening: gardens show through within ~1 s, and every line of the card stays readable (pixels).
+async function openingPolish(browser, vp) {
+  const { ctx, page, errors } = await newPage(browser, vp); // newPage already waited 300 ms after load
+  // when each card on screen finishes rising in: its animation delay plus duration
+  const op = await page.evaluate(() => { const xs = [...document.querySelectorAll('.thing.enter')].filter(t => { const r = t.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; })
+      .map(t => { const cs = getComputedStyle(t); return parseFloat(cs.animationDelay) + parseFloat(cs.animationDuration); }).sort((a, b) => a - b); return { n: xs.length, median: xs[Math.floor(xs.length / 2)], last: xs[xs.length - 1] }; });
+  check(`${vp}: gardens around the opening card have risen in by 1.2 s (median ${op.median}s, last ${op.last}s)`, op.n >= 3 && op.median <= 1.2 && op.last <= 1.6, JSON.stringify(op));
+  await wait(1200); await page.evaluate(HELP);
+  const tc = await textContrast(page, '#card .mark, #card h1, #card .lede, #card .waitnote, #card .reassure, #card .explore');
+  check(`${vp}: every line on the opening card has ≥4.5:1 contrast against what is behind it (pixels)`, tc.length >= 6 && tc.every(x => x.ratio >= 4.5), JSON.stringify(tc));
+  if (vp !== 'desktop') {
+    await explore(page); await page.evaluate(() => { px -= 120; py -= 700; apply(); }); await wait(400);
+    const b = await page.evaluate(() => { const p = document.getElementById('pill'), bar = document.getElementById('pillbar'), pr = p.getBoundingClientRect(), br = bar.getBoundingClientRect(), bg = __c.rgb(getComputedStyle(p).backgroundColor), fg = __c.rgb(getComputedStyle(p).color);
+      return { bar: getComputedStyle(bar).opacity, covers: br.top <= pr.top - 16 && br.bottom >= pr.bottom && br.left <= pr.left && br.right >= pr.right, ratio: +__c.ratio(bg, fg).toFixed(2), paper: +__c.ratio(bg, { r: 248, g: 245, b: 236, a: 1 }).toFixed(2) }; });
+    check(`${vp}: the sticky Reserve button keeps its paper backing and reads clearly`, b.bar === '1' && b.covers && b.ratio >= 4.5 && b.paper >= 4.5, JSON.stringify(b));
+  }
+  check(`${vp}: no errors in the opening pass`, errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
+// Specimen cards stand out from ordinary ones: a preview strip on top and a clearer badge.
+async function specCards(page, vp) {
+  const c = await page.evaluate(() => { const plain = document.querySelector('.thing:not(.spec):not(.live)');
+    return { plainPeek: !!plain.querySelector('.peek'), cards: [...document.querySelectorAll('[data-spec]')].map(el => { const pk = el.querySelector('.peek'), pr = pk && pk.getBoundingClientRect(), cr = el.getBoundingClientRect(), m = el.querySelector('.open-mark'), mr = m.getBoundingClientRect(), mb = getComputedStyle(m, '::before'), ms = getComputedStyle(m);
+      return { id: el.dataset.spec, peek: !!pr && pk.offsetHeight >= 44 && pr.width >= .9 * cr.width && (getComputedStyle(pk).backgroundImage !== 'none' || !!pk.querySelector('svg, img')), top: !!pr && pr.top - cr.top < 2, badgeH: m.offsetHeight /* layout px: the canvas itself is zoomed */, glyph: mb.content !== 'none' && parseFloat(mb.width) >= 10, ratio: +__c.ratio(__c.rgb(ms.backgroundColor), __c.rgb(ms.color)).toFixed(2) }; }) }; });
+  const bad = c.cards.filter(x => !x.peek || !x.top || x.badgeH < 22 || !x.glyph || x.ratio < 4.5);
+  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 7 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
@@ -655,6 +684,7 @@ async function polish(page, vp, specs) {
   await savingsPolish(page, vp);
   await paperPolish(page, vp);
   await moonPolish(page, vp);
+  await specCards(page, vp);
 }
 
 async function fullPass(browser, vp) {
@@ -689,7 +719,7 @@ async function fullPass(browser, vp) {
   try {
     if (process.env.ONLY === 'polish') { // quick loop while building: only the polish checks
       for (const vp of ['desktop', 'phone']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); const specs = await specInfo(page); await polish(page, vp, specs);
-        check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); }
+        check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); await openingPolish(browser, vp); }
       throw 'only';
     }
     const specs = await fullPass(browser, 'desktop');
@@ -697,7 +727,7 @@ async function fullPass(browser, vp) {
     // small phone: sheet behaviour only
     { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
-    await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone');
+    await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone'); await openingPolish(browser, 'desktop'); await openingPolish(browser, 'phone');
     await motion(browser, 'desktop', specs);
     await motion(browser, 'phone', specs);
     await pulse(browser, 'desktop', true);
