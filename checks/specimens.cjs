@@ -62,10 +62,7 @@ async function openingCard(page, vp) {
   check(`${vp}: no lower-case "grdn" in visible text`, c.lowerName === 0, String(c.lowerName));
   check(`${vp}: reassure line unchanged`, c.reassure === 'We’ll email you once, when your garden is ready.', c.reassure);
   check(`${vp}: the wait line is honest: Grdn opens soon, these are example gardens`, c.waitVisible && c.wait === WAIT && !/\breal\b/i.test(c.wait), c.wait);
-  const lastLine = await page.evaluate(() => { const el = document.getElementById('waitnote'), tn = el.firstChild, words = [], re = /\S+/g; let m;
-    while ((m = re.exec(tn.textContent))) { const r = document.createRange(); r.setStart(tn, m.index); r.setEnd(tn, m.index + m[0].length); words.push(Math.round(r.getBoundingClientRect().top)); }
-    const top = Math.max(...words); return { lines: new Set(words).size, last: words.filter(t => t === top).length }; });
-  check(`${vp}: the wait line wraps with no lone word`, lastLine.lines === 1 || lastLine.last >= 2, JSON.stringify(lastLine));
+  await widows(page, vp); // every line on the card, not only the wait line
   check(`${vp}: Wander is now "Explore the gardens"`, c.explore === 'Explore the gardens' && !c.oldWander, c.explore);
 }
 
@@ -864,11 +861,27 @@ async function entrance(browser) {
   }
 }
 
+// No line on the opening card ends on one word alone (phones). Owner copy is unchanged; only wrapping may change.
+const OPENING_LINES = ['#card h1', '#card .lede', '#card .waitnote', '#card .reassure', '#card .explore'];
+async function widows(page, vp) {
+  const r = await page.evaluate(sels => sels.map(sel => { const el = document.querySelector(sel); if (!el || !el.getClientRects().length) return { sel, missing: true };
+    const tops = [], walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let tn; (tn = walker.nextNode());) { const re = /[^\s ]+/g; let m; while ((m = re.exec(tn.textContent))) { const rg = document.createRange(); rg.setStart(tn, m.index); rg.setEnd(tn, m.index + m[0].length); tops.push(Math.round(rg.getBoundingClientRect().top)); } }
+    const lines = [...new Set(tops)].sort((a, b) => a - b), last = lines[lines.length - 1];
+    return { sel, lines: lines.length, last: tops.filter(t => Math.abs(t - last) <= 2).length }; }), OPENING_LINES);
+  const bad = r.filter(x => x.missing || (x.lines > 1 && x.last < 2));
+  check(`${vp}: no opening card line ends on a lone word (${r.map(x => x.lines).join('/')} lines)`, bad.length === 0, JSON.stringify(bad));
+}
+async function widowPass(browser) {
+  for (const vp of ['phone', 'small']) { const { ctx, page, errors } = await newPage(browser, vp); await wait(1000); await widows(page, vp); await ctx.close(); }
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
   await emailFocus(browser);
   await entrance(browser);
+  await widowPass(browser);
 }
 
 async function fullPass(browser, vp) {

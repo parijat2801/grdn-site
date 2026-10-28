@@ -116,7 +116,7 @@
   #card.away { opacity: 0; transform: translate(-50%,-47%) scale(.97); pointer-events: none; }
   .mark { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
   #card h1 { text-wrap: balance; font-size: clamp(34px, 5vw, 50px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.04; margin-top: 22px; }
-  #card .lede { font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; color: rgba(16,36,58,.75); margin-top: 16px; }
+  #card .lede { text-wrap: pretty; font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; color: rgba(16,36,58,.75); margin-top: 16px; }
   #card .waitnote { text-wrap: balance; font-size: 15px; font-weight: 600; color: #0a5a51; margin-top: 14px; }
   #card .stance { font-size: 16px; font-weight: 600; letter-spacing: -0.005em; color: #0a5a51; margin-top: 14px; }
   form { display: flex; gap: 8px; margin-top: 26px; }
@@ -129,7 +129,7 @@
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
   .explore { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .form-error { font-size: 14px; margin-top: 10px; color: var(--muted); }
-  .reassure { margin-top: 12px; font-size: 14px; color: var(--muted-strong); }
+  .reassure { text-wrap: balance; margin-top: 12px; font-size: 14px; color: var(--muted-strong); }
   .thanks { font-family: 'Newsreader', serif; font-style: italic; font-size: 20px; margin-top: 26px; color: var(--teal); display: none; animation: up .7s cubic-bezier(.2,.7,.2,1) backwards; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
