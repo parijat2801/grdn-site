@@ -687,8 +687,39 @@ async function specCards(page, vp) {
   check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 7 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
 }
 
+// A specimen's timers and window listeners stop when its view closes, and at once when another specimen replaces it.
+// Test hook: wrap setInterval/clearInterval and window add/removeEventListener, and note what each openSpec call starts.
+async function specCleanup(page, vp, specs) {
+  await page.evaluate(() => { if (window.__trk) return; const T = window.__trk = { on: false, live: new Set(), ls: [], mine: { iv: [], ls: [] } };
+    const si = window.setInterval, ci = window.clearInterval, ae = window.addEventListener, re = window.removeEventListener, cap = o => !!(o === true || (o && o.capture));
+    window.setInterval = (...a) => { const id = si.apply(window, a); if (T.on) { T.live.add(id); T.mine.iv.push(id); } return id; };
+    window.clearInterval = id => { T.live.delete(id); return ci.call(window, id); };
+    window.addEventListener = (t, f, o) => { if (T.on) { const l = [t, f, cap(o)]; T.ls.push(l); T.mine.ls.push(l); } return ae.call(window, t, f, o); };
+    window.removeEventListener = (t, f, o) => { T.ls = T.ls.filter(x => !(x[0] === t && x[1] === f && x[2] === cap(o))); return re.call(window, t, f, o); };
+    T.open = id => { T.mine = { iv: [], ls: [] }; T.on = true; try { openSpec(id); } finally { T.on = false; } return { iv: T.mine.iv.length, ls: T.mine.ls.length }; };
+    T.alive = (m = T.mine) => m.iv.filter(id => T.live.has(id)).length + m.ls.filter(l => T.ls.includes(l)).length; });
+  const ids = Object.keys(specs), started = {};
+  for (const [k, id] of ids.entries()) {
+    started[id] = await page.evaluate(id => __trk.open(id), id); await wait(400);
+    await closeEsc(page);
+    const closed = await page.evaluate(() => __trk.alive());
+    const other = ids[(k + 1) % ids.length];
+    await page.evaluate(id => __trk.open(id), id); await wait(300);
+    const swapped = await page.evaluate(other => { const m = __trk.mine; openSpec(other); return __trk.alive(m); }, other); // synchronously, right after the swap
+    await closeEsc(page);
+    check(`${vp}: ${id} stops its timers and window listeners on close and when ${other} replaces it (started ${JSON.stringify(started[id])})`, closed === 0 && swapped === 0, JSON.stringify({ closed, swapped }));
+  }
+  check(`${vp}: the moon and Titan register something to clean up (the hook sees them)`, started.moon && started.moon.iv >= 1 && started.titan && started.titan.ls >= 1, JSON.stringify(started));
+  // the moon's countdown no longer ticks once its view is closed
+  await page.evaluate(() => openSpec('moon')); await wait(400); await closeEsc(page);
+  const c0 = await page.evaluate(() => document.querySelector('#spec-body .countdown')?.textContent ?? null); await wait(2500);
+  const c1 = await page.evaluate(() => document.querySelector('#spec-body .countdown')?.textContent ?? null);
+  check(`${vp}: the moon countdown stays still for 2.5 s after close`, c0 === c1, `${c0} / ${c1}`);
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
+  await specCleanup(page, vp, specs);
   await focusRing(page, vp, specs);
   await madeLine(page, vp, specs);
   await whereNextPanel(page, vp, specs);

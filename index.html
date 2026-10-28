@@ -853,9 +853,10 @@ function moonDash(el) {
     <div class="tile"><span class="ti">${iss}</span><div class="k">Space station</div><div class="v">21:14</div><div class="s countdown" aria-live="off"></div></div></div>`;
   // illustrative pass at 21:14 local time: today, or tomorrow once it has gone
   const cd = el.querySelector('.countdown'), pass = new Date(); pass.setHours(21, 14, 0, 0); if (pass <= new Date()) pass.setDate(pass.getDate() + 1);
-  const tick = () => { if (!cd.isConnected) return clearInterval(iv); const t = Math.max(0, Math.round((pass - Date.now()) / 1000)), p2 = n => String(n).padStart(2, '0');
+  const tick = () => { const t = Math.max(0, Math.round((pass - Date.now()) / 1000)), p2 = n => String(n).padStart(2, '0');
     cd.textContent = `in ${Math.floor(t / 3600)}h ${p2(Math.floor(t / 60) % 60)}m ${p2(t % 60)}s · 4 min, west to east`; };
   const iv = setInterval(tick, 1000); tick();
+  return () => clearInterval(iv); // openSpec calls this on close, or when another specimen replaces this one
 }
 // Café moodboard: an even grid of what Mo kept, then a palette sampled from the two paintings. A swatch copies its hex and lights up the image it came from.
 function moodboard(el) {
@@ -935,7 +936,7 @@ function savings(el) {
   mo.oninput = yr.oninput = () => draw(true); draw(false);
 }
 // Land on Titan: hold to fire the engine, touch down under 3 m/s. Titan's gravity is weak and its air is thick, so the fall is slow and drag is strong.
-let landerStop = null, landerBest = null; // the best soft landing this visit, kept in memory only
+let landerBest = null; // the best soft landing this visit, kept in memory only
 function lander(el) {
   const START = 50, CEIL = 62, G = 4, DRAG = .25, THRUST = 10, BURN = 18, SAFE = 3; // metres, m/s², fuel %/s
   el.innerHTML = `<div class="lander" data-state="play"><div class="stage"><canvas tabindex="0" data-autofocus aria-label="Land on Titan: hold the mouse, a finger or Space to fire the engine. Touch down under 3 metres a second."></canvas>
@@ -1053,11 +1054,13 @@ function lander(el) {
     raf = requestAnimationFrame(frame);
   }
   size(); reset(); raf = requestAnimationFrame(frame);
-  landerStop = () => { cancelAnimationFrame(raf); removeEventListener('pointerup', off); removeEventListener('keydown', key); removeEventListener('keyup', key); removeEventListener('resize', size); landerStop = null; };
+  return () => { cancelAnimationFrame(raf); removeEventListener('pointerup', off); removeEventListener('keydown', key); removeEventListener('keyup', key); removeEventListener('resize', size); };
 }
 const specEl = document.getElementById('spec'), panel = specEl.querySelector('.panel'), closeBtn = specEl.querySelector('.close'), dimEl = specEl.querySelector('.dim');
 const EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// A specimen's render may return a cleanup function (timers, frame loops, window listeners); it runs on close and when another specimen replaces the view.
+let specStop = null; const stopSpec = () => { const f = specStop; specStop = null; if (f) f(); };
 let opener = null, current = null, closing = null, everOpened = false, restoring = false, keyNav = false;
 // how the visitor is moving: keys or a pointer; it decides where focus lands when a view opens
 addEventListener('keydown', e => { if (!e.metaKey && !e.ctrlKey && !e.altKey) keyNav = true; }, true); addEventListener('pointerdown', () => { keyNav = false; }, true);
@@ -1076,7 +1079,7 @@ function openSpec(id, from) {
   const swap = !specEl.hidden && !closing;
   if (closing) { closing = null; dimEl.getAnimations().forEach(a => a.cancel()); }
   panel.getAnimations({ subtree: true }).forEach(a => a.cancel());
-  if (landerStop) landerStop();
+  stopSpec();
   if (!swap) opener = from || document.querySelector(`[data-spec="${id}"]`);
   current = id; everOpened = true; clearTimeout(pulseT);
   specEl.classList.toggle('masthead', !!s.mast);
@@ -1090,7 +1093,7 @@ function openSpec(id, from) {
     ? `<span class="go open" aria-hidden="true">${SPECS[n.open].act} ↗</span>` : `<span class="go" aria-hidden="true">Visit →</span>`}</button>`).join('');
   document.querySelectorAll('#spec-next .nx').forEach(b => b.onclick = () => { const n = s.next[b.dataset.i]; if (n.open) openSpec(n.open); else { closeSpec({ toCard: false, focus: false }); goGarden(n.garden, true); } });
   specEl.hidden = false; specEl.querySelector('.main').scrollTop = 0; panel.scrollTop = 0;
-  const body = document.getElementById('spec-body'); s.render(body); drifting = false; vx = vy = 0; setInert(true);
+  const body = document.getElementById('spec-body'); specStop = s.render(body) || null; drifting = false; vx = vy = 0; setInert(true);
   if (!still()) {
     const parts = [specEl.querySelector('.main'), specEl.querySelector('.next')];
     if (swap) parts.forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: EASE }));
@@ -1105,7 +1108,7 @@ function openSpec(id, from) {
 // Close: shrink back into the card when it is on screen, else fade. Focus goes back to the card that opened it.
 function closeSpec({ toCard = true, focus = true } = {}) {
   if (specEl.hidden || closing) return;
-  if (landerStop) landerStop();
+  stopSpec();
   const done = () => { closing = null; specEl.hidden = true; panel.getAnimations({ subtree: true }).forEach(a => a.cancel()); dimEl.getAnimations().forEach(a => a.cancel()); setInert(false);
     if (focus && opener) { restoring = true; opener.focus({ preventScroll: true }); restoring = false; } armPulse(); };
   if (still()) return done();
