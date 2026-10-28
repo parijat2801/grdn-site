@@ -87,7 +87,7 @@
   .thing.enter, .garden header.enter { animation: rise var(--rise) cubic-bezier(.2,.7,.2,1) backwards; }
   @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.975); } }
   .kept { display: inline-block; transition: color .3s; }
-  .kept.bump { animation: bump .6s cubic-bezier(.2,.7,.2,1); color: #c4552f; }
+  .kept.bump { animation: bump .6s cubic-bezier(.2,.7,.2,1); color: var(--titan-ridge); } /* a burnt coral from the palette: #c4552f was 4.47:1 on white */
   @keyframes bump { 30% { transform: scale(1.18); } }
   .heart { position: absolute; pointer-events: none; color: #e08a68; font-size: 18px; animation: float 1.4s cubic-bezier(.2,.7,.2,1) forwards; }
   @keyframes float { from { opacity: 0; transform: translate(0,0) scale(.6); } 20% { opacity: 1; transform: translate(0,-10px) scale(1.1); } to { opacity: 0; transform: translate(-6px,-46px) scale(.9); } }

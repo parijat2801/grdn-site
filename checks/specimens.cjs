@@ -1343,6 +1343,17 @@ async function fontsNonBlocking(browser) {
     await ctx.close();
   }
 }
+// A count that someone just kept turns a warm colour for a moment; that colour still reaches 4.5:1 on the white card (Lighthouse flagged 4.47).
+async function bumpContrast(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop'); await page.evaluate(HELP);
+  await page.evaluate(() => { const k = document.querySelector('#world .thing .kept'); k.id = 'bumpchk'; k.classList.add('bump'); });
+  await wait(700);
+  const r = await page.evaluate(() => { const k = document.getElementById('bumpchk'), c = __c.rgb(getComputedStyle(k).color); let e = k.closest('.thing'); const bg = __c.rgb(getComputedStyle(e).backgroundColor);
+    return { color: getComputedStyle(k).color, bg: getComputedStyle(e).backgroundColor, ratio: +__c.ratio(__c.over(c, bg), bg).toFixed(2) }; });
+  check(`desktop: a just-kept count's colour reaches 4.5:1 on its card (${r.ratio})`, r.ratio >= 4.5, JSON.stringify(r));
+  check('desktop: no errors in the bump contrast pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
 async function loadSpeed(browser) { await assetBase(browser); await fontsNonBlocking(browser); await imageBytes(browser); await imagesShown(browser); }
 
 async function audit(browser) {
@@ -1361,6 +1372,7 @@ async function audit(browser) {
   await sharing(browser);
   await groundAndTransitions(browser);
   await loadSpeed(browser);
+  await bumpContrast(browser);
 }
 
 async function fullPass(browser, vp) {
@@ -1402,6 +1414,7 @@ async function fullPass(browser, vp) {
     if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); await morph(browser); throw 'only'; }
     if (process.env.ONLY === 'pill') { for (let k = 0; k < 3; k++) { const { ctx, page } = await newPage(browser, 'desktop'); await explore(page); await pillClear(page, 'desktop'); await ctx.close(); } throw 'only'; }
     if (process.env.ONLY === 'agentmade') { await agentMade(browser); throw 'only'; }
+    if (process.env.ONLY === 'bump') { await bumpContrast(browser); throw 'only'; }
     if (process.env.ONLY === 'speed') { await loadSpeed(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     if (process.env.ONLY === 'new') { // quick loop while building the stream and agent specimens
