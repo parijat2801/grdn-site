@@ -847,10 +847,28 @@ async function emailFocus(browser) {
   }
 }
 
+// The opening entrance: the card and everything in it is fully in within 400 ms (delay + duration of every animation on it); reduced motion has none.
+async function entrance(browser) {
+  for (const vp of ['desktop', 'phone']) {
+    for (const rm of [false, true]) {
+      const { ctx, page, errors } = await newPage(browser, vp, rm ? { reducedMotion: 'reduce' } : {});
+      const e = await page.evaluate(() => { const secs = v => v.split(',').map(x => parseFloat(x) * (/ms/.test(x) ? .001 : 1));
+        return [document.getElementById('card'), ...document.querySelectorAll('#card *')].filter(el => getComputedStyle(el).animationName !== 'none').map(el => { const cs = getComputedStyle(el), d = secs(cs.animationDelay), u = secs(cs.animationDuration);
+          return { el: el.id || el.className || el.tagName, end: Math.round(Math.max(...u.map((x, i) => x + (d[i % d.length] || 0))) * 1000) }; }).filter(x => x.end > 0); });
+      const last = Math.max(0, ...e.map(x => x.end));
+      if (rm) check(`${vp}: reduced motion: the opening card has no entrance animation`, e.length === 0, JSON.stringify(e));
+      else check(`${vp}: the opening card and its lines are fully in within 400 ms (last ends at ${last} ms, ${e.length} animated)`, e.length >= 5 && last <= 400, JSON.stringify(e));
+      check(`${vp}${rm ? ' (reduced)' : ''}: no errors in the entrance pass`, errors.length === 0, errors.join(' | '));
+      await ctx.close();
+    }
+  }
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
   await emailFocus(browser);
+  await entrance(browser);
 }
 
 async function fullPass(browser, vp) {

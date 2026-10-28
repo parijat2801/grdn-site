@@ -104,10 +104,11 @@
     background: var(--card-glass); backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); border: 1px solid rgba(16,36,58,.08); border-radius: 28px; padding: 44px 44px 34px;
     box-shadow: 0 2px 6px rgba(16,36,58,.04), 0 24px 60px rgba(16,36,58,.10);
     transition: opacity .5s cubic-bezier(.2,.7,.2,1), transform .5s cubic-bezier(.2,.7,.2,1);
-    animation: cardIn .9s .1s cubic-bezier(.2,.7,.2,1) backwards; }
+    animation: cardIn .3s cubic-bezier(.2,.7,.2,1) backwards; }
   @keyframes cardIn { from { opacity: 0; transform: translate(-50%,-46%) scale(.98); } }
-  #card > * { animation: up .8s cubic-bezier(.2,.7,.2,1) backwards; }
-  #card .mark { animation-delay: .25s; } #card h1 { animation-delay: .32s; } #card .lede { animation-delay: .45s; } #card .waitnote { animation-delay: .52s; } #card .stance { animation-delay: .52s; } #card form { animation-delay: .6s; } #card .fine { animation-delay: .68s; }
+  /* the whole card is readable within 400 ms: a 280 ms rise, staggered by at most 120 ms */
+  #card > * { animation: up .28s cubic-bezier(.2,.7,.2,1) backwards; }
+  #card h1 { animation-delay: .02s; } #card .lede { animation-delay: .05s; } #card .waitnote { animation-delay: .08s; } #card .stance { animation-delay: .08s; } #card form { animation-delay: .1s; } #card .fine { animation-delay: .12s; }
   @keyframes up { from { opacity: 0; transform: translateY(10px); } }
   #scrim { position: fixed; inset: 0; pointer-events: none; transition: opacity .6s ease;
     display: none; }
