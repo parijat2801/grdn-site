@@ -348,6 +348,59 @@ async function pulse(browser, vp, long) {
   await ctx.close();
 }
 
+
+// ---------- polish checks: measured, not presence-only ----------
+// In-page helpers: colour parsing, WCAG contrast, and decoding a screenshot into pixels.
+const HELP = () => { window.__c = {
+  rgb: s => { const m = String(s).match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[\s,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; },
+  lum: c => { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(c.r) + .7152 * f(c.g) + .0722 * f(c.b); },
+  over: (fg, bg) => ({ r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1 }),
+  ratio: (a, b) => { const x = __c.lum(a), y = __c.lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); },
+  // the text colour as painted: its alpha times every ancestor's opacity
+  ink: el => { const c = __c.rgb(getComputedStyle(el).color); let a = c.a; for (let e = el; e; e = e.parentElement) a *= +getComputedStyle(e).opacity; return { ...c, a }; },
+  px: async b64 => { const i = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob()), c = new OffscreenCanvas(i.width, i.height), x = c.getContext('2d'); x.drawImage(i, 0, 0); return { w: i.width, h: i.height, d: [...x.getImageData(0, 0, i.width, i.height).data] }; },
+}; };
+const box = (page, sel) => page.evaluate(sel => { const e = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, l: r.left, t: r.top, r: r.right, b: r.bottom }; }, sel);
+const shot64 = async (page, b) => (await page.screenshot({ scale: 'css', clip: { x: Math.max(0, b.x), y: Math.max(0, b.y), width: Math.max(1, b.w), height: Math.max(1, b.h) } })).toString('base64');
+// Worst-case contrast of the text in `sel` against the pixels behind it: hide the text, shoot its box, compare with the darkest and lightest backdrop pixel.
+async function textContrast(page, sel) {
+  const items = await page.evaluate(sel => [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length && e.textContent.trim()).map((e, i) => { e.dataset.tc = i; const r = e.getBoundingClientRect(); return { i, x: r.left, y: r.top, w: r.width, h: r.height, ink: __c.ink(e), t: e.textContent.trim().slice(0, 24) }; }), sel);
+  const out = [];
+  for (const it of items) {
+    await page.evaluate(i => { const e = document.querySelector(`[data-tc="${i}"]`); e.dataset.tcColor = e.style.color; e.style.setProperty('color', 'transparent', 'important'); e.querySelectorAll('*').forEach(k => k.style.setProperty('color', 'transparent', 'important')); }, it.i);
+    const b64 = await shot64(page, it);
+    await page.evaluate(i => { const e = document.querySelector(`[data-tc="${i}"]`); e.style.color = e.dataset.tcColor; e.querySelectorAll('*').forEach(k => k.style.removeProperty('color')); delete e.dataset.tc; }, it.i);
+    const worst = await page.evaluate(async ([b64, ink]) => { const { d } = await __c.px(b64); let lo = 1e9, hi = -1; const P = [];
+      for (let k = 0; k < d.length; k += 4) { const c = { r: d[k], g: d[k + 1], b: d[k + 2], a: 1 }; P.push(c); }
+      // ignore the most extreme 3% of backdrop pixels (anti-aliasing at edges)
+      P.sort((a, b) => __c.lum(a) - __c.lum(b)); const a = P[Math.floor(P.length * .03)], z = P[Math.floor(P.length * .97)];
+      return Math.min(__c.ratio(__c.over(ink, a), a), __c.ratio(__c.over(ink, z), z)); }, [b64, it.ink]);
+    out.push({ t: it.t, ratio: +worst.toFixed(2) });
+  }
+  return out;
+}
+
+async function focusRing(page, vp, specs) {
+  for (const id of ['mood', 'titan']) {
+    const o = await openViaCard(page, id, specs[id]);
+    const f = await page.evaluate(() => { const a = document.activeElement, c = document.querySelector('#spec .close'), cs = getComputedStyle(c);
+      return { onClose: a === c, inPanel: !!a.closest('#spec .panel'), named: !!(a.getAttribute('aria-labelledby') || a.getAttribute('aria-label') || a.closest('[aria-labelledby]')),
+        // a painted ring: an outline on whatever has focus, or the game stage's focus ring
+        fv: [...document.querySelectorAll('#spec .panel, #spec .panel *')].filter(e => { const cs = getComputedStyle(e); return e.matches(':focus-visible') && cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 || e.matches('.stage') && /rgb\(15, 143, 128\)/.test(cs.boxShadow); }).map(e => e.className || e.tagName), closeOutline: cs.outlineStyle + ' ' + cs.outlineWidth }; });
+    check(`${vp}: pointer open of ${id}: focus in the dialog, no focus ring anywhere, close button not focused`, o.ok && f.inPanel && f.named && !f.onClose && f.fv.length === 0 && /none|^\S+ 0px/.test(f.closeOutline), JSON.stringify(f));
+    await closeEsc(page);
+  }
+  await page.evaluate(() => document.querySelector('[data-spec="mood"]').focus()); await page.keyboard.press('Enter'); await wait(450);
+  const k = await page.evaluate(() => { const a = document.activeElement, cs = getComputedStyle(a); return { fv: a.matches(':focus-visible'), inPanel: !!a.closest('#spec .panel'), ring: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2, el: a.className || a.tagName }; });
+  check(`${vp}: keyboard open shows a visible focus ring inside the dialog`, k.fv && k.inPanel && k.ring, JSON.stringify(k));
+  await closeEsc(page);
+}
+
+async function polish(page, vp, specs) {
+  await page.evaluate(HELP);
+  await focusRing(page, vp, specs);
+}
+
 async function fullPass(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-opening.png` });
@@ -367,6 +420,7 @@ async function fullPass(browser, vp) {
   await frame(page, vp, specs);
   await keyboard(page, vp, specs);
   if (vp !== 'desktop') await sheet(page, vp, specs);
+  await polish(page, vp, specs);
   const broken = await page.evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth === 0).map(i => i.src));
   check(`${vp}: all images load`, broken.length === 0, broken.join(', '));
   check(`${vp}: no console or page errors through the full pass`, errors.length === 0, errors.join(' | '));
@@ -377,6 +431,11 @@ async function fullPass(browser, vp) {
 (async () => {
   const browser = await chromium.launch();
   try {
+    if (process.env.ONLY === 'polish') { // quick loop while building: only the polish checks
+      for (const vp of ['desktop', 'phone']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); const specs = await specInfo(page); await polish(page, vp, specs);
+        check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); }
+      throw 'only';
+    }
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
     // small phone: sheet behaviour only
@@ -386,7 +445,7 @@ async function fullPass(browser, vp) {
     await motion(browser, 'phone', specs);
     await pulse(browser, 'desktop', true);
     await pulse(browser, 'phone', false);
-  } catch (e) { failed++; console.log('FAIL harness crashed :: ' + (e.stack || e)); }
+  } catch (e) { if (e !== 'only') { failed++; console.log('FAIL harness crashed :: ' + (e.stack || e)); } }
   await browser.close();
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);

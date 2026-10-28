@@ -160,6 +160,7 @@
     background: var(--card); color: var(--ink); cursor: pointer; transition: background var(--fade) ease, color var(--fade) ease; }
   #spec .close svg { width: 14px; height: 14px; }
   @media (hover: hover) { #spec .close:hover { background: var(--ink); color: var(--paper); } }
+  #spec .panel:focus { outline: none; } #spec .close:focus:not(:focus-visible) { outline: none; }
   #spec .close:focus-visible, #spec .nx:focus-visible, .lander .again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
   /* how Grdn made it: the sentence, then the kept things as small tickets */
   #spec .made { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-5); padding: var(--sp-3) var(--sp-4) var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep);
@@ -300,7 +301,7 @@
   <div class="fine"><button class="explore" id="explore">Explore the gardens</button></div>
 </section>
 <button class="btn" id="pill">Reserve your Grdn</button>
-<div id="spec" hidden><div class="dim"></div><div class="panel" role="dialog" aria-modal="true" aria-labelledby="spec-title">
+<div id="spec" hidden><div class="dim"></div><div class="panel" role="dialog" aria-modal="true" aria-labelledby="spec-title" tabindex="-1">
   <button class="close" type="button" aria-label="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   <div class="main"><div class="kicker" id="spec-kind"></div><h3 id="spec-title"></h3><div class="body" id="spec-body"></div><div class="made" id="spec-made"></div></div>
   <aside class="next"><div class="nx-head">Where next</div><div class="sub">Because you opened this</div><div id="spec-next"></div></aside>
@@ -860,7 +861,9 @@ function lander(el) {
 const specEl = document.getElementById('spec'), panel = specEl.querySelector('.panel'), closeBtn = specEl.querySelector('.close'), dimEl = specEl.querySelector('.dim');
 const EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-let opener = null, current = null, closing = null, everOpened = false, restoring = false;
+let opener = null, current = null, closing = null, everOpened = false, restoring = false, keyNav = false;
+// how the visitor is moving: keys or a pointer; it decides where focus lands when a view opens
+addEventListener('keydown', e => { if (!e.metaKey && !e.ctrlKey && !e.altKey) keyNav = true; }, true); addEventListener('pointerdown', () => { keyNav = false; }, true);
 const onScreen = el => { if (!el) return null; const r = el.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth ? r : null; };
 const cardRect = r => { const p = panel.getBoundingClientRect(); return `translate(${r.left - p.left}px, ${r.top - p.top}px) scale(${r.width / p.width}, ${r.height / p.height})`; };
 const setInert = on => [view, card, pill].forEach(el => el.inert = on);
@@ -893,7 +896,8 @@ function openSpec(id, from) {
         parts.forEach(el => el.animate([{ opacity: 0 }, { opacity: 0, offset: .35 }, { opacity: 1 }], { duration: 300, easing: EASE })); }
       else panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: EASE }); }
   }
-  (body.querySelector('[data-autofocus]') || closeBtn).focus({ preventScroll: true });
+  // A pointer open focuses the dialog itself (named by its title), so no ring appears; a keyboard open focuses the first control, which shows its ring.
+  (keyNav ? body.querySelector('[data-autofocus]') || closeBtn : panel).focus({ preventScroll: true });
 }
 // Close: shrink back into the card when it is on screen, else fade. Focus goes back to the card that opened it.
 function closeSpec({ toCard = true, focus = true } = {}) {
