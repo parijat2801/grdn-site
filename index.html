@@ -222,6 +222,11 @@
   #spec .src b { font-size: var(--fs-tag); font-weight: 650; line-height: 1.25; color: var(--ink); }
   #spec .became { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); text-wrap: pretty; }
   #spec .became::before { content: '→ '; font-family: 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; font-style: normal; font-weight: 700; font-size: var(--fs-tag); color: var(--teal); }
+  /* a made line that is one sentence: its sources are small inline chips (icon and name) inside it, not tickets */
+  #spec .made.inline { display: block; }
+  #spec .made.inline > span:first-child { margin: 0; line-height: 1.75; }
+  #spec .made.inline .chip { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px 0 7px; margin: 0; vertical-align: 1px; border-radius: var(--r-pill); box-shadow: none; font-size: var(--fs-meta); font-weight: 650; line-height: 1; white-space: nowrap; }
+  #spec .made.inline .chip::before { content: attr(data-ic); font-size: 13px; }
   /* Where next: what to open after this */
   /* on desktop Where next is its own card, as tall as its rows, beside the view */
   #spec .next { align-self: start; margin: var(--nx-top) var(--sp-5) var(--sp-5) 0; background: var(--bubble); border: 1px solid var(--line); border-radius: var(--r-card); padding: var(--sp-4) var(--sp-3) var(--sp-3); }
@@ -239,6 +244,17 @@
   #spec .nx .go { position: absolute; top: 11px; right: 11px; font-size: var(--fs-tag); font-weight: 700; white-space: nowrap; color: var(--muted); }
   #spec .nx .go.open { top: 9px; padding: 3px 9px; border-radius: var(--r-pill); background: var(--teal-tint); color: var(--teal-ink); }
   @keyframes fadeIn { from { opacity: 0; } }
+  /* a specimen that is itself a Where next (Lena's stream): the page's own rows become a compact "More to explore" under the view, at every width */
+  #spec.nav-below .panel { display: block; overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  #spec.nav-below .close { position: sticky; top: var(--sp-3); display: grid; margin: var(--sp-3) var(--sp-3) -52px auto; }
+  #spec.nav-below .main { overflow: visible; }
+  #spec.nav-below .kicker { padding-right: 48px; } #spec.nav-below h3 { padding-right: 40px; }
+  #spec.nav-below .next { margin: 0 var(--sp-7) var(--sp-6); padding: var(--sp-4) 0 0; background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+  #spec.nav-below .nx-head { padding: 0; font-size: var(--fs-row); }
+  #spec.nav-below .next .sub { display: none; }
+  /* italic serif belongs to the reason lines alone in this view: the home garden and these rows' why lines are plain */
+  #spec.nav-below .kicker .home, #spec.nav-below .nx .why { font-family: 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; font-style: normal; font-size: var(--fs-meta); color: var(--muted-strong); }
+  @media (min-width: 1128px) { #spec.nav-below #spec-next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); } #spec.nav-below .nx { margin-top: var(--sp-2); } }
   @media (max-width: 760px) {
     /* a bottom sheet that scrolls inside itself, with a grab bar; the close button stays in reach */
     #spec { padding: var(--sp-6) 0 0; align-items: end; }
@@ -251,6 +267,7 @@
     #spec .made { padding: var(--sp-3); grid-template-columns: 1fr; }
     #spec .next { margin: 0; border: 0; border-radius: 0; border-top: 1px solid var(--line); padding: var(--sp-5) var(--sp-4) var(--sp-6); }
     #spec .nx-head, #spec .next .sub { padding: 0; }
+    #spec.nav-below .next { margin: 0; padding: var(--sp-5) var(--sp-4) var(--sp-6); }
   }
   @media (min-width: 761px) and (max-width: 1127px) {
     /* tablets and small laptops: one column that scrolls inside the panel, Where next under the view; the close button stays in reach */
@@ -434,34 +451,76 @@
   .mg-thing.glow { animation: mgGlow 1.3s var(--ease); }
   @keyframes mgGlow { 25% { box-shadow: 0 0 0 3px var(--teal), 0 0 0 10px var(--made-ring); } }
   .mg-thing.lit { box-shadow: 0 0 0 3px var(--teal), var(--shadow-card); }
-  /* Lena's stream: the stream beside her garden (above it on a phone) */
-  .stream { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
-  .st-feed { min-height: var(--stage-h); padding: var(--sp-3); border-radius: var(--r-card); background: var(--paper-deep); border: 1px solid var(--line); }
-  .st-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin: 0 2px var(--sp-3); }
-  .st-head b { font-size: var(--fs-row); font-weight: 800; letter-spacing: -.01em; }
-  .st-live { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-tag); font-weight: 700; color: var(--teal-ink); }
-  .st-live::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); animation: stBeat 2.4s ease-in-out infinite; }
-  .st-live.off { color: var(--muted-strong); } .st-live.off::before { background: var(--seen-line); animation: none; }
-  @keyframes stBeat { 50% { opacity: .35; } }
-  .st-wait { padding: var(--sp-5) var(--sp-2); text-align: center; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
-  .st-list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
-  .st-item, .st-fly { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-3); row-gap: 3px; align-items: start; padding: 11px 11px 12px 14px; border-radius: var(--r-bubble);
-    background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-card); color: var(--ink); font-family: 'Bricolage Grotesque', 'Bricolage Fallback', system-ui, sans-serif; }
-  .st-item { animation: stIn .5s var(--ease) backwards; }
-  @keyframes stIn { from { opacity: 0; transform: translateY(-12px); } }
-  .st-fly { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform-origin: 0 0; box-shadow: var(--shadow-lift); }
+  /* Lena's stream: her garden on the left, her Where next on the right; whitespace between, no box around either. On a phone the garden is a strip on top. */
+  .stream { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); column-gap: var(--sp-7); align-items: start; }
+  .st-col { min-width: 0; }
+  .st-head { display: flex; align-items: baseline; gap: var(--sp-2); min-height: 26px; margin-bottom: var(--sp-3); }
+  .st-head b { font-size: var(--fs-title); font-weight: 800; letter-spacing: -.01em; }
+  .st-head small { font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); }
+  .st-count { display: inline-block; margin-left: auto; padding: 2px 9px 3px; border-radius: var(--r-pill); background: var(--paper-deep); font-size: var(--fs-tag); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .st-kept { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .st-thing { min-width: 0; display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 10px; align-items: center; padding: 7px 12px 7px 7px; border-radius: var(--r-small); background: var(--paper); border: 1px solid var(--line);
+    transition: background-color var(--hover) ease, border-color var(--hover) ease; }
+  .st-ic { grid-row: span 2; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: var(--card); font-size: 15px; line-height: 1; }
+  .st-k { font-size: var(--fs-k); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-strong); }
+  .st-tt { font-size: var(--fs-meta); font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
+  .st-thing.note .st-tt { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); font-weight: 500; }
+  .st-thing.fresh { background: var(--teal-tint); border-color: var(--made-line); }
+  .st-thing.glow { animation: mgGlow 1.3s var(--ease); }
+  .st-feeds { margin-top: var(--sp-5); }
+  .st-sub { display: block; margin-bottom: var(--sp-2); font-size: var(--fs-tag); font-weight: 700; color: var(--muted-strong); }
+  .st-flist { list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); }
+  .st-feed { display: flex; align-items: center; gap: var(--sp-2); min-height: 32px; font-size: var(--fs-meta); font-weight: 650; }
+  .st-feed small { font-size: var(--fs-tag); font-weight: 500; color: var(--muted-strong); }
+  .st-feed.fresh { animation: up .3s var(--ease) backwards; }
+  .st-add, .st-pick, .st-rule { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--r-pill); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; color: var(--ink); cursor: pointer; white-space: nowrap;
+    transition: background-color var(--fade) ease, color var(--fade) ease, border-color var(--fade) ease; }
+  .st-add { margin-top: var(--sp-2); border: 1px dashed var(--seen-line); background: none; }
+  .st-offer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); }
+  .st-offer[hidden], .st-add[hidden], .st-keep[hidden] { display: none; }
+  .st-offer .st-sub { margin: 0; }
+  .st-pick { border: 0; background: var(--teal-tint); color: var(--teal-ink); }
+  .st-pick b { font-weight: 700; color: var(--ink); }
+  .st-rules { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+  .st-rule { padding-left: 8px; border: 1px solid var(--seen-line); background: var(--card); color: var(--muted-strong); }
+  .st-rule::before { content: ''; width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; border: 2px solid var(--seen-line); }
+  .st-rule[aria-pressed="true"] { border-color: transparent; background: var(--teal-tint); color: var(--teal-ink); }
+  .st-rule[aria-pressed="true"]::before { border: 0; background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 7.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat; }
+  @media (hover: hover) { .st-add:hover, .st-rule:hover { border-color: var(--teal); } .st-keep:hover { background: var(--teal-ink); } }
+  .st-note { font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); }
+  .st-note[hidden] { display: none; }
+  .st-list { list-style: none; }
+  .st-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-4); row-gap: 2px; align-items: center; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+  .st-item.in { animation: up .35s var(--ease) backwards; }
   .st-src { grid-column: 1; font-size: var(--fs-tag); font-weight: 650; color: var(--muted-strong); }
-  .st-t { grid-column: 1; font-size: var(--fs-row); font-weight: 650; line-height: 1.22; letter-spacing: -.005em; text-wrap: pretty; }
+  .st-t { grid-column: 1; font-size: var(--fs-row); font-weight: 650; line-height: 1.25; letter-spacing: -.005em; text-wrap: pretty; }
   .st-why { grid-column: 1; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); }
-  .st-acts { grid-column: 2; grid-row: 1 / span 3; align-self: center; display: flex; flex-direction: column; gap: 6px; }
-  .st-acts button { min-width: 64px; height: 36px; padding: 0 14px; border-radius: var(--r-pill); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; transition: background-color var(--fade) ease, color var(--fade) ease; }
-  .st-keep { border: 0; background: var(--ink); color: var(--paper); }
-  .st-skip { border: 1px solid var(--seen-line); background: var(--card); color: var(--ink); }
-  @media (hover: hover) { .st-keep:hover { background: var(--teal-ink); } .st-skip:hover { background: var(--paper-deep); } }
-  .st-acts button:focus-visible, .ag-line:focus-visible, .ag-again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
-  .st-end { display: none; margin-top: var(--sp-3); text-align: center; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
-  .stream.done .st-end { display: block; animation: fadeIn .6s ease; }
-  @media (max-width: 760px) { .stream { grid-template-columns: minmax(0, 1fr); } .st-feed { min-height: var(--stage-h-s); } .st-acts button { height: 44px; } }
+  .st-keep { grid-column: 2; grid-row: 1 / span 3; min-width: 68px; height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; transition: background-color var(--fade) ease; }
+  .st-fly { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform-origin: 0 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-small); background: var(--teal-tint); box-shadow: var(--shadow-lift); font-size: var(--fs-row); font-weight: 650; color: var(--ink); overflow: hidden; }
+  .st-end { margin-top: var(--sp-3); font-size: var(--fs-meta); font-weight: 600; color: var(--teal-ink); }
+  .st-end[hidden] { display: none; }
+  .st-add:focus-visible, .st-pick:focus-visible, .st-rule:focus-visible, .st-keep:focus-visible, .ag-line:focus-visible, .ag-again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+  @media (max-width: 760px) {
+    /* the garden becomes one strip of small cards that scrolls sideways, bleeding to the sheet's edges; her feeds sit in one row under it */
+    .stream { grid-template-columns: minmax(0, 1fr); row-gap: var(--sp-5); }
+    .st-kept { flex-direction: row; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4) 2px; scroll-padding: 0 var(--sp-4); }
+    .st-kept::-webkit-scrollbar { display: none; }
+    .st-thing { flex: 0 0 136px; grid-template-columns: 22px minmax(0, 1fr); align-content: start; column-gap: 6px; row-gap: 4px; padding: 8px 11px 10px 8px; }
+    .st-ic { grid-row: auto; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; }
+    .st-tt { grid-column: 1 / -1; }
+    .st-tt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .st-feeds { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); }
+    /* the label stays for screen readers; the chips under her garden say it on their own */
+    .st-feeds > .st-sub { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .st-flist { display: contents; }
+    .st-feed { gap: 6px; min-height: 44px; padding: 0 14px 0 10px; border-radius: var(--r-pill); background: var(--paper-deep); }
+    .st-feed small { display: none; }
+    .st-add, .st-pick, .st-rule, .st-keep { height: 44px; }
+    .st-add { margin: 0; }
+    .st-offer { margin: 0; }
+  }
+  /* small phones: both rule chips still fit on one row */
+  @media (max-width: 380px) { .st-rule { gap: 5px; padding: 0 12px 0 7px; font-size: var(--fs-tag); } .st-rule::before { width: 16px; height: 16px; } }
   /* Arjun's agent: a plain transcript of its tool calls beside his garden (above it on a phone) */
   .agent { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
   .ag-term { display: flex; flex-direction: column; padding: var(--sp-3) var(--sp-3) var(--sp-3); border-radius: var(--r-card); background: var(--paper-deep); border: 1px solid var(--line); color: var(--ink); }
@@ -648,7 +707,7 @@ const G = [
     { type: 'note', text: 'House rule: robber goes home after a seven.', kept: 4 },
   ]},
   { name: 'Robotics, new this week', by: 'Lena’s lab', things: [
-    { spec: 'stream', type: 'app', e: '📡', bg: '#FBE3E9', k: 'Stream', t: 'Lena’s stream, this week', meta: 'follows 3 feeds', kept: 52 },
+    { spec: 'stream', type: 'app', e: '📡', bg: '#FBE3E9', k: 'Stream', t: 'Lena’s stream', meta: 'reads her garden and arXiv cs.RO', kept: 52 },
     { type: 'flow', k: 'Workflow', t: 'Explain anything new', steps: ['new arXiv papers', 'Grdn explains', 'short video'], kept: 48 },
     { type: 'video', frame: 'slam', t: 'Tactile SLAM, in 40 seconds', dom: 'made by Grdn from new papers', kept: 71 },
     { type: 'link', dom: 'arxiv.org', t: 'New in cs.RO', meta: 'kept by Lena’s agent', agent: true, kept: 35 },
@@ -986,15 +1045,16 @@ const SPECS = {
   savings: { act: 'Try', noun: 'chart', kind: 'Chart', title: 'What the jar grows to', owner: 'Dami', garden: 'Money basics', from: [{ t: 'Pocket money jar', icon: '🪙', became: 'the jar and the monthly amount' }, { t: 'What compounding looks like', icon: '📈', became: 'the 4% line that pulls away' }],
     next: [{ t: 'Land on Titan', s: 'Leo, age 11 · game', why: 'Made by a kid from his space links', open: 'titan' }, { t: 'Fractions, by hand', s: 'Ms. Rao’s class 4B', why: 'More maths you can poke', garden: 'Fractions, by hand' }, { t: 'The jar game and the toy', s: 'Dami', why: 'The two things this chart came from', garden: 'Money basics' }],
     render: el => savings(el) },
-  // a stream is not made by Grdn: it follows feeds and what its owner keeps, so its made line says that instead (lead)
-  stream: { act: 'Try', noun: 'stream', kind: 'Stream', title: 'Lena’s stream, this week', owner: 'Lena', garden: 'Robotics, new this week', lead: 'This stream follows 3 feeds and what {owner} kept last week:',
-    from: [{ t: 'arXiv · cs.RO, new papers', icon: '📄', became: 'two or three papers a day' }, { t: 'Gripper Notes, a lab blog', icon: '✍️', became: 'the posts on hands and grippers' }, { t: 'Robot talks, a video channel', icon: '▶️', became: 'the talks worth an evening' }, { t: 'Tactile SLAM, which Lena kept', icon: '🤚', became: 'more papers on robots that feel their way' }],
+  // a stream is not made by Grdn: Lena's stream reads her garden, her feeds and her rules, so its made line credits it, in one sentence with its sources inline ({0}…)
+  // the stream IS her Where next, so the page's own rows read "More to explore", under the view (navBelow)
+  stream: { act: 'Try', noun: 'stream', kind: 'Stream', title: 'Lena’s stream', owner: 'Lena', garden: 'Robotics, new this week', lead: '{owner}’s stream reads {0}, {1} and {2}.', navBelow: true,
+    from: [{ t: 'her garden', icon: '🌱' }, { t: 'her feeds', icon: '📄' }, { t: 'her rules', icon: '✓' }],
     next: [{ t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'New things from four gardens, every Sunday', open: 'paper' }, { t: 'Octopus minds', s: 'Ines', why: 'Soft arms, from the animal side', garden: 'Octopus minds' }, { t: 'What Lena kept', s: 'Lena’s lab', why: 'The garden this stream feeds', garden: 'Robotics, new this week' }],
     render: el => stream(el) },
   // the agent is not Grdn: an AI agent Arjun uses calls Grdn's MCP tools, so the made line names it (lead)
   agent: { act: 'Watch', noun: 'run', kind: 'Agent', title: 'Arjun’s agent, this morning', owner: 'Arjun', garden: 'Small shop, less admin', lead: '{owner}’s agent tends this garden with him, through Grdn’s MCP tools:',
     from: [{ t: 'Orders sheet', icon: '📋', became: 'the 3 new orders it read' }, { t: 'Arjun’s note: “split anything over 2 items”', icon: '📝', became: 'the rule for which orders to split' }, { t: 'Grdn over MCP', icon: '🔌', became: 'the tools it calls: read_stream, keep, file, create_note' }],
-    next: [{ t: 'Lena’s stream, this week', s: 'Lena · stream', why: 'New finds that come to you, to keep or skip', open: 'stream' }, { t: 'Home lab', s: 'Dev at night', why: 'Another workflow that runs while you sleep', garden: 'Home lab' }, { t: 'Arjun’s orders and notes', s: 'Arjun’s ops', why: 'What the agent kept, and the note it left', garden: 'Small shop, less admin' }],
+    next: [{ t: 'Lena’s stream', s: 'Lena · stream', why: 'Her Where next: keep a find and the next one builds on it', open: 'stream' }, { t: 'Home lab', s: 'Dev at night', why: 'Another workflow that runs while you sleep', garden: 'Home lab' }, { t: 'Arjun’s orders and notes', s: 'Arjun’s ops', why: 'What the agent kept, and the note it left', garden: 'Small shop, less admin' }],
     render: el => agentRun(el) },
 };
 // Each specimen card's preview strip: a background, and sometimes a small drawing on it.
@@ -1266,54 +1326,87 @@ function miniGarden(slot, name, by, things) {
     glow(li) { if (still() || !li) return; li.classList.remove('glow'); void li.offsetWidth; li.classList.add('glow'); },
   };
 }
-// Lena's stream: new finds arrive one at a time, newest on top; Keep sends one into her garden, Skip lets it go. Arrivals wait while you look.
+// Lena's stream: her garden beside her Where next. Keep moves a suggestion into her garden and the next one builds on it; a new feed and her two rules change what comes.
 function stream(el) {
-  const ITEMS = [ // [source icon, source, kind in the garden, title, why it came]
-    ['📄', 'arXiv · cs.RO', 'Paper', 'Mapping a dark room by touch alone', 'because Lena kept Tactile SLAM'],
-    ['✍️', 'Gripper Notes · blog', 'Post', 'Why soft grippers keep dropping eggs', 'follows Gripper Notes'],
-    ['📄', 'arXiv · cs.RO', 'Paper', 'Wheel slip, estimated from motor current', 'because of Lena’s note on drift'],
-    ['▶️', 'Robot talks · video', 'Video', 'A legged robot learns stairs in an afternoon', 'follows Robot talks'],
-    ['📄', 'arXiv · cs.RO', 'Paper', 'Cheap whiskers for robots in tight spaces', 'follows cs.RO'],
-    ['📄', 'arXiv · cs.RO', 'Paper', 'Pushing objects you cannot see', 'because Lena kept Tactile SLAM'],
-    ['✍️', 'Gripper Notes · blog', 'Post', 'Our notes on calibrating a cheap IMU', 'follows Gripper Notes'],
-    ['▶️', 'Robot talks · video', 'Video', 'Drift, explained with a shopping trolley', 'because of Lena’s note on drift'],
+  const KEPT = [['📄', 'Paper', 'Tactile SLAM'], ['▶️', 'Video', 'Tactile SLAM, in 40 seconds'], ['📝', 'Note', 'Why does my robot drift?'], ['🔗', 'Link', 'New in cs.RO'], ['🔁', 'Workflow', 'Explain anything new']]; // [icon, kind, title]
+  // Everything Where next could suggest, in its usual order. why: the kept thing it builds on ('' = new today on arXiv). after: shows once that one is kept here.
+  // feed: shows once she follows it. web: not a research site (needs "Research sites only" off). far: not about touch (needs "Robots that touch" off).
+  // Gripper Notes is a lab's blog, so it counts as a research site.
+  const S = [
+    { id: 'dark', e: '📄', k: 'Paper', t: 'Mapping a dark room by touch', src: 'arxiv.org', why: 'Tactile SLAM' },
+    { id: 'whisk', e: '📄', k: 'Paper', t: 'Cheap whiskers for robots in tight spaces', src: 'arXiv cs.RO', why: '' },
+    { id: 'push', e: '📄', k: 'Paper', t: 'Pushing objects you cannot see', src: 'arxiv.org', why: 'Tactile SLAM' },
+    { id: 'slip', e: '📄', k: 'Paper', t: 'Fingertips that feel a cup start to slip', src: 'arXiv cs.RO', why: '' },
+    { id: 'drift', e: '📄', k: 'Paper', t: 'Wheel drift, found by feel', src: 'arxiv.org', why: 'Why does my robot drift?' },
+    { id: 'skin', e: '📄', k: 'Paper', t: 'A skin for robot arms, in three layers', src: 'arXiv cs.RO', why: '' },
+    { id: 'grasp', e: '📄', k: 'Paper', t: 'Grasping in the dark, one touch at a time', src: 'arxiv.org', why: 'Tactile SLAM' },
+    { id: 'chair', after: 'dark', e: '📄', k: 'Paper', t: 'Touch maps that survive a moved chair', src: 'arxiv.org' },
+    { id: 'handle', after: 'chair', e: '📄', k: 'Paper', t: 'Finding a door handle by feel', src: 'arxiv.org' },
+    { id: 'flat', after: 'handle', e: '📄', k: 'Paper', t: 'One touch map for a whole flat', src: 'arxiv.org' },
+    { id: 'whisk2', after: 'whisk', e: '📄', k: 'Paper', t: 'Whiskers that tell wood from metal', src: 'arxiv.org' },
+    { id: 'push2', after: 'push', e: '📄', k: 'Paper', t: 'Pushing a cup without tipping it', src: 'arxiv.org' },
+    { id: 'slip2', after: 'slip', e: '📄', k: 'Paper', t: 'Slip sensing on a soft gripper', src: 'arxiv.org' },
+    { id: 'eggs', feed: 'gripper', e: '✍️', k: 'Post', t: 'Why soft grippers keep dropping eggs', src: 'Gripper Notes · lab blog' },
+    { id: 'pad', feed: 'gripper', e: '✍️', k: 'Post', t: 'Calibrating a cheap fingertip sensor', src: 'Gripper Notes · lab blog' },
+    { id: 'diy', web: true, e: '✍️', k: 'Post', t: 'How I gave my robot whiskers', src: 'hackaday.com · blog', why: 'Tactile SLAM' },
+    { id: 'talk', web: true, e: '▶️', k: 'Video', t: 'Teaching robots to feel, a 20-minute talk', src: 'youtube.com · talk', why: 'Tactile SLAM, in 40 seconds' },
+    { id: 'wheel', far: true, e: '📄', k: 'Paper', t: 'Wheel slip, estimated from motor current', src: 'arxiv.org', why: 'Why does my robot drift?' },
+    { id: 'stairs', far: true, e: '📄', k: 'Paper', t: 'A legged robot learns stairs in an afternoon', src: 'arXiv cs.RO', why: '' },
   ];
-  const FIRST = 700, EVERY = 2700, REST = 1500, MAX = () => matchMedia('(max-width: 760px)').matches ? 3 : 5;
-  el.innerHTML = `<div class="stream" data-arrived="0" data-done="false" data-paused="false">
-    <section class="st-feed" aria-label="Lena’s stream"><div class="st-head"><b>New this week</b><span class="st-live">Arriving</span></div>
-      <p class="st-wait">Watching 3 feeds and what Lena kept…</p><ol class="st-list" aria-live="polite"></ol><p class="st-end">That’s this week’s stream.</p></section>
-    <div class="st-garden"></div></div>`;
-  const root = el.querySelector('.stream'), feed = root.querySelector('.st-feed'), list = root.querySelector('.st-list'), live = root.querySelector('.st-live');
-  const g = miniGarden(root.querySelector('.st-garden'), 'Robotics, new this week', 'Lena’s lab', [
-    { e: '🔁', k: 'Workflow', t: 'Explain anything new' }, { e: '▶️', k: 'Video', t: 'Tactile SLAM, in 40 seconds' },
-    { e: '🔗', k: 'Link', t: 'New in cs.RO' }, { e: '📝', k: 'Note', t: 'Why does my robot drift? Start with the wheel odometry.', note: true }]);
-  let next = 0, clock = 0, last = performance.now(), hover = false, focus = false, done = false, iv = null;
-  const flights = new Set(), paused = () => hover || focus;
-  const status = () => { root.dataset.paused = paused(); live.textContent = done ? 'All in for this week' : paused() ? 'Paused while you look' : 'Arriving'; live.classList.toggle('off', done || paused()); };
-  feed.addEventListener('pointerenter', () => { hover = true; status(); }); feed.addEventListener('pointerleave', () => { hover = false; status(); });
-  feed.addEventListener('focusin', () => { focus = true; status(); }); feed.addEventListener('focusout', e => { focus = feed.contains(e.relatedTarget); status(); });
-  const leave = li => { li.classList.add('gone'); const go = () => slide(list, () => li.remove());
-    if (still()) return go(); li.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.97)' }], { duration: 220, easing: EASE, fill: 'forwards' }).onfinish = go; };
-  const keep = li => { if (li.classList.contains('gone')) return; const it = ITEMS[+li.dataset.i]; li.classList.add('gone');
-    const thing = { e: it[0], k: it[2], t: it[3], m: 'kept from the stream' };
-    if (still()) { li.remove(); g.add(thing); return; }
-    const a = li.getBoundingClientRect(), fly = li.cloneNode(true);
-    fly.classList.remove('gone'); fly.classList.add('st-fly'); fly.removeAttribute('data-i'); fly.querySelectorAll('button').forEach(b => b.remove()); fly.setAttribute('aria-hidden', 'true');
-    Object.assign(fly.style, { left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px' }); document.body.appendChild(fly);
-    slide(list, () => li.remove());
-    const slot = g.add(thing, true), b = slot.getBoundingClientRect(); flights.add(fly);
-    const an = fly.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${(b.left - a.left) * .6}px, ${(b.top - a.top) * .6 - 18}px) scale(.82)`, opacity: 1, offset: .55 },
-      { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${b.width / a.width}, ${b.height / a.height})`, opacity: .2 }], { duration: 420, easing: EASE, fill: 'forwards' });
-    an.onfinish = () => { fly.remove(); flights.delete(fly); slot.style.visibility = ''; g.glow(slot); }; };
-  const arrive = () => { const i = next++, it = ITEMS[i]; root.dataset.arrived = next; root.querySelector('.st-wait').hidden = true;
-    slide(list, () => { list.insertAdjacentHTML('afterbegin', `<li class="st-item" data-i="${i}"><span class="st-src"><span aria-hidden="true">${it[0]}</span> ${esc(it[1])}</span><b class="st-t">${esc(it[3])}</b><span class="st-why">${esc(it[4])}</span>
-      <span class="st-acts"><button type="button" class="st-keep" aria-label="Keep ${esc(it[3])}">Keep</button><button type="button" class="st-skip" aria-label="Skip ${esc(it[3])}">Skip</button></span></li>`); });
-    const li = list.firstElementChild; li.querySelector('.st-keep').onclick = () => keep(li); li.querySelector('.st-skip').onclick = () => { if (!li.classList.contains('gone')) leave(li); };
-    [...list.querySelectorAll('.st-item:not(.gone)')].slice(MAX()).forEach(leave); };
-  const finish = () => { done = true; root.dataset.done = 'true'; root.classList.add('done'); clearInterval(iv); status(); };
-  iv = setInterval(() => { const now = performance.now(); if (!paused()) clock += now - last; last = now;
-    if (next < ITEMS.length && clock >= FIRST + next * EVERY) arrive(); else if (next === ITEMS.length && clock >= FIRST + (next - 1) * EVERY + REST) finish(); }, 100);
-  return () => { clearInterval(iv); flights.forEach(f => f.remove()); flights.clear(); };
+  const SHOW = 4, CHAIN = 4, by = Object.fromEntries(S.map(s => [s.id, s]));
+  const kept = new Set(), open = new Set(), feeds = new Set(), rule = { web: true, far: true }, at = new Map(); // open: follow-ups unlocked by a keep; at: when something let a suggestion in (newest first)
+  let tick = 0, note = '';
+  const reason = s => s.feed ? 'new · Gripper Notes' : s.after ? `because you kept ${by[s.after].t}` : s.why ? `because you kept ${s.why}` : 'new today · arXiv cs.RO';
+  const fits = (s, r = rule) => !kept.has(s.id) && (!s.after || open.has(s.id)) && (!s.feed || feeds.has(s.feed)) && !(s.web && r.web) && !(s.far && r.far);
+  const order = r => S.filter(s => fits(s, r)).sort((a, b) => (at.get(b.id) || 0) - (at.get(a.id) || 0));
+  const thing = (e, k, t, fresh) => `<li class="st-thing${k === 'Note' ? ' note' : ''}${fresh ? ' fresh' : ''}"><span class="st-ic" aria-hidden="true">${e}</span><span class="st-k">${esc(k)}</span><span class="st-tt">${esc(t)}</span></li>`;
+  el.innerHTML = `<div class="stream">
+    <section class="st-col st-garden" aria-label="Lena’s garden"><div class="st-head"><b>Lena’s garden</b><span class="st-count" aria-live="polite"></span></div>
+      <ul class="st-kept">${KEPT.map(k => thing(...k)).join('')}</ul>
+      <div class="st-feeds"><span class="st-sub">Feeds she follows</span><ul class="st-flist"><li class="st-feed"><span aria-hidden="true">📄</span> arXiv cs.RO <small>new robotics papers</small></li></ul>
+        <button type="button" class="st-add" aria-expanded="false">+ Add a feed</button><div class="st-offer" hidden><button type="button" class="st-pick"><span aria-hidden="true">✍️</span> Gripper Notes (blog) <b>Follow</b></button></div></div></section>
+    <section class="st-col st-where" aria-label="Lena’s Where next"><div class="st-head"><b>Where next</b><small>for Lena, from her stream</small></div>
+      <div class="st-rules"><button type="button" class="st-rule" data-rule="web" aria-pressed="true">Research sites only</button><button type="button" class="st-rule" data-rule="far" aria-pressed="true">Robots that touch</button></div>
+      <p class="st-note" role="status" hidden></p><ol class="st-list" aria-live="polite"></ol><p class="st-end" hidden>Lena’s stream will bring more tomorrow.</p></section></div>`;
+  const root = el.querySelector('.stream'), ul = root.querySelector('.st-kept'), cnt = root.querySelector('.st-count'), list = root.querySelector('.st-list'), noteEl = root.querySelector('.st-note'), endEl = root.querySelector('.st-end');
+  const add = root.querySelector('.st-add'), offer = root.querySelector('.st-offer'), flights = new Set();
+  const count = bump => { const n = ul.children.length; cnt.textContent = `${n} thing${n === 1 ? '' : 's'}`;
+    if (bump && !still()) cnt.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.14)', color: 'var(--teal-ink)', offset: .35 }, { transform: 'scale(1)' }], { duration: 500, easing: EASE }); };
+  // Where next: the first four that fit, newest reason first. Rows that stay glide to their new place; new rows rise in. The last one left keeps no Keep, so the list is never empty.
+  const render = () => {
+    const want = order(rule).slice(0, SHOW), had = new Map([...list.children].map(li => [li.dataset.id, li]));
+    slide(list, () => { want.forEach(s => { let li = had.get(s.id);
+      if (!li) { list.insertAdjacentHTML('beforeend', `<li class="st-item${still() ? '' : ' in'}" data-id="${s.id}" data-research="${!s.web}"><span class="st-src"><span aria-hidden="true">${s.e}</span> ${esc(s.src)}</span><b class="st-t">${esc(s.t)}</b><span class="st-why">${esc(reason(s))}</span>
+        <button type="button" class="st-keep" aria-label="Keep ${esc(s.t)}">Keep</button></li>`); li = list.lastElementChild; li.querySelector('.st-keep').onclick = () => keep(li); }
+      else { had.delete(s.id); list.appendChild(li); } });
+      had.forEach(li => li.remove()); });
+    list.querySelectorAll('.st-keep').forEach(b => { b.hidden = want.length < 2; });
+    noteEl.textContent = note; noteEl.hidden = !note; endEl.hidden = kept.size < CHAIN; };
+  // Keep: the row flies into her garden, which gains the thing on top; the thing it unlocks (if the chain is still going) comes first in Where next
+  const keep = li => { const s = by[li.dataset.id]; if (!s || kept.has(s.id)) return;
+    const hadFocus = li.contains(document.activeElement), a = li.getBoundingClientRect();
+    kept.add(s.id); note = ''; const next = S.find(x => x.after === s.id);
+    if (next && kept.size < CHAIN) { open.add(next.id); at.set(next.id, ++tick); }
+    ul.scrollLeft = 0; const slot = slide(ul, () => { ul.insertAdjacentHTML('afterbegin', thing(s.e, s.k, s.t, true)); return ul.firstElementChild; }); count(true);
+    render(); if (hadFocus) (list.querySelector('.st-keep:not([hidden])') || add || el).focus({ preventScroll: true });
+    if (still()) return;
+    const b = slot.getBoundingClientRect(), fly = document.createElement('div');
+    fly.className = 'st-fly'; fly.setAttribute('aria-hidden', 'true'); fly.textContent = s.t; slot.style.visibility = 'hidden';
+    Object.assign(fly.style, { left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px' }); document.body.appendChild(fly); flights.add(fly);
+    const an = fly.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${(b.left - a.left) * .6}px, ${(b.top - a.top) * .6 - 18}px) scale(.8)`, opacity: 1, offset: .55 },
+      { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${b.width / a.width}, ${b.height / a.height})`, opacity: .2 }], { duration: 460, easing: EASE, fill: 'forwards' });
+    an.onfinish = () => { fly.remove(); flights.delete(fly); slot.style.visibility = ''; slot.classList.add('glow'); }; };
+  // Add a feed: one ready pick, no typing. Gripper Notes joins her feeds and its two new posts come first.
+  add.onclick = () => { add.hidden = true; add.setAttribute('aria-expanded', 'true'); offer.hidden = false; offer.querySelector('.st-pick').focus({ preventScroll: true }); };
+  offer.querySelector('.st-pick').onclick = () => { offer.hidden = true; feeds.add('gripper'); note = ''; S.filter(s => s.feed === 'gripper').reverse().forEach(s => at.set(s.id, ++tick));
+    root.querySelector('.st-flist').insertAdjacentHTML('beforeend', `<li class="st-feed fresh"><span aria-hidden="true">✍️</span> Gripper Notes <small>a lab’s blog</small></li>`); render(); };
+  // Her rules: off lets in what the rule kept out (first in the list); back on takes it out again and says how many it hid and why
+  root.querySelectorAll('.st-rule').forEach(b => b.onclick = () => { const k = b.dataset.rule, on = !rule[k];
+    if (!on) S.filter(s => s[k]).reverse().forEach(s => at.set(s.id, ++tick));
+    const hid = on ? order({ ...rule, [k]: false }).slice(0, SHOW).filter(s => s[k]).length : 0;
+    rule[k] = on; b.setAttribute('aria-pressed', on); note = hid ? `${hid} hidden: ${k === 'web' ? 'not a research site' : 'not about touch'}` : ''; render(); });
+  count(false); render();
+  return () => { flights.forEach(f => f.remove()); flights.clear(); };
 }
 // Arjun's agent: a short morning run, played as a transcript. Each line is a call to one of Grdn's MCP tools; the garden beside it changes as each call completes.
 function agentRun(el) {
@@ -1385,13 +1478,17 @@ function openSpec(id, from) {
   stopSpec();
   if (!swap) opener = from || document.querySelector(`[data-spec="${id}"]`);
   current = id; everOpened = true; clearTimeout(pulseT);
-  specEl.classList.toggle('masthead', !!s.mast);
+  specEl.classList.toggle('masthead', !!s.mast); specEl.classList.toggle('nav-below', !!s.navBelow);
+  specEl.querySelector('.nx-head').textContent = s.navBelow ? 'More to explore' : 'Where next';
   // the kind, and the garden it lives in: "Game  in Tiny games, Leo’s garden"
   document.getElementById('spec-kind').innerHTML = `<span class="kind">${esc(s.kind)}</span><span class="home">in ${esc(s.garden)}, ${esc(s.owner)}’s garden</span>`; document.getElementById('spec-title').textContent = s.title;
   // Grdn is the maker, the owner is the keeper: "Grdn built this game from 3 things Leo kept:". No possessive, so pairs like "Mei & Jo" read right.
   const n = s.from.length, what = s.fromWhat || (n === 1 ? 'thing' : 'things'), verb = s.fromVerb || 'kept';
   const lead = s.lead ? esc(s.lead).replace('{owner}', `<b>${esc(s.owner)}</b>`) : `Grdn ${s.verb || 'built'} this ${s.noun} from ${n} ${what} <b>${esc(s.owner)}</b> ${verb}:`;
-  document.getElementById('spec-made').innerHTML = `<span>${lead}</span>${s.from.map(f => `<span class="chip"><span class="src-ic" aria-hidden="true">${f.img ? `<img src="${THUMB(f.img)}" alt="">` : f.icon}</span><span class="src"><b>${esc(f.t)}</b><span class="became">${esc(f.became)}</span></span></span>`).join('')}`;
+  // a lead with {0}, {1}… is one sentence: each source sits inside it as a small chip (its icon drawn from data-ic, so the sentence reads plainly)
+  const inline = /\{\d\}/.test(lead), madeEl = document.getElementById('spec-made'); madeEl.classList.toggle('inline', inline);
+  if (inline) madeEl.innerHTML = `<span>${lead.replace(/\{(\d)\}/g, (_, i) => `<span class="chip" data-ic="${s.from[i].icon}">${esc(s.from[i].t)}</span>`)}</span>`;
+  else madeEl.innerHTML = `<span>${lead}</span>${s.from.map(f => `<span class="chip"><span class="src-ic" aria-hidden="true">${f.img ? `<img src="${THUMB(f.img)}" alt="">` : f.icon}</span><span class="src"><b>${esc(f.t)}</b><span class="became">${esc(f.became)}</span></span></span>`).join('')}`;
   // each row says what it does: open another specimen (its verb, ↗) or visit a garden (→)
   document.getElementById('spec-next').innerHTML = s.next.map((n, i) => `<button class="nx" type="button" data-i="${i}">${nxThumb(n)}<span><b>${esc(n.t)}</b><small>${esc(n.s)}</small><span class="why">${esc(n.why)}</span></span>${n.open
     ? `<span class="go open" aria-hidden="true">${SPECS[n.open].act} ↗</span>` : `<span class="go" aria-hidden="true">Visit →</span>`}</button>`).join('');

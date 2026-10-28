@@ -367,7 +367,7 @@ const streamLayout = page => page.evaluate(() => { const r = document.querySelec
   const cols = [...r.querySelectorAll(':scope > .st-col')].map(c => { const b = c.getBoundingClientRect(), kids = [...c.children].filter(k => k.getClientRects().length);
     const used = kids.length ? Math.max(...kids.map(k => k.getBoundingClientRect().bottom)) - b.top : 0; return { cls: c.className, top: Math.round(b.top), left: Math.round(b.left), h: Math.round(b.height), empty: b.height ? +((b.height - used) / b.height).toFixed(2) : 1 }; });
   const rb = r.getBoundingClientRect(), lastCol = Math.max(...cols.map(c => c.top + c.h));
-  const italic = [...r.querySelectorAll('*')].filter(e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.getClientRects().length && getComputedStyle(e).fontStyle === 'italic').map(e => e.className);
+  const italic = [...P.querySelectorAll('*')].filter(e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.getClientRects().length && getComputedStyle(e).fontStyle === 'italic').map(e => e.className);
   const leaves = t => [...P.querySelectorAll('*')].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.textContent.replace(/\s+/g, ' ').trim() === t);
   const main = document.querySelector('#spec .main').getBoundingClientRect(), nx = document.querySelector('#spec .next').getBoundingClientRect();
   return { cols, rootEmpty: rb.height ? +((rb.bottom - lastCol) / rb.height).toFixed(2) : 1, italic, whereNext: leaves('Where next').length, whereNextInBody: leaves('Where next').filter(e => e.closest('#spec-body')).length,
@@ -385,14 +385,16 @@ async function streamCheck(page, vp) {
   check(`${vp}: stream: the first suggestion builds on something she kept ("because you kept Tactile SLAM")`, !!a && !!a.items[0] && a.items[0].why === 'because you kept Tactile SLAM', JSON.stringify(a && a.items[0]));
   if (!a || !a.items.length) { await closeEsc(page); return; }
   check(`${vp}: stream: "Where next" names her suggestions once; the page's own rows read "More to explore", sit under the view, compact (no sub line)`, L.whereNext === 1 && L.whereNextInBody === 1 && L.navHead === 'More to explore' && L.navRows === 3 && L.navBelow && !L.navSub, JSON.stringify(L));
-  check(`${vp}: stream: italic serif only on the reason lines`, L.italic.length > 0 && L.italic.every(c => /\bst-why\b/.test(c)), JSON.stringify(L.italic));
+  check(`${vp}: stream: italic serif only on the reason lines, anywhere in the view`, L.italic.length > 0 && L.italic.every(c => /\bst-why\b/.test(c)), JSON.stringify(L.italic));
   check(`${vp}: stream: no column has more than 25% empty space, and the view ends with its columns`, L.cols.length === 2 && L.cols.every(c => c.empty <= .25) && L.rootEmpty <= .05, JSON.stringify(L));
   if (!phone) check(`${vp}: stream: the two columns sit side by side with tops aligned (within 2px)`, Math.abs(L.cols[0].top - L.cols[1].top) <= 2 && L.cols[1].left > L.cols[0].left, JSON.stringify(L.cols));
   else {
     const s = await page.evaluate(() => { const k = document.querySelector('#spec-body .st-kept'), cs = getComputedStyle(k), t = [...k.querySelectorAll('.st-thing')].map(e => Math.round(e.getBoundingClientRect().top)), g = document.querySelector('#spec-body .st-garden').getBoundingClientRect(), n = document.querySelector('#spec-body .st-where').getBoundingClientRect();
       const taps = [...document.querySelectorAll('#spec-body button')].filter(b => b.getClientRects().length).map(b => [b.className, Math.round(b.getBoundingClientRect().height)]);
-      return { scroll: cs.overflowX, oneRow: new Set(t).size === 1, gardenAbove: g.bottom <= n.top + 1, taps }; });
+      const row = sel => new Set([...document.querySelectorAll(sel)].filter(e => e.getClientRects().length).map(e => Math.round(e.getBoundingClientRect().top))).size === 1;
+      return { scroll: cs.overflowX, oneRow: new Set(t).size === 1, rulesRow: row('#spec-body .st-rule'), feedsRow: row('#spec-body .st-feed, #spec-body .st-add'), gardenAbove: g.bottom <= n.top + 1, taps }; });
     check(`${vp}: stream: on a phone her garden is one horizontal strip above Where next`, s.scroll === 'auto' && s.oneRow && s.gardenAbove, JSON.stringify(s));
+    check(`${vp}: stream: on a phone her feeds are one row of chips and her rules another, nothing orphaned`, s.rulesRow && s.feedsRow, JSON.stringify(s));
     check(`${vp}: stream: every control is a ≥44px tap target on a phone`, s.taps.length >= 4 && s.taps.every(t => t[1] >= 44), JSON.stringify(s.taps));
   }
   const o = await overflow(page);
@@ -426,6 +428,7 @@ async function streamCheck(page, vp) {
   const f = await streamState(page);
   const gn = f.items.filter(i => i.why === 'new · Gripper Notes');
   check(`${vp}: stream: Gripper Notes joins her feeds and ≥2 "new · Gripper Notes" posts show in Where next`, f.feeds.length === 2 && f.feeds.some(x => /Gripper Notes/.test(x)) && gn.length >= 2 && f.items.length >= 3, JSON.stringify({ feeds: f.feeds, items: f.items.map(i => i.t + ' | ' + i.why) }));
+  if (phone) check(`${vp}: stream: on a phone both feeds still share one row`, await page.evaluate(() => new Set([...document.querySelectorAll('#spec-body .st-feed')].map(e => Math.round(e.getBoundingClientRect().top))).size === 1));
   check(`${vp}: stream: once added, the feed is not offered again`, !(await page.evaluate(() => [...document.querySelectorAll('#spec-body .st-add, #spec-body .st-pick')].some(b => b.getClientRects().length))));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-feed.png` });
   const of = await overflow(page);
