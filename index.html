@@ -725,8 +725,10 @@ if (!calm) {
 // ---------- life: now and then, someone keeps a thing you can see ----------
 function keepSomething() {
   const card = document.getElementById('card'), cr = card.classList.contains('away') ? null : card.getBoundingClientRect();
+  // never under the paper band around the pill: a bump or a heart there would flicker through its soft edge
+  const band = document.getElementById('pillbar'), floor = band.classList.contains('show') ? Math.min(innerHeight - 110, band.getBoundingClientRect().top - 4) : innerHeight - 110;
   const seen = [...document.querySelectorAll('.kept')].filter(k => { const r = k.getBoundingClientRect();
-    if (r.top < 40 || r.bottom > innerHeight - 110 || r.left < 20 || r.right > innerWidth - 20) return false;
+    if (r.top < 40 || r.bottom > floor || r.left < 20 || r.right > innerWidth - 20) return false;
     return !cr || r.right < cr.left - 10 || r.left > cr.right + 10 || r.bottom < cr.top - 10 || r.top > cr.bottom + 10; });
   if (!seen.length) return;
   const k = seen[Math.random() * seen.length | 0], n = parseInt(k.textContent.replace(/\D/g, ''), 10) + 1;
