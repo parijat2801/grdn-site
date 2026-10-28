@@ -38,6 +38,7 @@
     --fs-lead: 15px; --fs-row: 15px; --fs-hud: 20px; --fs-hud-s: 17px; --fs-spec-title: 34px; --fs-spec-title-s: 27px;
     --sp-6: 32px; --sp-7: 40px; --r-panel: 28px; --r-sheet: 24px; --r-stage: 16px; --panel-w: 1080px; --aside-w: 300px;
     --stage-h: clamp(300px, 46vh, 420px); --stage-h-s: clamp(320px, 50vh, 400px);
+    --spark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M6 0C6.6 3.6 8.4 5.4 12 6 8.4 6.6 6.6 8.4 6 12 5.4 8.4 3.6 6.6 0 6 3.6 5.4 5.4 3.6 6 0Z'/%3E%3C/svg%3E");
     --seed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M6 11V6.5M6 6.5C6 4 4.2 2.6 1.8 2.8 1.8 5.2 3.5 6.6 6 6.5ZM6 6.5C6 4.4 7.5 3 9.9 3.1 9.9 5.3 8.4 6.6 6 6.5Z' fill='%23fff' stroke='%23fff' stroke-width='.6' stroke-linejoin='round'/%3E%3C/svg%3E");
     /* Titan: thick orange haze, a dim sun, Saturn faint behind it, dark dunes and a methane lake */
     --titan-sky-1: #4a220d; --titan-sky-2: #a8561c; --titan-sky-3: #e9a95e; --titan-haze: #f2c58a; --titan-sun: #fff2d6; --titan-saturn: #f1d6a4; --titan-saturn-band: #d9b47c; --titan-ring: #ffe7bd;
@@ -88,6 +89,8 @@
   .t { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; margin-top: 3px; }
   .meta { display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .kept::before { content: '♥ '; color: #e08a68; }
+  .by-agent::before { content: ''; display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px; background: currentColor;
+    -webkit-mask: var(--spark) center/contain no-repeat; mask: var(--spark) center/contain no-repeat; }
   .row { display: flex; gap: 12px; align-items: center; }
   .ic { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
   .note p { font-family: 'Newsreader', serif; font-size: 18px; line-height: 1.4; }
@@ -530,8 +533,8 @@ const G = [
   { name: 'Small shop, less admin', by: 'Arjun’s ops', things: [
     { spec: 'agent', type: 'app', e: '🤖', bg: '#F8E2D9', k: 'Agent', t: 'Arjun’s agent, this morning', meta: 'works in Grdn over MCP', kept: 31 },
     { type: 'flow', k: 'Workflow', t: 'Morning order check', steps: ['Orders sheet', 'find splits', 'note'], kept: 23 },
-    { type: 'app', e: '📦', bg: '#DDF3EF', k: 'Tool', t: 'Split order #48213', meta: 'used once · today' },
-    { type: 'note', text: '2 orders need splitting before the 11am pickup.', meta: 'made by workflow' },
+    { type: 'app', e: '📦', bg: '#DDF3EF', k: 'Tool', t: 'Split order #48213', meta: 'made by Arjun’s agent · used once', agent: true },
+    { type: 'note', text: '2 orders need splitting before the 11am pickup.', meta: 'made by Arjun’s agent', agent: true },
     { type: 'app', e: '🧾', bg: '#FCEBC2', k: 'Tool', t: 'Invoice fixer', kept: 64 },
   ]},
   { name: 'Sound toys', by: 'Kenji', things: [
@@ -634,7 +637,7 @@ const G = [
     { spec: 'stream', type: 'app', e: '📡', bg: '#FBE3E9', k: 'Stream', t: 'Lena’s stream, this week', meta: 'follows 3 feeds', kept: 52 },
     { type: 'flow', k: 'Workflow', t: 'Explain anything new', steps: ['new arXiv papers', 'Grdn explains', 'short video'], kept: 48 },
     { type: 'video', frame: 'slam', t: 'Tactile SLAM, in 40 seconds', dom: 'made by Grdn from new papers', kept: 71 },
-    { type: 'link', dom: 'arxiv.org', t: 'New in cs.RO', kept: 35 },
+    { type: 'link', dom: 'arxiv.org', t: 'New in cs.RO', meta: 'kept by Lena’s agent', agent: true, kept: 35 },
     { type: 'note', text: 'Why does my robot drift? Start with the wheel odometry.', kept: 11 },
   ]},
   { name: 'Kitchen', by: 'Priya & Sam', things: [
@@ -662,7 +665,7 @@ const G = [
     { type: 'link', dom: 'allaboutbirds.org', t: 'Wren songs and calls', kept: 97 },
   ]},
   { name: 'Running, slowly', by: 'Tunde', things: [
-    { type: 'app', e: '🏃', bg: '#FFE3D6', k: 'Tool', t: 'Easy-pace calculator', kept: 283 },
+    { type: 'app', e: '🏃', bg: '#FFE3D6', k: 'Tool', t: 'Easy-pace calculator', meta: 'made by Tunde’s agent', agent: true, kept: 283 },
     { type: 'note', text: 'If you can’t talk, you’re going too fast.', kept: 150 },
   ]},
   { name: 'Type & letters', by: 'a garden by Wen', things: [
@@ -685,7 +688,7 @@ const G = [
     { type: 'note', text: 'Round 4 is always flags. Always.', kept: 17 },
   ]},
   { name: 'Home lab', by: 'Dev at night', things: [
-    { type: 'flow', k: 'Workflow', t: 'Back up the photos', steps: ['phone', 'NAS', 'note'], kept: 38 },
+    { type: 'flow', k: 'Workflow', t: 'Back up the photos', steps: ['phone', 'NAS', 'note'], meta: 'made by Dev’s agent', agent: true, kept: 38 },
     { type: 'app', e: '🧪', bg: '#F1ECE0', k: 'Tool', t: 'Plant watering log', kept: 74 },
   ]},
   { name: 'Poems I carry', by: 'a garden by Sol', things: [
@@ -699,7 +702,8 @@ const world = document.getElementById('world');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // A count of the people who keep a thing in their own garden. keepSomething() parses the number back out.
 const keptText = n => n === 1 ? '1 person keeps this' : `${n.toLocaleString('en-US')} people keep this`;
-const meta = th => `<div class="meta"><span>${th.meta ? esc(th.meta) : ''}</span>${th.kept ? `<span class="kept">${keptText(th.kept)}</span>` : ''}</div>`;
+// a thing a person's agent made or kept says so, with a small spark before it
+const meta = th => `<div class="meta"><span${th.agent ? ' class="by-agent"' : ''}>${th.meta ? esc(th.meta) : ''}</span>${th.kept ? `<span class="kept">${keptText(th.kept)}</span>` : ''}</div>`;
 function thingHTML(th) {
   if (th.live) return liveHTML(th.live);
   switch (th.type) {
@@ -986,7 +990,7 @@ const PEEK = {
   kyoto: ['linear-gradient(100deg, var(--kyo-sky) 0 50%, var(--kyo-rain) 50%)', '<span>⛩️</span><span style="left:auto;right:84px">☀️ 🌧</span>'],
   recipe: ['linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2))', '<span>🍚</span><span style="left:46px">🥢</span>'],
   stream: ['linear-gradient(var(--t-lena), var(--t-lena))', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice"><g fill="var(--card)"><rect x="56" y="9" width="170" height="16" rx="8"/><rect x="56" y="31" width="150" height="16" rx="8" opacity=".7"/></g><rect x="234" y="9" width="40" height="16" rx="8" fill="var(--ink)"/><rect x="214" y="31" width="40" height="16" rx="8" fill="var(--card)" opacity=".7"/></svg><span>📡</span>'],
-  agent: ['var(--paper-deep)', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700"><circle cx="62" cy="18" r="4" fill="var(--teal)"/><text x="72" y="22" fill="var(--teal-ink)">keep</text><text x="104" y="22" fill="var(--muted-strong)" font-weight="500">({ url: … })</text><circle cx="62" cy="38" r="4" fill="var(--teal)"/><text x="72" y="42" fill="var(--teal-ink)">create_note</text><text x="148" y="42" fill="var(--muted-strong)" font-weight="500">({ … })</text></svg><span>🤖</span>'],
+  agent: ['var(--paper-deep)', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700"><circle cx="62" cy="18" r="4" fill="var(--teal)"/><text x="72" y="22" fill="var(--teal-ink)">keep</text><text x="104" y="22" fill="var(--muted-strong)" font-weight="500">(…)</text><circle cx="62" cy="38" r="4" fill="var(--teal)"/><text x="72" y="42" fill="var(--teal-ink)">create_note</text><text x="148" y="42" fill="var(--muted-strong)" font-weight="500">(…)</text></svg><span>🤖</span>'],
   savings: ['var(--jar-bg)', '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M0 40 L0 36 C30 32 60 24 100 6 L100 40Z" fill="rgba(15,143,128,.18)"/><path d="M0 36 C30 32 60 24 100 6" fill="none" stroke="var(--teal)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path d="M0 36 L100 16" fill="none" stroke="var(--jar-put)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/></svg>'],
 };
 // Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
