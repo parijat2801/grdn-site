@@ -131,7 +131,8 @@
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* a clear band of paper under the pill: the canvas slides beneath it, so the pill never sits on a card. It lives inside #view, so drags and wheel still pan. */
   /* solid paper only in an ellipse around the pill; elsewhere a soft fade, so cards visibly slide under it instead of looking cut off */
-  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--band-ry) + 48px + env(safe-area-inset-bottom));
+  /* the band is a little taller than its ellipse, so the ellipse has faded to nothing before the band's top edge */
+  #pillbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--band-ry) + 58px + env(safe-area-inset-bottom));
     background: radial-gradient(var(--band-rx) var(--band-ry) at 50% calc(100% - 48px - env(safe-area-inset-bottom)), var(--paper) 50%, var(--paper-0)),
       linear-gradient(to bottom, var(--paper-0) 50%, var(--paper-fade) 100%);
     opacity: 0; pointer-events: none; transition: opacity .35s ease; }
