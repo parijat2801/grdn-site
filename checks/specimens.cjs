@@ -66,9 +66,10 @@ async function openingCard(page, vp) {
 
 // The made line names Grdn as the maker and the owner as the keeper; possessives and plurals read right for every owner.
 const MADE = { titan: 'Grdn built this game from 3 things Leo kept:', moon: 'Grdn built this dashboard from 3 things Grandpa Tom kept:', paper: 'Grdn wrote this paper from 4 gardens Amara follows:',
-  mood: 'Grdn built this moodboard from 4 things Mo kept:', kyoto: 'Grdn built this planner from 3 things Mei & Jo kept:', recipe: 'Grdn built this scaler from 3 things Priya & Sam kept:', savings: 'Grdn built this chart from 2 things Dami kept:' };
+  mood: 'Grdn built this moodboard from 4 things Mo kept:', kyoto: 'Grdn built this planner from 3 things Mei & Jo kept:', recipe: 'Grdn built this scaler from 3 things Priya & Sam kept:', savings: 'Grdn built this chart from 2 things Dami kept:',
+  stream: 'This stream follows 3 feeds and what Lena kept last week:', agent: 'Arjun’s agent tends this garden with him, through Grdn’s MCP tools:' };
 // The badge on each specimen card names what you do with it.
-const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try' };
+const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try', stream: 'Try' };
 async function badges(page, vp) {
   const b = await page.evaluate(() => [...document.querySelectorAll('[data-spec]')].map(c => { const m = c.querySelector('.open-mark'); return { id: c.dataset.spec, t: m.textContent.trim(), after: getComputedStyle(m, '::after').content, label: c.getAttribute('aria-label') }; }));
   const bad = b.filter(x => x.t !== BADGE[x.id] || x.after !== '" ↗"' || !x.label.startsWith(BADGE[x.id] + ' '));
@@ -168,7 +169,10 @@ async function pillClear(page, vp) {
   const band = await page.evaluate(() => { const b = document.getElementById('pillbar'), cs = getComputedStyle(b); return { h: b.getBoundingClientRect().height, bg: cs.backgroundImage }; });
   // soft: at the band's top edge the canvas looks the same with and without the band, so no hard line cuts the cards
   const strip = async () => (await page.screenshot({ scale: 'css', clip: { x: 0, y: (await page.evaluate(() => document.getElementById('pillbar').getBoundingClientRect().top)) + 1, width: VIEWPORTS[vp].viewport.width, height: 3 } })).toString('base64');
+  // the band alone over a black backdrop (cards hidden): animated card pictures and text antialiasing under the band's layer would differ between shots on their own
+  await page.evaluate(() => { document.getElementById('world').style.visibility = 'hidden'; document.getElementById('view').style.setProperty('background', '#000', 'important'); });
   const withBand = await strip(); await page.evaluate(() => document.getElementById('pillbar').style.visibility = 'hidden'); const noBand = await strip(); await page.evaluate(() => document.getElementById('pillbar').style.visibility = '');
+  await page.evaluate(() => { document.getElementById('world').style.visibility = ''; document.getElementById('view').style.removeProperty('background'); apply(); });
   const edge = await page.evaluate(async ([a, b]) => { const px = async b64 => { const i = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob()), c = new OffscreenCanvas(i.width, i.height), x = c.getContext('2d'); x.drawImage(i, 0, 0); return x.getImageData(0, 0, i.width, i.height).data; };
     const A = await px(a), B = await px(b); let n = 0; for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 9) n++; return n; }, [withBand, noBand]);
   check(`${vp}: the paper band is soft: solid only around the pill, no hard edge where cards slide under it`, /radial-gradient/.test(band.bg) && edge === 0, JSON.stringify({ ...band, edgePixels: edge }));
@@ -343,6 +347,131 @@ async function pulse(browser, vp, long) {
   await ctx.close();
 }
 
+
+// ---------- the stream and the agent: new finds come to you, and your agents work in your garden ----------
+const streamState = page => page.evaluate(() => { const r = document.querySelector('#spec-body .stream'); if (!r) return null;
+  const items = [...r.querySelectorAll('.st-item:not(.gone)')], end = r.querySelector('.st-end');
+  return { arrived: +r.dataset.arrived, done: r.dataset.done === 'true', paused: r.dataset.paused === 'true', ids: items.map(i => +i.dataset.i),
+    items: items.map(i => ({ src: (i.querySelector('.st-src') || {}).textContent?.trim() || '', t: (i.querySelector('.st-t') || {}).textContent?.trim() || '', why: (i.querySelector('.st-why') || {}).textContent?.trim() || '', keep: !!i.querySelector('button.st-keep'), skip: !!i.querySelector('button.st-skip') })),
+    count: +((r.querySelector('.mg-count') || {}).textContent || '').replace(/\D/g, '') || NaN, things: [...r.querySelectorAll('.mg-thing')].map(t => (t.querySelector('.mg-t') || {}).textContent?.trim()),
+    end: end && end.getClientRects().length && getComputedStyle(end).visibility !== 'hidden' && +getComputedStyle(end).opacity > .5 ? end.textContent.trim() : '' }; });
+// nothing in the open view is wider than the panel, and the page itself never scrolls sideways
+const overflow = page => page.evaluate(() => { const P = document.querySelector('#spec .panel'), p = P.getBoundingClientRect(), m = document.querySelector('#spec .main');
+  const wide = [...P.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > p.right + 1 || b.left < p.left - 1); }).map(e => e.className || e.tagName).slice(0, 4);
+  return { docOver: document.documentElement.scrollWidth - innerWidth, panelOver: P.scrollWidth - P.clientWidth, mainOver: m.scrollWidth - m.clientWidth, wide }; });
+const noOverflow = o => o.docOver <= 0 && o.panelOver <= 1 && o.mainOver <= 1 && o.wide.length === 0;
+
+async function streamCheck(page, vp, long) {
+  await page.mouse.move(2, 2); // off the stream, so it does not pause
+  await page.evaluate(() => openSpec('stream')); await wait(300);
+  const a = await streamState(page); await wait(3300);
+  const b = await streamState(page);
+  check(`${vp}: stream: items arrive one at a time over time (${a && a.arrived} → ${b && b.arrived})`, !!a && !!b && a.arrived <= 1 && b.arrived > a.arrived && b.arrived - a.arrived <= 2 && b.items.length === b.arrived, JSON.stringify({ a, b }));
+  check(`${vp}: stream: newest on top`, !!b && b.ids.length >= 2 && b.ids.every((v, i) => !i || v < b.ids[i - 1]), JSON.stringify(b && b.ids));
+  check(`${vp}: stream: each item shows its source, title, why it came, Keep and Skip`, !!b && b.items.length >= 1 && b.items.every(i => /arXiv|blog|video/i.test(i.src) && i.t.length > 8 && /follows|because/i.test(i.why) && i.keep && i.skip), JSON.stringify(b && b.items));
+  const o = await overflow(page);
+  check(`${vp}: stream view has no horizontal overflow`, noOverflow(o), JSON.stringify(o));
+  if (vp !== 'desktop') { const t = await page.evaluate(() => [...document.querySelectorAll('#spec-body .st-item button')].map(e => Math.round(e.getBoundingClientRect().height)));
+    check(`${vp}: stream Keep and Skip are ≥44px tall on a phone`, t.length >= 2 && t.every(h => h >= 44), JSON.stringify(t)); }
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-mid.png` });
+  // Keep: the item flies into the garden, which grows by one with it on top
+  const k0 = await streamState(page), top = k0.items[0];
+  await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click();
+  const flying = await page.evaluate(() => { const f = document.querySelector('.st-fly'); return !!f && f.getAnimations().some(a => a.playState === 'running'); });
+  await wait(1000);
+  const k1 = await streamState(page);
+  check(`${vp}: stream: Keep puts the item in the garden (count ${k0.count} → ${k1.count}) and takes it out of the stream`, k1.count === k0.count + 1 && k1.things.length === k1.count && k1.things[0] === top.t && !k1.items.some(i => i.t === top.t), JSON.stringify({ top: top.t, k0: k0.count, k1: k1.count, first: k1.things[0] }));
+  check(`${vp}: stream: the kept item flies to the garden`, flying);
+  // Skip: the item fades out, the garden stays the same
+  await page.mouse.move(2, 2); for (let t = 0; t < 40 && !(await streamState(page)).items.length; t++) await wait(100);
+  const s0 = await streamState(page), sk = s0.items[0];
+  if (sk) await page.locator('#spec-body .st-item:not(.gone) .st-skip').first().click();
+  await wait(600);
+  const s1 = await streamState(page);
+  check(`${vp}: stream: Skip removes the item and leaves the garden as it was`, !!sk && !s1.items.some(i => i.t === sk.t) && s1.count === s0.count && !s1.things.includes(sk.t), JSON.stringify({ sk: sk && sk.t, s0: s0.count, s1: s1.count }));
+  // hovering the stream pauses arrivals; leaving it lets them come again
+  await page.mouse.move(2, 2); await wait(200);
+  const fb = await page.locator('#spec-body .st-feed').boundingBox();
+  await page.mouse.move(fb.x + fb.width / 2, fb.y + Math.min(60, fb.height / 2)); await wait(150);
+  const h0 = await streamState(page); await wait(3500);
+  const h1 = await streamState(page);
+  await page.mouse.move(2, 2); await wait(3500);
+  const h2 = await streamState(page);
+  check(`${vp}: stream: hovering pauses arrivals (${h0.arrived} → ${h1.arrived}) and leaving resumes them (→ ${h2.arrived})`, h0.paused && h1.arrived === h0.arrived && !h2.paused && h2.arrived > h1.arrived, JSON.stringify({ h0: [h0.arrived, h0.paused], h1: h1.arrived, h2: [h2.arrived, h2.paused] }));
+  const fz = await page.evaluate(() => { const b = document.querySelector('#spec-body .st-item:not(.gone) button'); if (!b) return null; b.focus(); const p = document.querySelector('#spec-body .stream').dataset.paused; b.blur(); return { on: p, off: document.querySelector('#spec-body .stream').dataset.paused }; });
+  check(`${vp}: stream: focus inside the stream pauses it too`, !!fz && fz.on === 'true' && fz.off === 'false', JSON.stringify(fz));
+  await closeEsc(page);
+  // closing stops the stream: nothing more arrives in the closed view
+  const c0 = await streamState(page); await wait(3000); const c1 = await streamState(page);
+  check(`${vp}: stream: nothing arrives after the view closes`, !!c0 && c1.arrived === c0.arrived, `${c0 && c0.arrived} / ${c1 && c1.arrived}`);
+  if (long) {
+    // left alone, the stream brings 8 items, shows at most 5, then says it is done and stops
+    await page.evaluate(() => openSpec('stream')); const t0 = Date.now(); let d = null;
+    for (let t = 0; t < 300; t++) { d = await streamState(page); if (d.done) break; await wait(100); }
+    const secs = (Date.now() - t0) / 1000; await wait(700); d = await streamState(page); // the closing line fades in
+    check(`${vp}: stream: stops after 8 items with "That’s this week’s stream." (${secs.toFixed(1)} s)`, d.done && d.arrived === 8 && d.end === 'That’s this week’s stream.' && secs >= 16 && secs <= 28, JSON.stringify({ secs, ...d, items: d.items.length }));
+    check(`${vp}: stream: at most 5 items show at once`, d.items.length <= 5 && d.items.length >= 3, String(d.items.length));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-stream-done.png` });
+    await wait(3000); const e = await streamState(page);
+    check(`${vp}: stream: nothing more arrives once it is done`, e.arrived === 8, String(e.arrived));
+    await closeEsc(page);
+  }
+}
+
+const AG_TOOLS = ['read_stream', 'keep', 'keep', 'keep', 'file', 'create_note'];
+const AG_NOTE = '2 orders need splitting before the 11am pickup.';
+const agentState = page => page.evaluate(() => { const r = document.querySelector('#spec-body .agent'); if (!r) return null; const tx = e => (e || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
+  const things = [...r.querySelectorAll('.mg-thing')];
+  return { done: r.dataset.done === 'true', steps: r.querySelectorAll('.ag-step').length, start: +r.dataset.start,
+    tools: [...r.querySelectorAll('.ag-tool')].map(t => { const n = t.querySelector('.ag-name'); return { name: tx(n), mono: !!n && /mono/i.test(getComputedStyle(n).fontFamily), args: tx(t.querySelector('.ag-args')), res: tx(t.querySelector('.ag-res')), ok: t.dataset.state === 'done' }; }),
+    user: tx(r.querySelector('.ag-user .ag-say')), reply: tx(r.querySelector('.ag-reply .ag-say')), chip: tx(r.querySelector('.ag-chip')), count: +tx(r.querySelector('.mg-count')).replace(/\D/g, '') || NaN,
+    things: things.map(t => tx(t.querySelector('.mg-t'))), lit: things.filter(t => t.classList.contains('lit')).map(t => tx(t.querySelector('.mg-t'))), fresh: things.filter(t => t.classList.contains('fresh')).map(t => tx(t.querySelector('.mg-t'))),
+    again: !!r.querySelector('button.ag-again') }; });
+async function agentRun(page) { // until the run is done; notes whether a garden card glowed while it ran
+  const t0 = Date.now(); let s = null, glow = false;
+  for (let t = 0; t < 120; t++) { s = await agentState(page); glow = glow || await page.evaluate(() => [...document.querySelectorAll('#spec-body .mg-thing.glow')].some(e => e.getAnimations().some(a => a.playState === 'running')));
+    if (s.done) break; await wait(150); }
+  return { s, glow, secs: (Date.now() - t0) / 1000 };
+}
+async function agentCheck(page, vp) {
+  await page.mouse.move(2, 2);
+  await page.evaluate(() => openSpec('agent')); await wait(400);
+  const a = await agentState(page);
+  check(`${vp}: agent: the run starts small when the view opens (${a && a.steps} step${a && a.steps === 1 ? '' : 's'}) and says it is connected to Grdn over MCP`, !!a && !a.done && a.steps <= 2 && a.count === a.start && /connected to Grdn over MCP/i.test(a.chip), JSON.stringify(a));
+  if (SHOTS) { await wait(3600); await page.screenshot({ path: `${SHOTS}/${vp}-agent-mid.png` }); }
+  const r = await agentRun(page), s = r.s;
+  check(`${vp}: agent: the morning run takes 7–12 s (${(r.secs + 0.4 + (SHOTS ? 3.6 : 0)).toFixed(1)} s)`, s.done && r.secs + 0.4 + (SHOTS ? 3.6 : 0) >= 7 && r.secs + 0.4 + (SHOTS ? 3.6 : 0) <= 12, String(r.secs));
+  check(`${vp}: agent: the transcript shows Grdn's MCP tools in order, in monospace (${s.tools.map(t => t.name).join(', ')})`, s.tools.map(t => t.name).join() === AG_TOOLS.join() && s.tools.every(t => t.mono && t.ok), JSON.stringify(s.tools));
+  const args = s.tools.map(t => t.args);
+  check(`${vp}: agent: each tool call shows its arguments`, /Orders sheet/.test(args[0]) && /48213/.test(args[1]) && /48214/.test(args[2]) && /48215/.test(args[3]) && /#48213/.test(args[4]) && /Small shop, less admin/.test(args[4]) && /Small shop, less admin/.test(args[5]), JSON.stringify(args));
+  check(`${vp}: agent: Arjun asks, and the agent answers when done`, s.user === 'Check the new orders and tell me what needs splitting.' && s.reply === 'Done. 2 need splitting; I left you a note.', `${s.user} / ${s.reply}`);
+  check(`${vp}: agent: the garden gains the 3 orders and the note (${s.start} → ${s.count})`, s.count === s.start + 4 && s.things.length === s.count && ['#48213', '#48214', '#48215'].every(n => s.things.some(t => t.includes(n))) && s.things.includes(AG_NOTE), JSON.stringify(s.things));
+  check(`${vp}: agent: the new note is highlighted in the garden`, s.fresh.includes(AG_NOTE), JSON.stringify(s.fresh));
+  check(`${vp}: agent: a garden card glows as the tool call that changed it completes`, r.glow);
+  const o = await overflow(page);
+  check(`${vp}: agent view has no horizontal overflow`, noOverflow(o), JSON.stringify(o));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-agent-done.png` });
+  // tapping a tool line opens it and highlights what it changed
+  const line = i => page.locator('#spec-body .ag-tool .ag-line').nth(i);
+  await line(5).click(); await wait(150);
+  const t1 = await page.evaluate(() => { const t = document.querySelectorAll('#spec-body .ag-tool')[5], d = t.querySelector('.ag-detail'); return { exp: t.querySelector('.ag-line').getAttribute('aria-expanded'), detail: !!d && d.getClientRects().length > 0 && d.textContent.length > 10 }; });
+  const l1 = (await agentState(page)).lit;
+  check(`${vp}: agent: tapping the create_note line opens it and highlights the note`, t1.exp === 'true' && t1.detail && l1.length === 1 && l1[0] === AG_NOTE, JSON.stringify({ t1, l1 }));
+  await line(2).click(); await wait(150);
+  const l2 = (await agentState(page)).lit;
+  check(`${vp}: agent: tapping a keep line highlights the order it kept`, l2.length === 1 && l2[0].includes('#48214'), JSON.stringify(l2));
+  if (vp !== 'desktop') { const h = await page.evaluate(() => [...document.querySelectorAll('#spec-body .ag-again, #spec-body .ag-line')].map(e => Math.round(e.getBoundingClientRect().height)));
+    check(`${vp}: agent: Run again and the tool lines are ≥44px tall on a phone`, h.length >= 7 && h.every(x => x >= 44), JSON.stringify(h)); }
+  // Run again plays the morning again from the start
+  await page.mouse.move(2, 2); await page.locator('#spec-body .ag-again').click(); await wait(300);
+  const b = await agentState(page);
+  const r2 = await agentRun(page);
+  check(`${vp}: agent: Run again starts over (${b.steps} steps, ${b.count} things) and plays the same run`, !b.done && b.steps <= 2 && b.count === b.start && r2.s.done && r2.s.tools.map(t => t.name).join() === AG_TOOLS.join() && r2.s.count === r2.s.start + 4 && r2.secs >= 6, JSON.stringify({ b, secs: r2.secs, count: r2.s.count }));
+  // closing mid-run stops it
+  await page.locator('#spec-body .ag-again').click(); await wait(1500); await closeEsc(page);
+  const c0 = await agentState(page); await wait(3000); const c1 = await agentState(page);
+  check(`${vp}: agent: the run stops when the view closes mid-run`, !!c0 && !c0.done && c1.steps === c0.steps && c1.count === c0.count, JSON.stringify({ c0: c0 && c0.steps, c1: c1 && c1.steps }));
+}
 
 // ---------- polish checks: measured, not presence-only ----------
 // In-page helpers: colour parsing, WCAG contrast, and decoding a screenshot into pixels.
@@ -534,7 +663,30 @@ async function reducedMore2(page, vp) {
   await closeEsc(page);
   await reducedMore3(page, vp);
 }
-async function reducedMore3(page, vp) {}
+async function reducedMore3(page, vp) {
+  // the stream: items still arrive, but with no slide; Keep moves the item at once, with no flight
+  await page.mouse.move(2, 2);
+  await page.evaluate(() => openSpec('stream')); await wait(3300);
+  const a = await streamState(page);
+  let k = null;
+  if (a && a.items.length) {
+    await page.locator('#spec-body .st-item:not(.gone) .st-keep').first().click(); await wait(60);
+    k = await page.evaluate(() => ({ fly: !!document.querySelector('.st-fly'), n: [...document.querySelectorAll('#spec-body *')].reduce((n, e) => n + e.getAnimations().filter(a => a.playState === 'running').length, 0) }));
+  }
+  const b = await streamState(page);
+  check(`${vp}: reduced motion: stream items arrive, and Keep moves one into the garden at once with no flight or animation`, !!a && a.arrived >= 1 && !!k && !k.fly && k.n === 0 && b.count === a.count + 1 && b.things[0] === a.items[0].t, JSON.stringify({ a: a && { arrived: a.arrived, count: a.count }, k, b: b && { count: b.count, first: b.things[0] } }));
+  await closeEsc(page);
+}
+async function reducedAgent(page, vp) {
+  // the agent: the finished run shows at once, every step listed, nothing animating
+  await page.evaluate(() => openSpec('agent')); await wait(250);
+  const g = await agentState(page), n = await bodyAnims(page, '#spec-body *');
+  check(`${vp}: reduced motion: the agent run shows finished at once (all steps, the note in the garden, no animation)`, !!g && g.done && g.steps === 8 && g.tools.map(t => t.name).join() === AG_TOOLS.join() && g.count === g.start + 4 && n === 0, JSON.stringify({ g, n }));
+  if (g && g.again) { await page.locator('#spec-body .ag-again').click(); await wait(100); }
+  const g2 = await agentState(page);
+  check(`${vp}: reduced motion: Run again shows the finished run again at once`, !!g2 && g2.done && g2.steps === 8 && g2.count === g2.start + 4 && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(g2));
+  await closeEsc(page);
+}
 
 async function kyotoPolish(page, vp) {
   await page.evaluate(() => openSpec('kyoto')); await wait(400);
@@ -697,7 +849,7 @@ async function specCards(page, vp) {
     return { plainPeek: !!plain.querySelector('.peek'), cards: [...document.querySelectorAll('[data-spec]')].map(el => { const pk = el.querySelector('.peek'), pr = pk && pk.getBoundingClientRect(), cr = el.getBoundingClientRect(), m = el.querySelector('.open-mark'), mr = m.getBoundingClientRect(), mb = getComputedStyle(m, '::before'), ms = getComputedStyle(m);
       return { id: el.dataset.spec, peek: !!pr && pk.offsetHeight >= 44 && pr.width >= .9 * cr.width && (getComputedStyle(pk).backgroundImage !== 'none' || !!pk.querySelector('svg, img')), top: !!pr && pr.top - cr.top < 2, badgeH: m.offsetHeight /* layout px: the canvas itself is zoomed */, glyph: mb.content !== 'none' && parseFloat(mb.width) >= 10, ratio: +__c.ratio(__c.rgb(ms.backgroundColor), __c.rgb(ms.color)).toFixed(2) }; }) }; });
   const bad = c.cards.filter(x => !x.peek || !x.top || x.badgeH < 22 || !x.glyph || x.ratio < 4.5);
-  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 7 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
+  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 8 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
 }
 
 // A specimen's timers and window listeners stop when its view closes, and at once when another specimen replaces it.
@@ -723,6 +875,7 @@ async function specCleanup(page, vp, specs) {
     check(`${vp}: ${id} stops its timers and window listeners on close and when ${other} replaces it (started ${JSON.stringify(started[id])})`, closed === 0 && swapped === 0, JSON.stringify({ closed, swapped }));
   }
   check(`${vp}: the moon and Titan register something to clean up (the hook sees them)`, started.moon && started.moon.iv >= 1 && started.titan && started.titan.ls >= 1, JSON.stringify(started));
+  check(`${vp}: the stream runs on a timer the hook sees (and stops)`, started.stream && started.stream.iv >= 1, JSON.stringify(started.stream));
   // the moon's countdown no longer ticks once its view is closed
   await page.evaluate(() => openSpec('moon')); await wait(400); await closeEsc(page);
   const c0 = await page.evaluate(() => document.querySelector('#spec-body .countdown')?.textContent ?? null); await wait(2500);
@@ -1098,6 +1251,20 @@ async function morph(browser) {
   }
 }
 
+// Some canvas cards were made or kept by a person's agent, and say so ("made by Arjun’s agent"); Grdn-made specimen cards still say Grdn.
+async function agentMade(browser) {
+  const { ctx, page, errors } = await newPage(browser, 'desktop'); await explore(page);
+  const r = await page.evaluate(() => { const RE = /^(made|kept) by [A-Z][\w ]*’s agent\b/;
+    const cards = [...document.querySelectorAll('#world .thing')].map(t => { const m = t.querySelector('.meta > span:first-child'), g = t.closest('.garden').querySelector('h2').textContent.trim();
+      return { g, spec: t.dataset.spec || '', meta: m ? m.textContent.trim() : '', glyph: !!m && m.classList.contains('by-agent') && getComputedStyle(m, '::before').content !== 'none', shown: !!m && m.getBoundingClientRect().width > 20 }; });
+    const agent = cards.filter(c => RE.test(c.meta));
+    return { agent, gardens: [...new Set(agent.map(c => c.g))], specs: cards.filter(c => c.spec && c.spec !== 'agent' && /agent/i.test(c.meta)), specMade: cards.filter(c => c.spec && /^made with Grdn/.test(c.meta)).length }; });
+  check(`desktop: at least 4 canvas cards in at least 3 gardens say a person's agent made or kept them (${r.agent.length} in ${r.gardens.length})`, r.agent.length >= 4 && r.gardens.length >= 3 && r.agent.every(c => c.glyph && c.shown), JSON.stringify(r.agent));
+  check(`desktop: Grdn-made specimen cards still say Grdn, not an agent`, r.specs.length === 0 && r.specMade >= 5, JSON.stringify(r.specs));
+  check('desktop: no errors in the agent-made pass', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 async function audit(browser) {
   await reassureCentred(browser);
   await tapOut(browser);
@@ -1130,6 +1297,7 @@ async function fullPass(browser, vp) {
   await whereNext(page, vp, specs);
   if (specs.recipe && specs.savings) await recipeAndSavings(page, vp);
   await landerCheck(page, vp);
+  await streamCheck(page, vp, vp === 'desktop');
   await frame(page, vp, specs);
   await keyboard(page, vp, specs);
   if (vp !== 'desktop') await sheet(page, vp, specs);
@@ -1149,7 +1317,15 @@ async function fullPass(browser, vp) {
       throw 'only';
     }
     if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); await morph(browser); throw 'only'; }
+    if (process.env.ONLY === 'pill') { for (let k = 0; k < 3; k++) { const { ctx, page } = await newPage(browser, 'desktop'); await explore(page); await pillClear(page, 'desktop'); await ctx.close(); } throw 'only'; }
+    if (process.env.ONLY === 'agentmade') { await agentMade(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
+    if (process.env.ONLY === 'new') { // quick loop while building the stream and agent specimens
+      for (const vp of ['desktop', 'phone']) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); await streamCheck(page, vp, vp === 'desktop' && !process.env.SHORT); if (!process.env.NOAGENT) await agentCheck(page, vp);
+        check(`${vp}: no errors in the new pass`, errors.length === 0, errors.join(' | ')); await ctx.close();
+        const rm = await newPage(browser, vp, { reducedMotion: 'reduce' }); await explore(rm.page); await reducedMore3(rm.page, vp); check(`${vp}: no errors in the reduced new pass`, rm.errors.length === 0, rm.errors.join(' | ')); await rm.ctx.close(); }
+      throw 'only';
+    }
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
     // small phone: sheet behaviour only
