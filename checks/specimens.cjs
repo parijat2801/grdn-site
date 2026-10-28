@@ -387,7 +387,7 @@ async function focusRing(page, vp, specs) {
       return { onClose: a === c, inPanel: !!a.closest('#spec .panel'), named: !!(a.getAttribute('aria-labelledby') || a.getAttribute('aria-label') || a.closest('[aria-labelledby]')),
         // a painted ring: an outline on whatever has focus, or the game stage's focus ring
         fv: [...document.querySelectorAll('#spec .panel, #spec .panel *')].filter(e => { const cs = getComputedStyle(e); return e.matches(':focus-visible') && cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 || e.matches('.stage') && /rgb\(15, 143, 128\)/.test(cs.boxShadow); }).map(e => e.className || e.tagName), closeOutline: cs.outlineStyle + ' ' + cs.outlineWidth }; });
-    check(`${vp}: pointer open of ${id}: focus in the dialog, no focus ring anywhere, close button not focused`, o.ok && f.inPanel && f.named && !f.onClose && f.fv.length === 0 && /none|^\S+ 0px/.test(f.closeOutline), JSON.stringify(f));
+    check(`${vp}: pointer open of ${id}: focus in the dialog, no focus ring anywhere, close button not focused`, o.ok && f.inPanel && f.named && !f.onClose && f.fv.length === 0 && /none|^\S+ 0px/.test(f.closeOutline), JSON.stringify({ open: o, ...f }));
     await closeEsc(page);
   }
   await page.evaluate(() => document.querySelector('[data-spec="mood"]').focus()); await page.keyboard.press('Enter'); await wait(450);
@@ -547,6 +547,36 @@ async function kyotoPolish(page, vp) {
   await closeEsc(page);
 }
 
+async function moodPolish(page, vp) {
+  await page.evaluate(() => openSpec('mood')); await wait(400);
+  await page.evaluate(() => Promise.all([...document.querySelectorAll('#spec-body img')].map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }))));
+  const m = await page.evaluate(() => { const figs = [...document.querySelectorAll('#spec-body .mood figure')].map(f => { const r = f.getBoundingClientRect(), c = f.querySelector('figcaption'); return { w: Math.round(r.width), h: Math.round(r.height), cap: c ? c.textContent.trim() : '', img: !!f.querySelector('img'), src: f.dataset.src || '' }; });
+    const hex = c => '#' + [c.r, c.g, c.b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+    const sws = [...document.querySelectorAll('#spec-body .mood .sw')].map(b => ({ label: b.textContent.replace(/\s+/g, ' ').trim(), hex: hex(__c.rgb(getComputedStyle(b.querySelector('.chipc')).backgroundColor)), src: b.dataset.src, tag: b.tagName }));
+    return { figs, sws }; });
+  const f0 = m.figs[0] || {};
+  check(`${vp}: moodboard is an even grid (≥4 tiles, same size) with a caption on every tile`, m.figs.length >= 4 && m.figs.every(f => Math.abs(f.w - f0.w) <= 1 && Math.abs(f.h - f0.h) <= 1 && f.cap.length > 3), JSON.stringify(m.figs));
+  check(`${vp}: moodboard swatches are buttons labelled with their hex and the image they came from`, m.sws.length >= 5 && m.sws.every(x => x.tag === 'BUTTON' && x.label.includes(x.hex) && m.figs.some(f => f.img && f.src === x.src && x.label.includes('from'))), JSON.stringify(m.sws));
+  // each swatch colour is really in its source image: some pixel within 24 (RGB distance) of it
+  const far = [];
+  await page.evaluate(() => document.querySelectorAll('#spec-body .mood figcaption').forEach(c => c.style.visibility = 'hidden')); // sample the picture, not its caption
+  for (const x of m.sws) {
+    const b = await box(page, `#spec-body .mood figure[data-src="${x.src}"] img`); if (!b) { far.push(x.hex + ' no image'); continue; }
+    const d = await page.evaluate(async ([b64, hex]) => { const { d } = await __c.px(b64), t = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)); let best = 1e9;
+      for (let k = 0; k < d.length; k += 4) best = Math.min(best, Math.hypot(d[k] - t[0], d[k + 1] - t[1], d[k + 2] - t[2])); return Math.round(best); }, [await shot64(page, b), x.hex]);
+    if (d > 24) far.push(`${x.hex} ${d}`);
+  }
+  await page.evaluate(() => document.querySelectorAll('#spec-body .mood figcaption').forEach(c => c.style.visibility = ''));
+  check(`${vp}: every swatch colour appears in the image it is labelled from (pixels)`, m.sws.length >= 5 && far.length === 0, far.join(', '));
+  const k = m.sws.findIndex(x => x.src !== m.sws[0].src) > 0 ? m.sws.length - 1 : 0;
+  await page.locator('#spec-body .mood .sw').nth(k).click(); await wait(450);
+  const h = await page.evaluate(k => { const b = document.querySelectorAll('#spec-body .mood .sw')[k], src = b.dataset.src; return { pressed: b.getAttribute('aria-pressed'),
+    figs: [...document.querySelectorAll('#spec-body .mood figure')].map(f => ({ src: f.dataset.src, op: +getComputedStyle(f).opacity })), live: (document.querySelector('#spec-body .mood [aria-live]') || {}).textContent || '', src, hex: b.textContent }; }, k);
+  check(`${vp}: tapping a swatch highlights its image, dims the rest and says it copied the hex`, h.pressed === 'true' && h.figs.filter(f => f.src === h.src).every(f => f.op > .95) && h.figs.filter(f => f.src !== h.src).every(f => f.op < .6) && /#[0-9A-F]{6}/.test(h.live) && h.hex.includes(h.live.match(/#[0-9A-F]{6}/)[0]), JSON.stringify(h));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-mood-swatch.png` });
+  await closeEsc(page);
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
@@ -556,6 +586,7 @@ async function polish(page, vp, specs) {
   if (vp !== 'desktop') await sheetReach(page, vp);
   await recipePolish(page, vp);
   await kyotoPolish(page, vp);
+  await moodPolish(page, vp);
 }
 
 async function fullPass(browser, vp) {

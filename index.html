@@ -33,6 +33,7 @@
     --muted-strong: rgba(16,36,58,.70); --nx-top: 68px;
     --rice-bg-1: #FCEBC2; --rice-bg-2: #F4CF94; --rice-steam: #fff; --rice-bowl: #2f6db5; --rice-bowl-hi: #5d91d0; --rice-grain-bg: #FFF7E6; --rice-grain: #F2E3C2; --rice-egg: #F5B83D; --rice-onion: #5E9E4A; --rice-chop: #8A5A2B; --rice-num: #c4552f;
     --kyo-time: 46px; --kyo-sky: #FCEFD3; --kyo-rain: #DCE6F3; --kyo-spine: #C9BFA9; --kyo-stop: #F6F3EA; --kyo-swap: #E3ECF8;
+    --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -271,11 +272,25 @@
   .paper article h4 { font-size: 20px; font-weight: 500; line-height: 1.15; margin-top: 8px; } .paper article p { font-size: 15px; line-height: 1.4; color: rgba(16,36,58,.75); margin-top: 4px; }
   .paper article small { display: block; margin-top: 4px; font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); color: var(--muted); }
   .paper .side article + article { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-  .mood { display: grid; grid-template-columns: 1.4fr 1fr 1fr; grid-template-rows: 150px 110px; gap: 8px; }
-  .mood img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
-  .mood .first { grid-row: span 2; }
-  .mood .swatches { display: flex; border-radius: 10px; overflow: hidden; cursor: pointer; } .mood .swatches div { flex: 1; }
-  .mood .type { display: grid; place-items: center; background: #F3EBDD; border-radius: 10px; font-family: 'Newsreader', serif; font-size: 26px; font-style: italic; color: #263B42; }
+  /* moodboard: four equal tiles with captions, then the palette as labelled swatches */
+  .mood .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
+  .mood figure { position: relative; aspect-ratio: 4 / 5; border-radius: var(--r-small); overflow: hidden; background: var(--mood-paper); transition: opacity var(--hover) ease, box-shadow var(--hover) ease; }
+  .mood.picking figure { opacity: .3; } .mood.picking figure.lit { opacity: 1; box-shadow: 0 0 0 3px var(--ink); }
+  .mood figure img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mood figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 10px 9px; font-size: var(--fs-tag); line-height: 1.25; color: #fff; background: linear-gradient(transparent, rgba(12,16,24,.62) 38%, rgba(12,16,24,.86)); }
+  .mood figcaption b { font-weight: 700; }
+  .mood .tnote, .mood .ttype { display: flex; align-items: center; justify-content: center; padding: var(--sp-3) var(--sp-3) 44px; }
+  .mood .tnote { background: var(--mood-paper); } .mood .tnote blockquote { font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.3; color: var(--mood-ink); }
+  .mood .ttype { background: var(--mood-ink); } .mood .ttype div { font-family: 'Newsreader', serif; font-style: italic; font-size: 28px; line-height: 1.05; color: var(--mood-paper); text-align: center; }
+  .mood .tnote figcaption, .mood .ttype figcaption { background: none; color: inherit; } .mood .tnote figcaption { color: var(--muted-strong); } .mood .ttype figcaption { color: rgba(245,237,213,.8); }
+  .mood .pal { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); margin-top: var(--sp-3); }
+  .mood .sw { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: var(--r-small); background: var(--card); overflow: hidden; cursor: pointer; font: inherit; color: var(--ink); transition: transform var(--hover) var(--ease), box-shadow var(--hover) ease; }
+  @media (hover: hover) { .mood .sw:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); } }
+  .mood .sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); } .mood .sw:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+  .mood .chipc { display: block; height: 52px; border-bottom: 1px solid var(--line); }
+  .mood .swt { display: flex; flex-direction: column; gap: 1px; padding: 7px 9px 8px; } .mood .swt b { font-size: var(--fs-tag); font-weight: 700; }
+  .mood .swt code { font: 600 var(--fs-tag) ui-monospace, 'SF Mono', Menlo, monospace; color: var(--muted-strong); } .mood .swt small { font-size: 11px; color: var(--muted-strong); line-height: 1.2; }
+  .mood .said { min-height: 20px; margin-top: var(--sp-2); font-size: var(--fs-meta); font-weight: 600; color: var(--teal-ink); }
   /* Kyoto: the day's weather and the toggle, then a timeline: times, a spine with an icon per stop, and the walks between */
   .plan .plan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-radius: var(--r-card); background: var(--kyo-sky); transition: background var(--hover) ease; }
   .plan[data-k="rain"] .plan-head { background: var(--kyo-rain); }
@@ -324,7 +339,7 @@
     .recipe .serves { position: relative; right: auto; top: auto; transform: none; margin-top: -10px; }
     .recipe .steps { grid-template-columns: 1fr; gap: var(--sp-3); } .recipe .steps li { flex-direction: row; align-items: baseline; gap: var(--sp-3); } .recipe .steps .n { flex: none; width: 30px; } .jar .inputs { grid-template-columns: 1fr; } }
   @media (max-width: 760px) { .dash { grid-template-columns: 1fr 1fr; } .dash .tile.big { grid-column: span 2; grid-row: auto; flex-direction: row; align-items: center; }
-    .paper .cols2 { grid-template-columns: 1fr; } .paper .mast { padding-right: 34px; padding-left: 34px; } .paper .mast b { font-size: 32px; } .mood { grid-template-columns: 1fr 1fr; grid-template-rows: 150px 100px 90px; } .mood .first { grid-row: auto; grid-column: span 2; } }
+    .paper .cols2 { grid-template-columns: 1fr; } .paper .mast { padding-right: 34px; padding-left: 34px; } .paper .mast b { font-size: 32px; } .mood .tiles { grid-template-columns: 1fr 1fr; } .mood figure { aspect-ratio: 1; } .mood .pal { grid-template-columns: repeat(6, 1fr); } .mood .sw { grid-column: span 2; } .mood .sw:nth-child(n+4) { grid-column: span 3; } }
 </style>
 </head>
 <body>
@@ -733,11 +748,9 @@ const SPECS = {
         <div class="side"><article><h4>The Great Wave, up close</h4><p>Hokusai’s print, and why the boats matter more than the wave.</p><small>from Sol’s garden</small></article>
         <article><h4>An app can be a home-cooked meal</h4><p>Software made for four people, and loved by all four.</p><small>from Robin Sloan’s garden</small></article>
         <article><h4>Pale Blue Dot</h4><p>Everyone you love, on a mote of dust in a sunbeam.</p><small>from Grandpa Tom’s garden</small></article></div></div></div>`; } },
-  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: [{ t: 'Mo’s palette', icon: '🎨', became: 'five warm swatches with their hex' }, { t: 'The Starry Night', img: 'starry-night.jpg', became: 'the deep blue ink and the ochre' }, { t: 'The Great Wave', img: 'great-wave.jpg', became: 'the paper and the one accent' }, { t: 'Mo’s note: one ink, one accent', icon: '📝', became: 'the rule the palette keeps' }],
+  mood: { act: 'View', noun: 'moodboard', kind: 'Moodboard', title: 'Café: warm, not cute', owner: 'Mo', garden: 'Colour', from: [{ t: 'Mo’s palette', icon: '🎨', became: 'five swatches, each with its hex' }, { t: 'The Starry Night', img: 'starry-night.jpg', became: 'the night blue and the ochre accent' }, { t: 'The Great Wave', img: 'great-wave.jpg', became: 'the paper, the blush and the ink' }, { t: 'Mo’s note: one ink, one accent', icon: '📝', became: 'the rule the palette keeps' }],
     next: [{ t: 'Walls I’d hang', s: 'Sol', why: 'The two paintings this palette came from', garden: 'Walls I’d hang' }, { t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'The Great Wave again, on page two', open: 'paper' }, { t: 'Type & letters', s: 'Wen', why: 'The other half of a café sign', garden: 'Type & letters' }],
-    render: el => { el.innerHTML = `<div class="mood"><img class="first" src="${IMG('starry-night.jpg')}" alt=""><img src="${IMG('great-wave.jpg')}" alt=""><img src="${IMG('weavesilk-com-13.png')}" alt="">
-        <div class="swatches" title="tap for another">${['#F3EBDD', '#D8C3A5', '#C46B4E', '#8C9B82', '#263B42'].map(c => `<div style="background:${c}"></div>`).join('')}</div><div class="type">Warm, not cute.</div></div>`;
-      const sw = el.querySelector('.swatches'); sw.onclick = () => { const h = 15 + Math.random() * 40; [...sw.children].forEach((c, i) => c.style.background = hsl((h + i * 18) % 360, 30 + i * 8, 88 - i * 16)); }; } },
+    render: el => moodboard(el) },
   kyoto: { act: 'Try', noun: 'planner', kind: 'App', title: 'Day planner, rain or shine', owner: 'Mei & Jo', garden: 'Trip to Kyoto', from: [{ t: 'Temples we can walk between', icon: '🗺️', became: 'the walking times between stops' }, { t: 'Their note: Fushimi Inari before 7am', icon: '📝', became: 'the 6:30 start' }, { t: '6 places they kept', icon: '📍', became: 'the stops, and indoor swaps for rain' }],
     next: [{ t: 'The map and the 7am note', s: 'Mei & Jo', why: 'What this plan was built from', garden: 'Trip to Kyoto' }, { t: 'Kitchen', s: 'Priya & Sam', why: 'Fried rice after a long walking day', garden: 'Kitchen' }, { t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'Windows onto other cities, every Sunday', open: 'paper' }],
     render: el => { const days = { // [time, place, note, walk minutes to the next stop, swapped for rain, icon]
@@ -767,6 +780,23 @@ const SPECS = {
 // Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
 document.querySelectorAll('[data-spec]').forEach(el => { const s = SPECS[el.dataset.spec]; el.querySelector('.open-mark').textContent = s.act;
   el.setAttribute('aria-label', `${s.act} ${s.title}, made with Grdn`); });
+// Café moodboard: an even grid of what Mo kept, then a palette sampled from the two paintings. A swatch copies its hex and lights up the image it came from.
+function moodboard(el) {
+  const art = { starry: ['The Starry Night', 'starry-night.jpg', 'night blue and ochre'], wave: ['The Great Wave', 'great-wave.jpg', 'paper, blush and ink'] };
+  const sw = [['#F5EDD5', 'Paper', 'wave'], ['#E4B494', 'Blush', 'wave'], ['#B0A54B', 'Ochre', 'starry'], ['#47658F', 'Night blue', 'starry'], ['#2C4C6A', 'Ink', 'wave']]; // sampled from the images
+  el.innerHTML = `<div class="mood"><div class="tiles">${Object.entries(art).map(([k, [t, f, c]]) => `<figure data-src="${k}"><img src="${IMG(f)}" alt="${t}"><figcaption><b>${t}</b> · ${c}</figcaption></figure>`).join('')}
+      <figure data-src="note" class="tnote"><blockquote>“Warm paper, one ink, one accent. Everything else is noise.”</blockquote><figcaption><b>Mo’s note</b> · the rule</figcaption></figure>
+      <figure data-src="type" class="ttype"><div>Warm, not cute.</div><figcaption><b>Type</b> · Newsreader italic</figcaption></figure></div>
+    <div class="pal">${sw.map(([h, n, k]) => `<button type="button" class="sw" data-src="${k}" aria-pressed="false"><span class="chipc" style="background:${h}"></span><span class="swt"><b>${n}</b><code>${h}</code><small>from ${art[k][0]}</small></span></button>`).join('')}</div>
+    <p class="said" aria-live="polite"></p></div>`;
+  const mood = el.querySelector('.mood'), said = el.querySelector('.said');
+  el.querySelectorAll('.sw').forEach(b => b.onclick = async () => { const on = b.getAttribute('aria-pressed') !== 'true', hex = b.querySelector('code').textContent;
+    el.querySelectorAll('.sw').forEach(x => x.setAttribute('aria-pressed', x === b && on));
+    mood.querySelectorAll('figure').forEach(f => f.classList.toggle('lit', on && f.dataset.src === b.dataset.src)); mood.classList.toggle('picking', on);
+    if (!on) { said.textContent = ''; return; }
+    let copied = false; try { await navigator.clipboard.writeText(hex); copied = true; } catch {}
+    said.textContent = `${copied ? 'Copied' : 'Picked'} ${hex} · from ${art[b.dataset.src][0]}`; });
+}
 // Fried rice: an illustrated header holds the servings stepper; every amount scales from the recipe for 2 and rolls in when it changes.
 function riceArt() {
   let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; let grains = '', bits = '';
