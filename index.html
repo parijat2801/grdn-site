@@ -34,6 +34,7 @@
     --rice-bg-1: #FCEBC2; --rice-bg-2: #F4CF94; --rice-steam: #fff; --rice-bowl: #2f6db5; --rice-bowl-hi: #5d91d0; --rice-grain-bg: #FFF7E6; --rice-grain: #F2E3C2; --rice-egg: #F5B83D; --rice-onion: #5E9E4A; --rice-chop: #8A5A2B; --rice-num: #c4552f;
     --kyo-time: 46px; --kyo-sky: #FCEFD3; --kyo-rain: #DCE6F3; --kyo-spine: #C9BFA9; --kyo-stop: #F6F3EA; --kyo-swap: #E3ECF8;
     --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
+    --jar-bg: #F4F6FB; --jar-fill: rgba(15,143,128,.14); --jar-put: rgba(16,36,58,.5); --jar-track: #E3E6EE;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -328,12 +329,24 @@
   .recipe .steps small { display: block; margin-top: 4px; font-family: 'Bricolage Grotesque'; font-size: var(--fs-tag); color: var(--muted-strong); }
   .jar .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .jar label { display: block; font-size: var(--fs-meta); color: var(--muted); } .jar label b { color: var(--ink); font-size: 16px; margin-left: 4px; }
-  .jar input[type=range] { display: block; width: 100%; margin-top: 8px; accent-color: var(--teal); }
-  .jar .chart { position: relative; margin-top: 16px; }
-  .jar svg { display: block; width: 100%; height: 200px; background: #F4F6FB; border-radius: 14px; }
-  .jar .ymax { position: absolute; left: 10px; top: 12px; font-size: var(--fs-tag); color: var(--muted); }
+  /* thick sliders: a filled track and a big thumb */
+  .jar input[type=range] { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 28px; margin-top: 6px; background: transparent; cursor: pointer; --p: 50%; }
+  .jar input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--teal) var(--p), var(--jar-track) var(--p)); }
+  .jar input[type=range]::-moz-range-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--teal) var(--p), var(--jar-track) var(--p)); }
+  .jar input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -9px; border-radius: 50%; background: var(--card); border: 3px solid var(--teal); box-shadow: var(--shadow-card); }
+  .jar input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--card); border: 3px solid var(--teal); }
+  .jar input[type=range]:focus-visible { outline: 3px solid var(--teal); outline-offset: 4px; border-radius: 6px; }
+  /* the chart: £ ticks on the left, years below, each line named at its end */
+  .jar .chart { display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: 210px 22px; margin-top: var(--sp-4); padding: var(--sp-3) var(--sp-3) var(--sp-2) 0; border-radius: 14px; background: var(--jar-bg); }
+  .jar .yax { position: relative; } .jar .yt { position: absolute; right: 8px; transform: translateY(-50%); font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); font-variant-numeric: tabular-nums; }
+  .jar .plot { position: relative; } .jar svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .jar .xax { position: relative; grid-column: 2; } .jar .xt { position: absolute; top: 4px; transform: translateX(-50%); font-size: var(--fs-tag); color: var(--muted-strong); white-space: nowrap; }
+  .jar .xt:first-child { transform: none; } .jar .xt:last-child { transform: translateX(-100%); font-weight: 600; }
+  .jar .dotend { position: absolute; right: -5px; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px var(--jar-bg); } .jar .dotend.put { background: var(--jar-put); }
+  .jar .endl { position: absolute; right: 12px; transform: translateY(-120%); font-size: var(--fs-tag); font-weight: 600; color: var(--teal-ink); white-space: nowrap; background: var(--jar-bg); padding: 1px 6px; border-radius: 6px; }
+  .jar .endl b { font-size: var(--fs-row); font-weight: 800; } .jar .endl.end-put { transform: translateY(10%); color: var(--muted-strong); }
   .jar .sum { display: flex; gap: 28px; align-items: flex-end; margin-top: 12px; flex-wrap: wrap; }
-  .jar .v { font-size: 26px; font-weight: 800; letter-spacing: -.02em; } .jar .v.muted { color: var(--muted); font-weight: 600; }
+  .jar .v { display: inline-block; font-size: 30px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .jar .v.muted { color: var(--muted-strong); font-weight: 600; }
   .jar .note { font-family: 'Newsreader', serif; font-style: italic; font-size: 15px; color: var(--muted); }
   @media (max-width: 760px) { .recipe ul { columns: 1; } .recipe .hero { height: auto; overflow: visible; display: flex; flex-direction: column; align-items: center; padding-bottom: var(--sp-3); } .recipe .hero svg { height: 140px; border-radius: var(--r-stage) var(--r-stage) 0 0; }
     .recipe .serves { position: relative; right: auto; top: auto; transform: none; margin-top: -10px; }
@@ -827,21 +840,34 @@ function recipe(el) {
   el.querySelectorAll('[data-step]').forEach(b => b.onclick = () => { serves = Math.min(12, Math.max(1, serves + +b.dataset.step)); draw(true); });
   draw(false);
 }
-// The jar: a monthly amount, a number of years, and what 4% a year adds on top.
+// The jar: a monthly amount, a number of years, and what 4% a year adds on top. Axes with ticks, each line labelled at its end with its value.
 function savings(el) {
   el.innerHTML = `<div class="jar"><div class="inputs"><label>Each month <b data-mo-out></b><input type="range" data-monthly min="1" max="50" step="1" value="10"></label>
     <label>For <b data-yr-out></b><input type="range" data-years min="1" max="18" step="1" value="10"></label></div>
-    <div class="chart"><span class="ymax" data-ymax></span><svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="600" y1="10" y2="10" stroke="var(--ink)" stroke-opacity=".12" vector-effect="non-scaling-stroke"/><path data-grow fill="rgba(15,143,128,.14)" stroke="var(--teal)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path data-put fill="none" stroke="var(--ink)" stroke-opacity=".35" stroke-width="2" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="chart"><div class="yax"></div><div class="plot"><svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g><path data-grow fill="var(--jar-fill)"/><path class="gline" fill="none" stroke="var(--teal)" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path data-put fill="none" stroke="var(--jar-put)" stroke-width="2" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/></svg>
+      <span class="dotend grow"></span><span class="dotend put"></span><span class="endl end-grow"></span><span class="endl end-put"></span></div><div class="xax"></div></div>
     <div class="sum"><div><div class="k">In the jar</div><div class="v" data-total></div></div><div><div class="k">You put in</div><div class="v muted" data-put-total></div></div><div class="note">if the jar paid 4% a year, added monthly</div></div></div>`;
-  const mo = el.querySelector('[data-monthly]'), yr = el.querySelector('[data-years]'), money = n => '£' + Math.round(n).toLocaleString('en-GB');
-  const draw = () => { const m = +mo.value, n = +yr.value * 12, r = .04 / 12, grow = [0], put = [0];
+  const mo = el.querySelector('[data-monthly]'), yr = el.querySelector('[data-years]'), money = n => '£' + Math.round(n).toLocaleString('en-GB'), $ = q => el.querySelector(q), pct = (v, top) => (100 - v / top * 100 * 210 / 220);
+  const fill = i => i.style.setProperty('--p', ((i.value - i.min) / (i.max - i.min) * 100) + '%');
+  const draw = anim => { const m = +mo.value, years = +yr.value, n = years * 12, r = .04 / 12, grow = [0], put = [0];
     for (let i = 1; i <= n; i++) { grow.push(grow[i - 1] * (1 + r) + m); put.push(m * i); }
     const p10 = 10 ** Math.floor(Math.log10(grow[n])), top = [1, 1.5, 2, 3, 4, 5, 6, 8, 10].map(k => k * p10).find(v => v >= grow[n] * 1.04), X = i => (i / n * 600).toFixed(1), Y = v => (220 - v / top * 210).toFixed(1);
-    el.querySelector('[data-grow]').setAttribute('d', `M0 220 ${grow.map((v, i) => `L${X(i)} ${Y(v)}`).join(' ')} L600 220 Z`);
-    el.querySelector('[data-put]').setAttribute('d', put.map((v, i) => `${i ? 'L' : 'M'}${X(i)} ${Y(v)}`).join(' '));
-    el.querySelector('[data-mo-out]').textContent = money(m); el.querySelector('[data-yr-out]').textContent = `${yr.value} year${yr.value === '1' ? '' : 's'}`;
-    el.querySelector('[data-ymax]').textContent = money(top); el.querySelector('[data-total]').textContent = money(grow[n]); el.querySelector('[data-put-total]').textContent = money(put[n]); };
-  mo.oninput = yr.oninput = draw; draw();
+    $('[data-grow]').setAttribute('d', `M0 220 ${grow.map((v, i) => `L${X(i)} ${Y(v)}`).join(' ')} L600 220 Z`);
+    $('.gline').setAttribute('d', grow.map((v, i) => `${i ? 'L' : 'M'}${X(i)} ${Y(v)}`).join(' '));
+    $('[data-put]').setAttribute('d', put.map((v, i) => `${i ? 'L' : 'M'}${X(i)} ${Y(v)}`).join(' '));
+    const yt = [0, top / 2, top]; $('.grid').innerHTML = yt.map(v => `<line x1="0" x2="600" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--ink)" stroke-opacity="${v ? .1 : .3}" vector-effect="non-scaling-stroke"/>`).join('');
+    $('.yax').innerHTML = yt.map(v => `<span class="yt" style="top:${pct(v, top)}%">${money(v)}</span>`).join('');
+    const step = years <= 6 ? 1 : years <= 12 ? 2 : 3, xs = []; for (let y = 0; y <= years; y += step) xs.push(y); if (xs[xs.length - 1] !== years) xs.push(years);
+    $('.xax').innerHTML = xs.map(y => `<span class="xt" style="left:${y / years * 100}%">${y === 0 ? 'now' : y === years ? `${y} yr${y > 1 ? 's' : ''}` : y}</span>`).join('');
+    // end labels: the jar above its line end, what you put in below its own, kept apart
+    let gy = pct(grow[n], top), py = pct(put[n], top); const gap = 17; if (py - gy < gap) py = Math.min(97, gy + gap);
+    $('.dotend.grow').style.top = pct(grow[n], top) + '%'; $('.dotend.put').style.top = pct(put[n], top) + '%';
+    const eg = $('.end-grow'), ep = $('.end-put'); eg.style.top = gy + '%'; ep.style.top = py + '%';
+    eg.innerHTML = `In the jar <b>${money(grow[n])}</b>`; ep.innerHTML = `You put in <b>${money(put[n])}</b>`;
+    $('[data-mo-out]').textContent = money(m); $('[data-yr-out]').textContent = `${years} year${years === 1 ? '' : 's'}`;
+    const tot = $('[data-total]'), was = tot.textContent; tot.textContent = money(grow[n]); $('[data-put-total]').textContent = money(put[n]); fill(mo); fill(yr);
+    if (anim && was && was !== tot.textContent && !still()) { tot.getAnimations().forEach(a => a.cancel()); tot.animate([{ transform: 'translateY(40%)', opacity: 0, color: 'var(--teal)' }, { transform: 'none', opacity: 1, color: 'var(--teal)', offset: .55 }, { transform: 'none', opacity: 1 }], { duration: 450, easing: EASE }); } };
+  mo.oninput = yr.oninput = () => draw(true); draw(false);
 }
 // Land on Titan: hold to fire the engine, touch down under 3 m/s. Titan's gravity is weak and its air is thick, so the fall is slow and drag is strong.
 let landerStop = null, landerBest = null; // the best soft landing this visit, kept in memory only

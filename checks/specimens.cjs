@@ -528,7 +528,16 @@ async function reducedMore(page, vp) {
   await closeEsc(page);
   await reducedMore2(page, vp);
 }
-async function reducedMore2(page, vp) {}
+async function reducedMore2(page, vp) {
+  await page.evaluate(() => openSpec('savings')); await wait(300);
+  const t0 = await page.evaluate(() => document.querySelector('#spec-body [data-total]').textContent);
+  await page.locator('#spec-body input[data-years]').focus(); await page.keyboard.press('ArrowRight');
+  const k = await page.evaluate(() => ({ t: document.querySelector('#spec-body [data-total]').textContent, n: [...document.querySelectorAll('#spec-body *')].reduce((n, e) => n + e.getAnimations().filter(a => a.playState === 'running').length, 0) }));
+  check(`${vp}: reduced motion: the jar total changes with no animation`, k.t !== t0 && k.n === 0, JSON.stringify({ t0, ...k }));
+  await closeEsc(page);
+  await reducedMore3(page, vp);
+}
+async function reducedMore3(page, vp) {}
 
 async function kyotoPolish(page, vp) {
   await page.evaluate(() => openSpec('kyoto')); await wait(400);
@@ -577,6 +586,25 @@ async function moodPolish(page, vp) {
   await closeEsc(page);
 }
 
+async function savingsPolish(page, vp) {
+  await page.evaluate(() => openSpec('savings')); await wait(400);
+  const read = () => page.evaluate(() => { const j = document.querySelector('#spec-body .jar'), plot = j.querySelector('.plot') || j.querySelector('svg'), pr = plot.getBoundingClientRect(), t = s => (j.querySelector(s) || {}).textContent || '';
+    const lab = s => { const e = j.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return { t: e.textContent.replace(/\s+/g, ' ').trim(), r: r.right, l: r.left, top: r.top, b: r.bottom }; };
+    const ticks = s => [...j.querySelectorAll(s)].map(e => ({ t: e.textContent.trim(), fs: parseFloat(getComputedStyle(e).fontSize) }));
+    const ins = [...j.querySelectorAll('input[type=range]')].map(i => ({ h: i.getBoundingClientRect().height, ap: getComputedStyle(i).appearance }));
+    return { total: t('[data-total]').trim(), put: t('[data-put-total]').trim(), note: t('.note'), grow: lab('.end-grow'), putL: lab('.end-put'), plot: { l: pr.left, r: pr.right, t: pr.top, b: pr.bottom }, yt: ticks('.yt'), xt: ticks('.xt'), ins }; });
+  const a = await read();
+  check(`${vp}: savings lines are labelled at their ends with the end values`, !!a.grow && !!a.putL && /In the jar/.test(a.grow.t) && a.grow.t.includes(a.total) && /You put in/.test(a.putL.t) && a.putL.t.includes(a.put) && a.grow.r >= a.plot.r - 4 - 160 && a.putL.r >= a.plot.r - 4 - 160 && (a.grow.b <= a.putL.top + 1 || a.putL.b <= a.grow.top + 1), JSON.stringify(a));
+  check(`${vp}: savings axes have ticks: ≥3 £ values and ≥3 years, ≥11px`, a.yt.length >= 3 && a.yt.every(x => /^£[\d,]+$/.test(x.t) && x.fs >= 11) && a.xt.length >= 3 && a.xt.every(x => x.fs >= 11) && a.xt.some(x => /\d/.test(x.t)), JSON.stringify({ yt: a.yt, xt: a.xt }));
+  check(`${vp}: savings sliders are thick, custom-drawn controls (≥24px tall)`, a.ins.length === 2 && a.ins.every(i => i.h >= 24 && i.ap === 'none'), JSON.stringify(a.ins));
+  check(`${vp}: savings still in £ at 4%`, /^£/.test(a.total) && /4%/.test(a.note), `${a.total} / ${a.note}`);
+  await page.locator('#spec-body input[data-years]').focus(); await page.keyboard.press('ArrowRight');
+  const n = await bodyAnims(page, '#spec-body [data-total]');
+  const b = await read();
+  check(`${vp}: the jar total animates when it changes, and the end labels follow`, n >= 1 && b.total !== a.total && b.grow.t.includes(b.total), JSON.stringify({ n, a: a.total, b: b.total, g: b.grow && b.grow.t }));
+  await closeEsc(page);
+}
+
 async function polish(page, vp, specs) {
   await page.evaluate(HELP);
   await focusRing(page, vp, specs);
@@ -587,6 +615,7 @@ async function polish(page, vp, specs) {
   await recipePolish(page, vp);
   await kyotoPolish(page, vp);
   await moodPolish(page, vp);
+  await savingsPolish(page, vp);
 }
 
 async function fullPass(browser, vp) {
