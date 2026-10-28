@@ -451,6 +451,35 @@
   .st-end { display: none; margin-top: var(--sp-3); text-align: center; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); color: var(--muted-strong); }
   .stream.done .st-end { display: block; animation: fadeIn .6s ease; }
   @media (max-width: 760px) { .stream { grid-template-columns: minmax(0, 1fr); } .st-feed { min-height: var(--stage-h-s); } .st-acts button { height: 44px; } }
+  /* Arjun's agent: a plain transcript of its tool calls beside his garden (above it on a phone) */
+  .agent { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+  .ag-term { display: flex; flex-direction: column; padding: var(--sp-3) var(--sp-3) var(--sp-3); border-radius: var(--r-card); background: var(--paper-deep); border: 1px solid var(--line); color: var(--ink); }
+  .ag-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: 0 2px var(--sp-3); margin-bottom: var(--sp-2); border-bottom: 1px solid var(--line); }
+  .ag-who { font-size: var(--fs-row); font-weight: 700; }
+  .ag-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 4px 8px; border-radius: var(--r-pill); background: var(--teal-tint); font: 600 var(--fs-tag) ui-monospace, 'SF Mono', Menlo, monospace; color: var(--teal-ink); }
+  .ag-chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--teal-ink); box-shadow: 0 0 0 3px var(--made-ring); }
+  .ag-log { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); flex: 1; }
+  .ag-step { animation: up .3s var(--ease) backwards; }
+  .ag-role { display: block; font-size: var(--fs-k); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-strong); margin-bottom: 2px; }
+  .ag-user .ag-say { display: inline-block; padding: 7px 11px 8px; border-radius: var(--r-bubble); background: var(--card); border: 1px solid var(--line); font-size: var(--fs-meta); line-height: 1.35; }
+  .ag-reply .ag-say { font-size: var(--fs-meta); line-height: 1.4; min-height: 1.4em; }
+  .ag-reply.typing .ag-say::after { content: '▍'; color: var(--teal-ink); }
+  .ag-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r-small); background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; transition: background-color var(--fade) ease, border-color var(--fade) ease; }
+  @media (hover: hover) { .ag-line:hover { background: var(--card); border-color: var(--teal); } }
+  .ag-tool.on .ag-line { border-color: var(--teal); background: var(--card); }
+  .ag-st { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted-strong); border-top-color: var(--teal); animation: agSpin .8s linear infinite; }
+  .ag-tool[data-state="done"] .ag-st { border: 0; animation: none; background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 7.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; }
+  @keyframes agSpin { to { transform: rotate(360deg); } }
+  /* collapsed, a call is one line; tapping it opens the whole call and what came back */
+  .ag-call { display: flex; min-width: 0; font: 500 var(--fs-tag) / 1.45 ui-monospace, 'SF Mono', Menlo, monospace; }
+  .ag-args { min-width: 0; color: var(--muted-strong); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ag-name { font-weight: 700; color: var(--teal-ink); }
+  .ag-res { display: block; padding: 3px 0 0 30px; font: 500 var(--fs-tag) / 1.4 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--muted-strong); }
+  .ag-detail { margin: 6px 0 0 30px; padding: 8px 10px; border-radius: var(--r-small); background: var(--card); font: 500 var(--fs-tag) / 1.5 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ag-foot { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
+  .ag-about { flex: 1; font-family: 'Newsreader', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.3; color: var(--muted-strong); }
+  .ag-again { flex: none; height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); font: 600 var(--fs-meta) 'Bricolage Grotesque', sans-serif; cursor: pointer; }
+  @media (max-width: 760px) { .agent { grid-template-columns: minmax(0, 1fr); } .ag-line, .ag-again { min-height: 44px; } .ag-again { height: 44px; } }
   @media (min-width: 761px) and (max-width: 900px) {
     /* the paper's three stories become rows (picture beside text), as on the phone, so no column drops to three words a line */
     .paper .stories { grid-template-columns: 1fr; gap: var(--sp-3); } .paper .stories article { display: grid; grid-template-columns: 120px 1fr; column-gap: var(--sp-4); padding: 0 0 var(--sp-3); }
@@ -499,9 +528,10 @@ const G = [
     { type: 'link', dom: 'arxiv.org', t: 'Distributed control in soft arms', kept: 9 },
   ]},
   { name: 'Small shop, less admin', by: 'Arjun’s ops', things: [
+    { spec: 'agent', type: 'app', e: '🤖', bg: '#F8E2D9', k: 'Agent', t: 'Arjun’s agent, this morning', meta: 'works in Grdn over MCP', kept: 31 },
     { type: 'flow', k: 'Workflow', t: 'Morning order check', steps: ['Orders sheet', 'find splits', 'note'], kept: 23 },
     { type: 'app', e: '📦', bg: '#DDF3EF', k: 'Tool', t: 'Split order #48213', meta: 'used once · today' },
-    { type: 'note', text: '3 orders need splitting before the 11am pickup.', meta: 'made by workflow' },
+    { type: 'note', text: '2 orders need splitting before the 11am pickup.', meta: 'made by workflow' },
     { type: 'app', e: '🧾', bg: '#FCEBC2', k: 'Tool', t: 'Invoice fixer', kept: 64 },
   ]},
   { name: 'Sound toys', by: 'Kenji', things: [
@@ -941,6 +971,11 @@ const SPECS = {
     from: [{ t: 'arXiv · cs.RO, new papers', icon: '📄', became: 'two or three papers a day' }, { t: 'Gripper Notes, a lab blog', icon: '✍️', became: 'the posts on hands and grippers' }, { t: 'Robot talks, a video channel', icon: '▶️', became: 'the talks worth an evening' }, { t: 'Tactile SLAM, which Lena kept', icon: '🤚', became: 'more papers on robots that feel their way' }],
     next: [{ t: 'The Sunday Garden', s: 'Amara · weekly paper', why: 'New things from four gardens, every Sunday', open: 'paper' }, { t: 'Octopus minds', s: 'Ines', why: 'Soft arms, from the animal side', garden: 'Octopus minds' }, { t: 'What Lena kept', s: 'Lena’s lab', why: 'The garden this stream feeds', garden: 'Robotics, new this week' }],
     render: el => stream(el) },
+  // the agent is not Grdn: an AI agent Arjun uses calls Grdn's MCP tools, so the made line names it (lead)
+  agent: { act: 'Watch', noun: 'run', kind: 'Agent', title: 'Arjun’s agent, this morning', owner: 'Arjun', garden: 'Small shop, less admin', lead: '{owner}’s agent tends this garden with him, through Grdn’s MCP tools:',
+    from: [{ t: 'Orders sheet', icon: '📋', became: 'the 3 new orders it read' }, { t: 'Arjun’s note: “split anything over 2 items”', icon: '📝', became: 'the rule for which orders to split' }, { t: 'Grdn over MCP', icon: '🔌', became: 'the tools it calls: read_stream, keep, file, create_note' }],
+    next: [{ t: 'Lena’s stream, this week', s: 'Lena · stream', why: 'New finds that come to you, to keep or skip', open: 'stream' }, { t: 'Home lab', s: 'Dev at night', why: 'Another workflow that runs while you sleep', garden: 'Home lab' }, { t: 'Arjun’s orders and notes', s: 'Arjun’s ops', why: 'What the agent kept, and the note it left', garden: 'Small shop, less admin' }],
+    render: el => agentRun(el) },
 };
 // Each specimen card's preview strip: a background, and sometimes a small drawing on it.
 const PEEK = {
@@ -951,6 +986,7 @@ const PEEK = {
   kyoto: ['linear-gradient(100deg, var(--kyo-sky) 0 50%, var(--kyo-rain) 50%)', '<span>⛩️</span><span style="left:auto;right:84px">☀️ 🌧</span>'],
   recipe: ['linear-gradient(120deg, var(--rice-bg-1), var(--rice-bg-2))', '<span>🍚</span><span style="left:46px">🥢</span>'],
   stream: ['linear-gradient(var(--t-lena), var(--t-lena))', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice"><g fill="var(--card)"><rect x="56" y="9" width="170" height="16" rx="8"/><rect x="56" y="31" width="150" height="16" rx="8" opacity=".7"/></g><rect x="234" y="9" width="40" height="16" rx="8" fill="var(--ink)"/><rect x="214" y="31" width="40" height="16" rx="8" fill="var(--card)" opacity=".7"/></svg><span>📡</span>'],
+  agent: ['var(--paper-deep)', '<svg viewBox="0 0 300 56" preserveAspectRatio="xMinYMid slice" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700"><circle cx="62" cy="18" r="4" fill="var(--teal)"/><text x="72" y="22" fill="var(--teal-ink)">keep</text><text x="104" y="22" fill="var(--muted-strong)" font-weight="500">({ url: … })</text><circle cx="62" cy="38" r="4" fill="var(--teal)"/><text x="72" y="42" fill="var(--teal-ink)">create_note</text><text x="148" y="42" fill="var(--muted-strong)" font-weight="500">({ … })</text></svg><span>🤖</span>'],
   savings: ['var(--jar-bg)', '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M0 40 L0 36 C30 32 60 24 100 6 L100 40Z" fill="rgba(15,143,128,.18)"/><path d="M0 36 C30 32 60 24 100 6" fill="none" stroke="var(--teal)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path d="M0 36 L100 16" fill="none" stroke="var(--jar-put)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/></svg>'],
 };
 // Each specimen card's badge names what you do with it (act: Play, Read, Try, View).
@@ -1258,6 +1294,50 @@ function stream(el) {
   iv = setInterval(() => { const now = performance.now(); if (!paused()) clock += now - last; last = now;
     if (next < ITEMS.length && clock >= FIRST + next * EVERY) arrive(); else if (next === ITEMS.length && clock >= FIRST + (next - 1) * EVERY + REST) finish(); }, 100);
   return () => { clearInterval(iv); flights.forEach(f => f.remove()); flights.clear(); };
+}
+// Arjun's agent: a short morning run, played as a transcript. Each line is a call to one of Grdn's MCP tools; the garden beside it changes as each call completes.
+function agentRun(el) {
+  const GARDEN = 'Small shop, less admin', NOTE = '2 orders need splitting before the 11am pickup.', RUN_MS = 600;
+  const order = (n, items, split) => ({ e: '📦', k: 'Order', t: `Order #${n}`, m: `${items} item${items > 1 ? 's' : ''}${split ? ' · split it' : ''}` });
+  const RUN = [ // when each step starts (ms); tools carry their arguments, the short result, what came back, and what they add to the garden
+    { at: 0, user: 'Check the new orders and tell me what needs splitting.' },
+    { at: 1200, tool: 'read_stream', args: { stream: 'Orders sheet' }, res: '3 new orders: #48213, #48214, #48215', back: { items: ['#48213 · 4 items', '#48214 · 1 item', '#48215 · 3 items'] } },
+    { at: 2300, tool: 'keep', args: { url: 'shop.example/orders/48213', garden: GARDEN }, res: 'kept before, in Last week’s orders', back: { outcome: 'elsewhere', gardens: ['Last week’s orders'] } },
+    { at: 3300, tool: 'keep', args: { url: 'shop.example/orders/48214', garden: GARDEN }, res: 'created · Order #48214', back: { outcome: 'created', state: 'ready' }, add: order(48214, 1) },
+    { at: 4300, tool: 'keep', args: { url: 'shop.example/orders/48215', garden: GARDEN }, res: 'created · Order #48215', back: { outcome: 'created', state: 'ready' }, add: order(48215, 3, true) },
+    { at: 5400, tool: 'file', args: { thing: '#48213', garden: GARDEN }, res: 'filed · Order #48213', back: { filed: true }, add: order(48213, 4, true) },
+    { at: 6600, tool: 'create_note', args: { garden: GARDEN, title: 'Splits before 11am', markdown: NOTE }, res: 'created · a note in the garden', back: { note: 'Splits before 11am', garden: GARDEN }, add: { e: '📝', k: 'Note', t: NOTE, m: 'left by Arjun’s agent', note: true, fresh: true } },
+    { at: 7900, reply: 'Done. 2 need splitting; I left you a note.' },
+  ];
+  const END = 7900 + 900, js = o => `({ ${Object.entries(o).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join(', ')} })`;
+  el.innerHTML = `<div class="agent" data-done="false" data-start="3"><div class="ag-term"><div class="ag-top"><span class="ag-who">Arjun’s agent</span><span class="ag-chip">connected to Grdn over MCP</span></div>
+    <ol class="ag-log" aria-live="polite"></ol>
+    <div class="ag-foot"><p class="ag-about">An AI agent Arjun set up. It works in his garden by calling Grdn’s tools over MCP (Model Context Protocol).</p><button type="button" class="ag-again">Run again</button></div></div>
+    <div class="ag-garden"></div></div>`;
+  const root = el.querySelector('.agent'), log = root.querySelector('.ag-log');
+  let g, clock, last, iv = null, shown, made;
+  const say = (cls, who, text) => { log.insertAdjacentHTML('beforeend', `<li class="ag-step ${cls}"><span class="ag-role">${who}</span><p class="ag-say">${esc(text)}</p></li>`); return log.lastElementChild; };
+  const tool = (s, i) => { log.insertAdjacentHTML('beforeend', `<li class="ag-step ag-tool" data-state="run" data-i="${i}"><button type="button" class="ag-line" aria-expanded="false"><span class="ag-st" aria-hidden="true"></span><code class="ag-call"><span class="ag-name">${s.tool}</span><span class="ag-args">${esc(js(s.args))}</span></code></button>
+      <span class="ag-res">running…</span><pre class="ag-detail" hidden>${esc(`${s.tool}${js(s.args)}\n→ ${JSON.stringify(s.back, null, 1).replace(/\n\s*/g, ' ')}`)}</pre></li>`);
+    const li = log.lastElementChild, btn = li.querySelector('.ag-line');
+    btn.onclick = () => { const open = btn.getAttribute('aria-expanded') !== 'true';
+      log.querySelectorAll('.ag-tool').forEach(t => { t.querySelector('.ag-line').setAttribute('aria-expanded', 'false'); t.querySelector('.ag-detail').hidden = true; t.classList.remove('on'); });
+      root.querySelectorAll('.mg-thing.lit').forEach(t => t.classList.remove('lit'));
+      if (open) { btn.setAttribute('aria-expanded', 'true'); li.querySelector('.ag-detail').hidden = false; li.classList.add('on'); if (made[i]) made[i].classList.add('lit'); } };
+    return li; };
+  const reset = () => { clearInterval(iv); iv = null; clock = 0; last = performance.now(); shown = new Map(); made = {}; log.innerHTML = ''; root.dataset.done = 'false'; root.classList.remove('done');
+    g = miniGarden(root.querySelector('.ag-garden'), GARDEN, 'Arjun’s ops', [{ e: '🔁', k: 'Workflow', t: 'Morning order check' }, { e: '🧾', k: 'Tool', t: 'Invoice fixer' }, { e: '📝', k: 'Note', t: 'Split anything over 2 items.', note: true }]); };
+  const step = () => { // everything due by now: start steps, finish tool calls, type the reply
+    RUN.forEach((s, i) => { if (clock < s.at) return; let li = shown.get(i);
+      if (!li) { li = s.user ? say('ag-user', 'Arjun', s.user) : s.tool ? tool(s, i) : say('ag-reply', 'Agent', still() ? s.reply : ''); shown.set(i, li); }
+      if (s.tool && li.dataset.state === 'run' && clock >= s.at + RUN_MS) { li.dataset.state = 'done'; li.querySelector('.ag-res').textContent = '→ ' + s.res;
+        if (s.add) { made[i] = g.add(s.add); g.glow(made[i]); } }
+      if (s.reply) { const n = Math.min(s.reply.length, Math.ceil((clock - s.at) / 500 * s.reply.length)); li.querySelector('.ag-say').textContent = s.reply.slice(0, n); li.classList.toggle('typing', n < s.reply.length); } });
+    if (clock >= END) { clearInterval(iv); iv = null; root.dataset.done = 'true'; root.classList.add('done'); } };
+  const play = () => { reset(); if (still()) { clock = Infinity; step(); return; }
+    step(); iv = setInterval(() => { const now = performance.now(); clock += now - last; last = now; step(); }, 100); };
+  root.querySelector('.ag-again').onclick = play; play();
+  return () => clearInterval(iv);
 }
 const specEl = document.getElementById('spec'), panel = specEl.querySelector('.panel'), closeBtn = specEl.querySelector('.close'), dimEl = specEl.querySelector('.dim');
 const EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';

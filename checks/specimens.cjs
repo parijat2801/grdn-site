@@ -69,7 +69,7 @@ const MADE = { titan: 'Grdn built this game from 3 things Leo kept:', moon: 'Grd
   mood: 'Grdn built this moodboard from 4 things Mo kept:', kyoto: 'Grdn built this planner from 3 things Mei & Jo kept:', recipe: 'Grdn built this scaler from 3 things Priya & Sam kept:', savings: 'Grdn built this chart from 2 things Dami kept:',
   stream: 'This stream follows 3 feeds and what Lena kept last week:', agent: 'Arjun’s agent tends this garden with him, through Grdn’s MCP tools:' };
 // The badge on each specimen card names what you do with it.
-const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try', stream: 'Try' };
+const BADGE = { titan: 'Play', paper: 'Read', moon: 'View', mood: 'View', kyoto: 'Try', recipe: 'Try', savings: 'Try', stream: 'Try', agent: 'Watch' };
 async function badges(page, vp) {
   const b = await page.evaluate(() => [...document.querySelectorAll('[data-spec]')].map(c => { const m = c.querySelector('.open-mark'); return { id: c.dataset.spec, t: m.textContent.trim(), after: getComputedStyle(m, '::after').content, label: c.getAttribute('aria-label') }; }));
   const bad = b.filter(x => x.t !== BADGE[x.id] || x.after !== '" ↗"' || !x.label.startsWith(BADGE[x.id] + ' '));
@@ -676,6 +676,7 @@ async function reducedMore3(page, vp) {
   const b = await streamState(page);
   check(`${vp}: reduced motion: stream items arrive, and Keep moves one into the garden at once with no flight or animation`, !!a && a.arrived >= 1 && !!k && !k.fly && k.n === 0 && b.count === a.count + 1 && b.things[0] === a.items[0].t, JSON.stringify({ a: a && { arrived: a.arrived, count: a.count }, k, b: b && { count: b.count, first: b.things[0] } }));
   await closeEsc(page);
+  await reducedAgent(page, vp);
 }
 async function reducedAgent(page, vp) {
   // the agent: the finished run shows at once, every step listed, nothing animating
@@ -849,7 +850,7 @@ async function specCards(page, vp) {
     return { plainPeek: !!plain.querySelector('.peek'), cards: [...document.querySelectorAll('[data-spec]')].map(el => { const pk = el.querySelector('.peek'), pr = pk && pk.getBoundingClientRect(), cr = el.getBoundingClientRect(), m = el.querySelector('.open-mark'), mr = m.getBoundingClientRect(), mb = getComputedStyle(m, '::before'), ms = getComputedStyle(m);
       return { id: el.dataset.spec, peek: !!pr && pk.offsetHeight >= 44 && pr.width >= .9 * cr.width && (getComputedStyle(pk).backgroundImage !== 'none' || !!pk.querySelector('svg, img')), top: !!pr && pr.top - cr.top < 2, badgeH: m.offsetHeight /* layout px: the canvas itself is zoomed */, glyph: mb.content !== 'none' && parseFloat(mb.width) >= 10, ratio: +__c.ratio(__c.rgb(ms.backgroundColor), __c.rgb(ms.color)).toFixed(2) }; }) }; });
   const bad = c.cards.filter(x => !x.peek || !x.top || x.badgeH < 22 || !x.glyph || x.ratio < 4.5);
-  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 8 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
+  check(`${vp}: every specimen card has a preview strip on top and a clear Grdn badge; ordinary cards do not`, c.cards.length === 9 && bad.length === 0 && !c.plainPeek, JSON.stringify(bad.length ? bad : c));
 }
 
 // A specimen's timers and window listeners stop when its view closes, and at once when another specimen replaces it.
@@ -875,7 +876,7 @@ async function specCleanup(page, vp, specs) {
     check(`${vp}: ${id} stops its timers and window listeners on close and when ${other} replaces it (started ${JSON.stringify(started[id])})`, closed === 0 && swapped === 0, JSON.stringify({ closed, swapped }));
   }
   check(`${vp}: the moon and Titan register something to clean up (the hook sees them)`, started.moon && started.moon.iv >= 1 && started.titan && started.titan.ls >= 1, JSON.stringify(started));
-  check(`${vp}: the stream runs on a timer the hook sees (and stops)`, started.stream && started.stream.iv >= 1, JSON.stringify(started.stream));
+  check(`${vp}: the stream and the agent run on a timer the hook sees (and stops)`, started.stream && started.stream.iv >= 1 && started.agent && started.agent.iv >= 1, JSON.stringify({ stream: started.stream, agent: started.agent }));
   // the moon's countdown no longer ticks once its view is closed
   await page.evaluate(() => openSpec('moon')); await wait(400); await closeEsc(page);
   const c0 = await page.evaluate(() => document.querySelector('#spec-body .countdown')?.textContent ?? null); await wait(2500);
@@ -1298,6 +1299,7 @@ async function fullPass(browser, vp) {
   if (specs.recipe && specs.savings) await recipeAndSavings(page, vp);
   await landerCheck(page, vp);
   await streamCheck(page, vp, vp === 'desktop');
+  await agentCheck(page, vp);
   await frame(page, vp, specs);
   await keyboard(page, vp, specs);
   if (vp !== 'desktop') await sheet(page, vp, specs);
