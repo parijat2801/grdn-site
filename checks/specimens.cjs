@@ -412,18 +412,20 @@ async function madeLine(page, vp, specs) {
   }
 }
 
-// Where next fits its rows (no big empty panel on desktop), each row says why in one line, and no row repeats the garden you are already in.
+// Where next fits its rows (no big empty panel on desktop), and each row says why in one line.
+// Owner rule: a row may lead back to the specimen's own garden (a visit to its source), but no row's visible text names the garden you are in.
 async function whereNextPanel(page, vp, specs) {
   for (const [id, sp] of Object.entries(specs)) {
     await page.evaluate(id => openSpec(id), id); await wait(350);
     const w = await page.evaluate(id => { const S = SPECS[id], aside = document.querySelector('#spec .next').getBoundingClientRect(), rows = [...document.querySelectorAll('#spec-next .nx')];
       const last = rows[rows.length - 1].getBoundingClientRect();
       return { empty: Math.round(aside.bottom - last.bottom), asideH: Math.round(aside.height), rows: rows.map((r, i) => { const y = r.querySelector('.why'), yr = y && y.getBoundingClientRect(), th = r.querySelector('.nx-th'), tr = th && th.getBoundingClientRect();
-        return { i, text: r.innerText.replace(/\s+/g, ' '), why: y ? y.textContent.trim() : null, want: S.next[i].why, shown: !!yr && yr.height > 8 && yr.width > 40, thumb: !!tr && tr.width >= 32 && tr.height >= 32 }; }) }; }, id);
+        return { i, text: r.innerText.replace(/\s+/g, ' '), title: (r.querySelector('b') || {}).textContent, why: y ? y.textContent.trim() : null, want: S.next[i].why, shown: !!yr && yr.height > 8 && yr.width > 40, thumb: !!tr && tr.width >= 32 && tr.height >= 32 }; }) }; }, id);
     const noWhy = w.rows.filter(r => !r.want || r.why !== r.want || !r.shown);
     check(`${vp}: ${id} every Where next row has a one-line why`, noWhy.length === 0, JSON.stringify(noWhy));
-    const rep = w.rows.filter(r => r.text.toLowerCase().includes(sp.garden.toLowerCase()) || r.text.includes(`${sp.owner}’s garden`));
-    check(`${vp}: ${id} no Where next row repeats the garden you are in ("${sp.garden}")`, rep.length === 0, JSON.stringify(rep.map(r => r.text)));
+    const home = sp.next.filter(n => n.garden === sp.garden).length, named = w.rows.filter(r => r.text.toLowerCase().includes(sp.garden.toLowerCase()));
+    const matches = w.rows.length === sp.next.length && w.rows.every((r, i) => r.title === sp.next[i].t);
+    check(`${vp}: ${id} no Where next row's visible text names the garden you are in ("${sp.garden}"; ${home} row${home === 1 ? '' : 's'} may lead back to it)`, matches && named.length === 0, JSON.stringify({ matches, named: named.map(r => r.text) }));
     check(`${vp}: ${id} every Where next row has a thumbnail`, w.rows.every(r => r.thumb), JSON.stringify(w.rows.map(r => r.thumb)));
     if (vp === 'desktop') check(`${vp}: ${id} Where next panel fits its rows (empty space under the last row ≤ 40px)`, w.empty <= 40, JSON.stringify({ empty: w.empty, asideH: w.asideH }));
     await closeEsc(page);
