@@ -987,7 +987,22 @@ async function groundAndTransitions(browser) {
   await ctx.close();
 }
 
+// The reassure line sits centred under the form on every viewport.
+async function reassureCentred(browser) {
+  for (const vp of ['desktop', 'phone', 'small', 'tablet', 'mid', 'laptop']) {
+    const { ctx, page, errors } = await newPage(browser, vp); await wait(500);
+    const r = await page.evaluate(() => { const el = document.getElementById('reassure'), f = document.getElementById('f').getBoundingClientRect();
+      const rg = document.createRange(); rg.selectNodeContents(el); const lines = [...rg.getClientRects()].filter(b => b.width > 0);
+      const fc = f.left + f.width / 2, off = lines.map(b => Math.round(Math.abs(b.left + b.width / 2 - fc) * 10) / 10);
+      return { align: getComputedStyle(el).textAlign, off, lines: lines.length }; });
+    check(`${vp}: reassure line is centred under the form (text-align center, each line within 2px of the form's centre)`, r.align === 'center' && r.lines > 0 && r.off.every(o => o <= 2), JSON.stringify(r));
+    check(`${vp}: no errors in the reassure pass`, errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+}
+
 async function audit(browser) {
+  await reassureCentred(browser);
   await tabletDialog(browser);
   await tabOrder(browser);
   await emailFocus(browser);
@@ -1034,6 +1049,7 @@ async function fullPass(browser, vp) {
         check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); await openingPolish(browser, vp); }
       throw 'only';
     }
+    if (process.env.ONLY === 'card') { await reassureCentred(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');
