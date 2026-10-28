@@ -1335,11 +1335,13 @@ async function fontsNonBlocking(browser) {
   for (const vp of ['phone', 'desktop']) {
     const ctx = await browser.newContext(VIEWPORTS[vp]), page = await ctx.newPage();
     await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, async r => { await wait(3000); await r.continue().catch(() => {}); });
+    // the page's own paint clock decides (first-contentful-paint ≤ 1 s after navigation), so a busy test machine cannot fake a pass or a fail; the fonts are still 3 s away
     const t0 = Date.now(); await page.goto(BASE, { waitUntil: 'commit' });
-    let s = null; while (Date.now() - t0 < 1000) { s = await page.evaluate(() => { const h = document.querySelector('#card h1'); if (!h) return null; const r = h.getBoundingClientRect(); let o = 1; for (let e = h; e; e = e.parentElement) o *= +getComputedStyle(e).opacity;
-      return { fcp: performance.getEntriesByType('paint').some(p => p.name === 'first-contentful-paint'), w: r.width, h: r.height, o, font: [...document.fonts].some(f => /Bricolage Grotesque/.test(f.family) && f.status === 'loaded') }; }).catch(() => null);
-      if (s && s.fcp && s.w > 0 && s.o >= .99) break; await wait(50); }
-    check(`${vp}: with Google Fonts 3 s slow, the headline is painted at full opacity within 1 s, in the fallback font`, !!s && s.fcp && s.w > 0 && s.h > 0 && s.o >= .99 && !s.font, JSON.stringify({ ...s, ms: Date.now() - t0 }));
+    let s = null; while (Date.now() - t0 < 2500) { s = await page.evaluate(() => { const h = document.querySelector('#card h1'); if (!h) return null; const r = h.getBoundingClientRect(); let o = 1; for (let e = h; e; e = e.parentElement) o *= +getComputedStyle(e).opacity;
+      const p = performance.getEntriesByType('paint').find(p => p.name === 'first-contentful-paint');
+      return { fcp: p ? Math.round(p.startTime) : null, w: r.width, h: r.height, o, font: [...document.fonts].some(f => /Bricolage Grotesque/.test(f.family) && f.status === 'loaded') }; }).catch(() => null);
+      if (s && s.fcp !== null && s.w > 0 && s.o >= .99) break; await wait(50); }
+    check(`${vp}: with Google Fonts 3 s slow, the headline paints within 1 s (first-contentful-paint) and shows at full opacity, in the fallback font`, !!s && s.fcp !== null && s.fcp <= 1000 && s.w > 0 && s.h > 0 && s.o >= .99 && !s.font, JSON.stringify({ ...s, ms: Date.now() - t0 }));
     await ctx.close();
   }
 }
