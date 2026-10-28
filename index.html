@@ -122,6 +122,8 @@
   input[type=email] { flex: 1; min-width: 0; font: 400 17px 'Bricolage Grotesque'; padding: 14px 18px; border-radius: 999px;
     border: 1px solid rgba(16,36,58,.18); background: #fff; color: var(--ink); outline: none; }
   input[type=email]:focus { border-color: var(--teal); }
+  /* a clear 3px teal ring on the form and Explore, the same ring the specimen controls use */
+  input[type=email]:focus-visible, .btn:focus-visible, .explore:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
   .btn { font: 600 16px 'Bricolage Grotesque'; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--paper); cursor: pointer; white-space: nowrap; }
   .fine { display: flex; justify-content: center; align-items: center; margin-top: 16px; font-size: 14px; color: var(--muted); }
   .explore { background: none; border: 0; font: 600 14px 'Bricolage Grotesque'; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }

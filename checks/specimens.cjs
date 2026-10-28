@@ -828,9 +828,29 @@ async function tabOrder(browser) {
   }
 }
 
+// The email field's focus state: at least a 2px-thick ring of pixels whose colour changes by ≥3:1 against the unfocused field (WCAG 2.4.13).
+async function emailFocus(browser) {
+  for (const vp of ['desktop', 'phone']) {
+    const { ctx, page, errors } = await newPage(browser, vp); await wait(1000); await page.evaluate(HELP);
+    await page.addStyleTag({ content: '#f input { caret-color: transparent !important; }' });
+    const b = await box(page, '#f input[type=email]'), clip = { x: b.x - 8, y: b.y - 8, w: b.w + 16, h: b.h + 16 };
+    const before = await shot64(page, clip);
+    await page.keyboard.press('Tab'); await wait(400);
+    const focused = await page.evaluate(() => document.activeElement.matches('#f input[type=email]'));
+    const after = await shot64(page, clip);
+    const n = await page.evaluate(async ([a, z]) => { const A = await __c.px(a), Z = await __c.px(z); let n = 0;
+      for (let k = 0; k < A.d.length; k += 4) { const p = { r: A.d[k], g: A.d[k + 1], b: A.d[k + 2] }, q = { r: Z.d[k], g: Z.d[k + 1], b: Z.d[k + 2] }; if (__c.ratio(p, q) >= 3) n++; } return n; }, [before, after]);
+    const need = Math.round(2 * (b.w + b.h) * 2);
+    check(`${vp}: the email field's focus ring changes ≥3:1 over at least a 2px ring (${n} of ${need} px)`, focused && n >= need, JSON.stringify({ focused, n, need }));
+    check(`${vp}: no errors in the email focus pass`, errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+}
+
 async function audit(browser) {
   await tabletDialog(browser);
   await tabOrder(browser);
+  await emailFocus(browser);
 }
 
 async function fullPass(browser, vp) {
