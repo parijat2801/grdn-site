@@ -387,7 +387,18 @@ async function streamCheck(page, vp) {
   check(`${vp}: stream: "Where next" names her suggestions once; the page's own rows read "More to explore", sit under the view, compact (no sub line)`, L.whereNext === 1 && L.whereNextInBody === 1 && L.navHead === 'More to explore' && L.navRows === 3 && L.navBelow && !L.navSub, JSON.stringify(L));
   check(`${vp}: stream: italic serif only on the reason lines, anywhere in the view`, L.italic.length > 0 && L.italic.every(c => /\bst-why\b/.test(c)), JSON.stringify(L.italic));
   check(`${vp}: stream: no column has more than 25% empty space, and the view ends with its columns`, L.cols.length === 2 && L.cols.every(c => c.empty <= .25) && L.rootEmpty <= .05, JSON.stringify(L));
-  if (!phone) check(`${vp}: stream: the two columns sit side by side with tops aligned (within 2px)`, Math.abs(L.cols[0].top - L.cols[1].top) <= 2 && L.cols[1].left > L.cols[0].left, JSON.stringify(L.cols));
+  // the garden is a grid of cards; Where next is a list in a side panel: rows with a small initial tile, split by hairlines, not cards
+  const G2 = await page.evaluate(() => { const r = document.querySelector('#spec-body .stream'), w = r.querySelector('.st-where'), ws = getComputedStyle(w);
+    const lefts = new Set([...r.querySelectorAll('.st-thing')].map(e => Math.round(e.getBoundingClientRect().left)));
+    const rows = [...r.querySelectorAll('.st-item')].map(li => { const cs = getComputedStyle(li), t = li.querySelector('.st-tile'), ti = li.querySelector('.st-t'), lh = parseFloat(getComputedStyle(ti).lineHeight);
+      return { tile: t ? t.textContent.trim() : '', tileW: t ? Math.round(t.getBoundingClientRect().width) : 0, bg: cs.backgroundColor, sides: cs.borderTopWidth + cs.borderLeftWidth, bottom: cs.borderBottomWidth, lines: Math.round(ti.getBoundingClientRect().height / lh) }; });
+    return { cols: lefts.size, panelBg: ws.backgroundColor, panelBorder: ws.borderTopWidth, rows }; });
+  check(`${vp}: stream: Where next is a side panel (the page's Where next tint) of rows with a one-letter tile, split by hairlines, titles ≤2 lines`, G2.panelBg !== 'rgba(0, 0, 0, 0)' && G2.panelBorder === '1px' && G2.rows.length >= 3 && G2.rows.every(x => /^[A-Z]$/.test(x.tile) && x.tileW >= 28 && x.tileW <= 40 && x.bg === 'rgba(0, 0, 0, 0)' && x.sides === '0px0px' && x.lines <= 2), JSON.stringify(G2));
+  if (!phone) {
+    check(`${vp}: stream: the two columns sit side by side with tops aligned (within 2px)`, Math.abs(L.cols[0].top - L.cols[1].top) <= 2 && L.cols[1].left > L.cols[0].left, JSON.stringify(L.cols));
+    check(`${vp}: stream: her garden is a grid of cards (≥2 columns)`, G2.cols >= 2, JSON.stringify(G2.cols));
+    const rr = await page.evaluate(() => new Set([...document.querySelectorAll('#spec-body .st-rule')].map(e => Math.round(e.getBoundingClientRect().top))).size);
+    check(`${vp}: stream: her two rule chips share one row in the panel`, rr === 1, String(rr)); }
   else {
     const s = await page.evaluate(() => { const k = document.querySelector('#spec-body .st-kept'), cs = getComputedStyle(k), t = [...k.querySelectorAll('.st-thing')].map(e => Math.round(e.getBoundingClientRect().top)), g = document.querySelector('#spec-body .st-garden').getBoundingClientRect(), n = document.querySelector('#spec-body .st-where').getBoundingClientRect();
       const taps = [...document.querySelectorAll('#spec-body button')].filter(b => b.getClientRects().length).map(b => [b.className, Math.round(b.getBoundingClientRect().height)]);

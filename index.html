@@ -451,17 +451,22 @@
   .mg-thing.glow { animation: mgGlow 1.3s var(--ease); }
   @keyframes mgGlow { 25% { box-shadow: 0 0 0 3px var(--teal), 0 0 0 10px var(--made-ring); } }
   .mg-thing.lit { box-shadow: 0 0 0 3px var(--teal), var(--shadow-card); }
-  /* Lena's stream: her garden on the left, her Where next on the right; whitespace between, no box around either. On a phone the garden is a strip on top. */
-  .stream { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); column-gap: var(--sp-7); align-items: start; }
+  /* Lena's stream: her garden as a grid of cards on the left; her Where next as a list in a side panel on the right (the page's Where next tint). On a phone the garden is a strip on top. */
+  .stream { display: grid; grid-template-columns: minmax(0, 1fr) 380px; column-gap: var(--sp-6); align-items: start; }
+  .st-garden { padding-top: var(--sp-4); }
+  .st-where { padding: var(--sp-4) var(--sp-3) var(--sp-2); border-radius: var(--r-card); background: var(--bubble); border: 1px solid var(--line); }
+  .st-where .st-head { padding: 0 var(--sp-1); }
   .st-col { min-width: 0; }
   .st-head { display: flex; align-items: baseline; gap: var(--sp-2); min-height: 26px; margin-bottom: var(--sp-3); }
   .st-head b { font-size: var(--fs-title); font-weight: 800; letter-spacing: -.01em; }
   .st-head small { font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); }
   .st-count { display: inline-block; margin-left: auto; padding: 2px 9px 3px; border-radius: var(--r-pill); background: var(--paper-deep); font-size: var(--fs-tag); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .st-kept { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
-  .st-thing { min-width: 0; display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 10px; align-items: center; padding: 7px 12px 7px 7px; border-radius: var(--r-small); background: var(--paper); border: 1px solid var(--line);
-    transition: background-color var(--hover) ease, border-color var(--hover) ease; }
-  .st-ic { grid-row: span 2; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: var(--card); font-size: 15px; line-height: 1; }
+  .st-kept { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--sp-2); }
+  .st-thing { min-width: 0; display: grid; grid-template-columns: 24px minmax(0, 1fr); grid-template-rows: auto 1fr auto; align-content: start; column-gap: 7px; row-gap: 6px; align-items: center; padding: 9px 11px 11px 9px; border-radius: var(--r-bubble);
+    background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-card); transition: background-color var(--hover) ease, border-color var(--hover) ease; }
+  .st-ic { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; background: var(--paper-deep); font-size: 13px; line-height: 1; }
+  .st-tt { grid-column: 1 / -1; align-self: start; }
+  .st-m { grid-column: 1 / -1; align-self: end; font-size: var(--fs-tag); color: var(--muted-strong); overflow-wrap: anywhere; }
   .st-k { font-size: var(--fs-k); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-strong); }
   .st-tt { font-size: var(--fs-meta); font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
   .st-thing.note .st-tt { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); font-weight: 500; }
@@ -481,33 +486,36 @@
   .st-offer .st-sub { margin: 0; }
   .st-pick { border: 0; background: var(--teal-tint); color: var(--teal-ink); }
   .st-pick b { font-weight: 700; color: var(--ink); }
-  .st-rules { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-2); }
-  .st-rule { padding-left: 8px; border: 1px solid var(--seen-line); background: var(--card); color: var(--muted-strong); }
-  .st-rule::before { content: ''; width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; border: 2px solid var(--seen-line); }
+  .st-rules { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-1); padding: 0 var(--sp-1); }
+  .st-note { padding: 0 var(--sp-1); }
+  .st-rule { height: 32px; gap: 5px; padding: 0 11px 0 6px; font-size: var(--fs-tag); border: 1px solid var(--seen-line); background: var(--card); color: var(--muted-strong); }
+  .st-rule::before { content: ''; width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box; border: 2px solid var(--seen-line); }
   .st-rule[aria-pressed="true"] { border-color: transparent; background: var(--teal-tint); color: var(--teal-ink); }
   .st-rule[aria-pressed="true"]::before { border: 0; background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 7.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat; }
   @media (hover: hover) { .st-add:hover, .st-rule:hover { border-color: var(--teal); } .st-keep:hover { background: var(--teal-ink); } }
   .st-note { font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); }
   .st-note[hidden] { display: none; }
   .st-list { list-style: none; }
-  .st-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-4); row-gap: 2px; align-items: center; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+  .st-item { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; column-gap: var(--sp-3); row-gap: 2px; align-items: center; padding: var(--sp-3) var(--sp-1); border-bottom: 1px solid var(--line); }
+  .st-item:last-child { border-bottom: 0; }
+  /* each row opens on a small tile with its source's first letter, tinted by source */
+  .st-tile { grid-column: 1; grid-row: 1 / span 3; align-self: start; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: var(--tb); color: var(--ti); font-size: var(--fs-row); font-weight: 800; line-height: 1; }
   .st-item.in { animation: up .35s var(--ease) backwards; }
-  .st-src { grid-column: 1; font-size: var(--fs-tag); font-weight: 650; color: var(--muted-strong); }
-  .st-t { grid-column: 1; font-size: var(--fs-row); font-weight: 650; line-height: 1.25; letter-spacing: -.005em; text-wrap: pretty; }
-  .st-why { grid-column: 1; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); }
-  .st-keep { grid-column: 2; grid-row: 1 / span 3; min-width: 68px; height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; transition: background-color var(--fade) ease; }
+  .st-src { grid-column: 2; grid-row: 2; font-size: var(--fs-tag); font-weight: 650; color: var(--muted-strong); }
+  .st-t { grid-column: 2; grid-row: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--fs-row); font-weight: 650; line-height: 1.25; letter-spacing: -.005em; text-wrap: pretty; }
+  .st-why { grid-column: 2; grid-row: 3; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-style: italic; font-size: var(--fs-lead); line-height: 1.25; color: var(--teal-ink); }
+  .st-keep { grid-column: 3; grid-row: 1 / span 3; min-width: 60px; height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--ink); color: var(--paper); font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; transition: background-color var(--fade) ease; }
   .st-fly { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform-origin: 0 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-small); background: var(--teal-tint); box-shadow: var(--shadow-lift); font-size: var(--fs-row); font-weight: 650; color: var(--ink); overflow: hidden; }
-  .st-end { margin-top: var(--sp-3); font-size: var(--fs-meta); font-weight: 600; color: var(--teal-ink); }
+  .st-end { margin: var(--sp-1) var(--sp-1) var(--sp-2); font-size: var(--fs-meta); font-weight: 600; color: var(--teal-ink); }
   .st-end[hidden] { display: none; }
   .st-add:focus-visible, .st-pick:focus-visible, .st-rule:focus-visible, .st-keep:focus-visible, .ag-line:focus-visible, .ag-again:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
   @media (max-width: 760px) {
     /* the garden becomes one strip of small cards that scrolls sideways, bleeding to the sheet's edges; her feeds sit in one row under it */
     .stream { grid-template-columns: minmax(0, 1fr); row-gap: var(--sp-5); }
-    .st-kept { flex-direction: row; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4) 2px; scroll-padding: 0 var(--sp-4); }
+    .st-garden { padding-top: 0; }
+    .st-kept { display: flex; flex-direction: row; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4) 2px; scroll-padding: 0 var(--sp-4); }
     .st-kept::-webkit-scrollbar { display: none; }
-    .st-thing { flex: 0 0 136px; grid-template-columns: 22px minmax(0, 1fr); align-content: start; column-gap: 6px; row-gap: 4px; padding: 8px 11px 10px 8px; }
-    .st-ic { grid-row: auto; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; }
-    .st-tt { grid-column: 1 / -1; }
+    .st-thing { flex: 0 0 136px; }
     .st-tt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .st-feeds { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); }
     /* the label stays for screen readers; the chips under her garden say it on their own */
@@ -516,11 +524,17 @@
     .st-feed { gap: 6px; min-height: 44px; padding: 0 14px 0 10px; border-radius: var(--r-pill); background: var(--paper-deep); }
     .st-feed small { display: none; }
     .st-add, .st-pick, .st-rule, .st-keep { height: 44px; }
+    .st-where { padding: var(--sp-3) var(--sp-2) var(--sp-1); }
     .st-add { margin: 0; }
     .st-offer { margin: 0; }
   }
   /* small phones: both rule chips still fit on one row */
-  @media (max-width: 380px) { .st-rule { gap: 5px; padding: 0 12px 0 7px; font-size: var(--fs-tag); } .st-rule::before { width: 16px; height: 16px; } }
+  /* small phones: both rule chips still fit on one row */
+  @media (max-width: 380px) { .st-where { padding-left: var(--sp-1); padding-right: var(--sp-1); } .st-rules { gap: 4px; } .st-rule { gap: 4px; padding: 0 9px 0 5px; } }
+  @media (min-width: 761px) and (max-width: 1127px) {
+    /* tablets and small laptops: a narrower panel, so the rule chips tighten to stay on one row */
+    .stream { grid-template-columns: minmax(0, 1fr) 320px; column-gap: var(--sp-5); } .st-kept { grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); }
+    .st-where { padding-left: var(--sp-2); padding-right: var(--sp-2); } .st-rules { gap: 4px; } .st-rule { gap: 4px; padding: 0 9px 0 5px; } }
   /* Arjun's agent: a plain transcript of its tool calls beside his garden (above it on a phone) */
   .agent { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
   .ag-term { display: flex; flex-direction: column; padding: var(--sp-3) var(--sp-3) var(--sp-3); border-radius: var(--r-card); background: var(--paper-deep); border: 1px solid var(--line); color: var(--ink); }
@@ -1328,7 +1342,7 @@ function miniGarden(slot, name, by, things) {
 }
 // Lena's stream: her garden beside her Where next. Keep moves a suggestion into her garden and the next one builds on it; a new feed and her two rules change what comes.
 function stream(el) {
-  const KEPT = [['📄', 'Paper', 'Tactile SLAM'], ['▶️', 'Video', 'Tactile SLAM, in 40 seconds'], ['📝', 'Note', 'Why does my robot drift?'], ['🔗', 'Link', 'New in cs.RO'], ['🔁', 'Workflow', 'Explain anything new']]; // [icon, kind, title]
+  const KEPT = [['📄', 'Paper', 'Tactile SLAM', 'arxiv.org'], ['▶️', 'Video', 'Tactile SLAM, in 40 seconds', 'made by Grdn'], ['📝', 'Note', 'Why does my robot drift?', 'Lena’s note'], ['🔗', 'Link', 'New in cs.RO', 'arxiv.org'], ['🔁', 'Workflow', 'Explain anything new', 'runs on new papers']]; // [icon, kind, title, where from]
   // Everything Where next could suggest, in its usual order. why: the kept thing it builds on ('' = new today on arXiv). after: shows once that one is kept here.
   // feed: shows once she follows it. web: not a research site (needs "Research sites only" off). far: not about touch (needs "Robots that touch" off).
   // Gripper Notes is a lab's blog, so it counts as a research site.
@@ -1354,18 +1368,21 @@ function stream(el) {
     { id: 'stairs', far: true, e: '📄', k: 'Paper', t: 'A legged robot learns stairs in an afternoon', src: 'arXiv cs.RO', why: '' },
   ];
   const SHOW = 4, CHAIN = 4, by = Object.fromEntries(S.map(s => [s.id, s]));
+  // a row's tile: its source's first letter on that source's tint (arXiv, Gripper Notes, hackaday, YouTube)
+  const TILE = { A: ['--teal-tint', '--teal-ink'], G: ['--t-amara', '--c-amara'], H: ['--t-arjun', '--titan-ridge'], Y: ['--t-tom', '--c-tom'] };
+  const tile = s => { const L = s.src[0].toUpperCase(), [b, i] = TILE[L]; return `<span class="st-tile" aria-hidden="true" style="--tb:var(${b});--ti:var(${i})">${L}</span>`; };
   const kept = new Set(), open = new Set(), feeds = new Set(), rule = { web: true, far: true }, at = new Map(); // open: follow-ups unlocked by a keep; at: when something let a suggestion in (newest first)
   let tick = 0, note = '';
   const reason = s => s.feed ? 'new · Gripper Notes' : s.after ? `because you kept ${by[s.after].t}` : s.why ? `because you kept ${s.why}` : 'new today · arXiv cs.RO';
   const fits = (s, r = rule) => !kept.has(s.id) && (!s.after || open.has(s.id)) && (!s.feed || feeds.has(s.feed)) && !(s.web && r.web) && !(s.far && r.far);
   const order = r => S.filter(s => fits(s, r)).sort((a, b) => (at.get(b.id) || 0) - (at.get(a.id) || 0));
-  const thing = (e, k, t, fresh) => `<li class="st-thing${k === 'Note' ? ' note' : ''}${fresh ? ' fresh' : ''}"><span class="st-ic" aria-hidden="true">${e}</span><span class="st-k">${esc(k)}</span><span class="st-tt">${esc(t)}</span></li>`;
+  const thing = (e, k, t, m, fresh) => `<li class="st-thing${k === 'Note' ? ' note' : ''}${fresh ? ' fresh' : ''}"><span class="st-ic" aria-hidden="true">${e}</span><span class="st-k">${esc(k)}</span><span class="st-tt">${esc(t)}</span><span class="st-m">${esc(m)}</span></li>`;
   el.innerHTML = `<div class="stream">
     <section class="st-col st-garden" aria-label="Lena’s garden"><div class="st-head"><b>Lena’s garden</b><span class="st-count" aria-live="polite"></span></div>
       <ul class="st-kept">${KEPT.map(k => thing(...k)).join('')}</ul>
       <div class="st-feeds"><span class="st-sub">Feeds she follows</span><ul class="st-flist"><li class="st-feed"><span aria-hidden="true">📄</span> arXiv cs.RO <small>new robotics papers</small></li></ul>
         <button type="button" class="st-add" aria-expanded="false">+ Add a feed</button><div class="st-offer" hidden><button type="button" class="st-pick"><span aria-hidden="true">✍️</span> Gripper Notes (blog) <b>Follow</b></button></div></div></section>
-    <section class="st-col st-where" aria-label="Lena’s Where next"><div class="st-head"><b>Where next</b><small>for Lena, from her stream</small></div>
+    <section class="st-col st-where" aria-label="Lena’s Where next"><div class="st-head"><b>Where next</b><small>for Lena</small></div>
       <div class="st-rules"><button type="button" class="st-rule" data-rule="web" aria-pressed="true">Research sites only</button><button type="button" class="st-rule" data-rule="far" aria-pressed="true">Robots that touch</button></div>
       <p class="st-note" role="status" hidden></p><ol class="st-list" aria-live="polite"></ol><p class="st-end" hidden>Lena’s stream will bring more tomorrow.</p></section></div>`;
   const root = el.querySelector('.stream'), ul = root.querySelector('.st-kept'), cnt = root.querySelector('.st-count'), list = root.querySelector('.st-list'), noteEl = root.querySelector('.st-note'), endEl = root.querySelector('.st-end');
@@ -1376,7 +1393,7 @@ function stream(el) {
   const render = () => {
     const want = order(rule).slice(0, SHOW), had = new Map([...list.children].map(li => [li.dataset.id, li]));
     slide(list, () => { want.forEach(s => { let li = had.get(s.id);
-      if (!li) { list.insertAdjacentHTML('beforeend', `<li class="st-item${still() ? '' : ' in'}" data-id="${s.id}" data-research="${!s.web}"><span class="st-src"><span aria-hidden="true">${s.e}</span> ${esc(s.src)}</span><b class="st-t">${esc(s.t)}</b><span class="st-why">${esc(reason(s))}</span>
+      if (!li) { list.insertAdjacentHTML('beforeend', `<li class="st-item${still() ? '' : ' in'}" data-id="${s.id}" data-research="${!s.web}">${tile(s)}<span class="st-src">${esc(s.src)}</span><b class="st-t">${esc(s.t)}</b><span class="st-why">${esc(reason(s))}</span>
         <button type="button" class="st-keep" aria-label="Keep ${esc(s.t)}">Keep</button></li>`); li = list.lastElementChild; li.querySelector('.st-keep').onclick = () => keep(li); }
       else { had.delete(s.id); list.appendChild(li); } });
       had.forEach(li => li.remove()); });
@@ -1387,7 +1404,7 @@ function stream(el) {
     const hadFocus = li.contains(document.activeElement), a = li.getBoundingClientRect();
     kept.add(s.id); note = ''; const next = S.find(x => x.after === s.id);
     if (next && kept.size < CHAIN) { open.add(next.id); at.set(next.id, ++tick); }
-    ul.scrollLeft = 0; const slot = slide(ul, () => { ul.insertAdjacentHTML('afterbegin', thing(s.e, s.k, s.t, true)); return ul.firstElementChild; }); count(true);
+    ul.scrollLeft = 0; const slot = slide(ul, () => { ul.insertAdjacentHTML('afterbegin', thing(s.e, s.k, s.t, 'kept just now', true)); return ul.firstElementChild; }); count(true);
     render(); if (hadFocus) (list.querySelector('.st-keep:not([hidden])') || add || el).focus({ preventScroll: true });
     if (still()) return;
     const b = slot.getBoundingClientRect(), fly = document.createElement('div');
