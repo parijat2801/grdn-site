@@ -745,6 +745,27 @@ async function polish(page, vp, specs) {
   await specCards(page, vp);
 }
 
+// Every picture loads: each specimen's images while that specimen is open (waiting up to 10 s each, then naturalWidth > 0),
+// and every image URL the canvas uses (card <img>s, which load lazily, and CSS background-image URLs on cards and preview strips) answers 200.
+async function imagesLoad(page, vp, specs) {
+  for (const id of Object.keys(specs)) {
+    await page.evaluate(id => openSpec(id), id);
+    const r = await page.evaluate(() => Promise.all([...document.querySelectorAll('#spec img')].map(i => new Promise(done => {
+      const fin = () => done({ src: i.currentSrc || i.src, ok: i.naturalWidth > 0, w: i.naturalWidth });
+      if (i.complete) return fin(); const t = setTimeout(() => done({ src: i.src, ok: false, w: 'timeout' }), 10000);
+      i.addEventListener('load', () => { clearTimeout(t); fin(); }, { once: true }); i.addEventListener('error', () => { clearTimeout(t); fin(); }, { once: true }); }))));
+    const bad = r.filter(x => !x.ok);
+    check(`${vp}: ${id} every image loads while it is open (${r.length})`, bad.length === 0, bad.map(x => `${x.src} (${x.w})`).join(', '));
+    await closeEsc(page);
+  }
+  const urls = await page.evaluate(() => { const out = new Set();
+    for (const el of document.querySelectorAll('#world *, #spec *')) for (const m of getComputedStyle(el).backgroundImage.matchAll(/url\("?([^")]+)"?\)/g)) out.add(new URL(m[1], location.href).href);
+    const bg = out.size; document.querySelectorAll('#world img').forEach(i => out.add(new URL(i.getAttribute('src'), location.href).href)); return { all: [...out], bg }; });
+  const failed = [];
+  for (const u of urls.all) { const res = await page.request.get(u).catch(e => ({ status: () => String(e.message).slice(0, 60) })); if (res.status() !== 200) failed.push(`${u} → ${res.status()}`); }
+  check(`${vp}: every canvas image and CSS background URL answers 200 (${urls.all.length}, ${urls.bg} backgrounds)`, urls.bg >= 1 && urls.all.length > urls.bg && failed.length === 0, failed.join(', '));
+}
+
 async function fullPass(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp}-opening.png` });
@@ -765,8 +786,7 @@ async function fullPass(browser, vp) {
   await keyboard(page, vp, specs);
   if (vp !== 'desktop') await sheet(page, vp, specs);
   await polish(page, vp, specs);
-  const broken = await page.evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth === 0).map(i => i.src));
-  check(`${vp}: all images load`, broken.length === 0, broken.join(', '));
+  await imagesLoad(page, vp, specs);
   check(`${vp}: no console or page errors through the full pass`, errors.length === 0, errors.join(' | '));
   await ctx.close();
   return specs;
