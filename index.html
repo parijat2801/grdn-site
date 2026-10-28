@@ -276,6 +276,7 @@
   .dash .moonrow { display: flex; align-items: center; gap: var(--sp-3); margin: var(--sp-2) 0; } .dash .moonsvg { width: 92px; height: 92px; flex: none; filter: drop-shadow(0 0 14px rgba(243,231,200,.25)); }
   .dash .phasearc { display: block; width: 100%; max-width: 220px; height: auto; } .dash .phasearc text { font: 600 8px 'Bricolage Grotesque'; fill: rgba(255,255,255,.65); }
   .dash .countdown { font-variant-numeric: tabular-nums; }
+  .dash .eg { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid currentColor; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: none; line-height: 15px; vertical-align: 1px; color: var(--muted-strong); }
   .dash .k { margin-bottom: 4px; } .dash .big .k { color: rgba(255,255,255,.6); }
   .dash .v { font-size: 20px; font-weight: 700; letter-spacing: -.01em; } .dash .s { font-size: var(--fs-meta); color: var(--muted); margin-top: 2px; } .dash .big .s { color: rgba(255,255,255,.7); }
   .paper { font-family: 'Newsreader', serif; }
@@ -769,7 +770,7 @@ function moonNow() { const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14
     age, syn, lit: Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100), full: new Date(Date.now() + toFull * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }; }
 const SPECS = {
   titan: { act: 'Play', noun: 'game', kind: 'Game', title: 'Land on Titan', owner: 'Leo', garden: 'Tiny games', from: [{ t: 'Titan, Saturn’s largest moon', icon: '🪐', became: 'the orange haze, the dunes and Saturn' }, { t: 'Lunar lander physics', icon: '🚀', became: 'weak gravity, thick air, a slow fall' }, { t: 'Leo’s note: “make it hard”', icon: '📝', became: 'set the 3 m/s landing limit' }],
-    next: [{ t: 'Moon tonight', s: 'Grandpa Tom · dashboard', why: 'The real sky tonight, made from Tom’s links', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom', why: 'Saturn notes and NASA pictures', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'made by one, loved by many', why: 'More games one person made', garden: 'Small, opinionated apps' }],
+    next: [{ t: 'Moon tonight', s: 'Grandpa Tom · dashboard', why: 'Tonight’s moon phase, made from Tom’s links', open: 'moon' }, { t: 'Moon & sky', s: 'Grandpa Tom', why: 'Saturn notes and NASA pictures', garden: 'Moon & sky' }, { t: 'Small, opinionated apps', s: 'made by one, loved by many', why: 'More games one person made', garden: 'Small, opinionated apps' }],
     render: el => lander(el) },
   moon: { act: 'View', noun: 'dashboard', kind: 'Dashboard', title: 'Moon tonight', owner: 'Grandpa Tom', garden: 'Moon & sky', from: [{ t: 'NASA image of the day', img: 'nasa-gov-27.jpg', became: 'the night-sky look of every tile' }, { t: 'What’s up tonight', icon: '🔭', became: 'the space station pass and clear hours' }, { t: 'Tom’s note on Saturn', icon: '📝', became: 'the Saturn tile: up after 9pm' }],
     next: [{ t: 'Land on Titan', s: 'Leo · game', why: 'Fly down to Saturn’s biggest moon', open: 'titan' }, { t: 'Walls I’d hang', s: 'Sol', why: 'The Starry Night, and other skies', garden: 'Walls I’d hang' }, { t: 'GPS, explained', s: 'Nico', why: 'How the satellites overhead find you', garden: 'Things that explain themselves' }],
@@ -827,6 +828,7 @@ document.querySelectorAll('[data-spec]').forEach(el => { const s = SPECS[el.data
   el.querySelector('.peek').style.background = pk[0]; el.querySelector('.peek').innerHTML = pk[1] || '';
   el.setAttribute('aria-label', `${s.act} ${s.title}, made with Grdn`); });
 // Moon tonight: the real phase drawn as a lit disc, its place on the cycle, and a live countdown; each small tile carries a little picture of its own.
+// Only the phase and the full-moon date are real; the Saturn, sky and space station tiles are made up, and each carries an "example" tag.
 function moonDisc(age, syn, R = 44) {
   const k = (1 - Math.cos(2 * Math.PI * age / syn)) / 2, wax = age < syn / 2, rx = (R * Math.abs(1 - 2 * k)).toFixed(2), crescent = k < .5;
   // lit half on the right while waxing, the left while waning; the terminator is an ellipse that bulges into the lit side for a crescent
@@ -847,10 +849,10 @@ function moonDash(el) {
   const saturn = `<svg viewBox="0 0 40 26" aria-hidden="true"><ellipse cx="20" cy="13" rx="17" ry="5" fill="none" stroke="var(--titan-saturn-band)" stroke-width="2" transform="rotate(-14 20 13)"/><circle cx="20" cy="13" r="7.5" fill="var(--titan-saturn)"/><path d="M12.6 14.6 A17 5 -14 0 0 27.4 11.4" fill="none" stroke="var(--titan-saturn-band)" stroke-width="2" transform="rotate(-14 20 13) rotate(14 20 13)"/></svg>`;
   const iss = `<svg viewBox="0 0 60 26" aria-hidden="true"><path d="M3 22 Q30 -4 57 22" fill="none" stroke="var(--c-tom)" stroke-width="1.6" stroke-dasharray="3 3"/><g transform="translate(30 9)"><rect x="-3" y="-2" width="6" height="4" rx="1" fill="var(--ink)"/><rect x="-11" y="-1.5" width="6" height="3" fill="var(--c-tom)"/><rect x="5" y="-1.5" width="6" height="3" fill="var(--c-tom)"/></g><text x="3" y="25" font-size="6">W</text><text x="52" y="25" font-size="6">E</text></svg>`;
   el.innerHTML = `<div class="dash"><div class="tile big"><div class="k">Tonight</div><div class="moonrow">${moonDisc(m.age, m.syn)}<div><div class="v">${m.name}</div><div class="s">${m.lit}% lit</div></div></div>${arc}</div>
-    <div class="tile"><span class="ti">${saturn}</span><div class="k">Saturn</div><div class="v">Up after 9pm</div><div class="s">low in the south-east</div></div>
-    <div class="tile"><span class="ti">${sky}</span><div class="k">Sky</div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
+    <div class="tile"><span class="ti">${saturn}</span><div class="k">Saturn<span class="eg">example</span></div><div class="v">Up after 9pm</div><div class="s">low in the south-east</div></div>
+    <div class="tile"><span class="ti">${sky}</span><div class="k">Sky<span class="eg">example</span></div><div class="v">Clear till 1am</div><div class="s">good for the kids</div></div>
     <div class="tile"><span class="ti">${spark}</span><div class="k">Next full moon</div><div class="v">${m.full}</div><div class="s">rises at dusk</div></div>
-    <div class="tile"><span class="ti">${iss}</span><div class="k">Space station</div><div class="v">21:14</div><div class="s countdown" aria-live="off"></div></div></div>`;
+    <div class="tile"><span class="ti">${iss}</span><div class="k">Space station<span class="eg">example</span></div><div class="v">21:14</div><div class="s countdown" aria-live="off"></div></div></div>`;
   // illustrative pass at 21:14 local time: today, or tomorrow once it has gone
   const cd = el.querySelector('.countdown'), pass = new Date(); pass.setHours(21, 14, 0, 0); if (pass <= new Date()) pass.setDate(pass.getDate() + 1);
   const tick = () => { const t = Math.max(0, Math.round((pass - Date.now()) / 1000)), p2 = n => String(n).padStart(2, '0');

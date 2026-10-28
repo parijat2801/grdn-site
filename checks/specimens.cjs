@@ -655,7 +655,18 @@ async function moonPolish(page, vp) {
   check(`${vp}: every small moon tile has its own icon or sparkline`, m.tiles.length === 4 && m.tiles.every(Boolean), JSON.stringify(m.tiles));
   await wait(1200); const cd2 = await page.evaluate(() => (document.querySelector('#spec-body .countdown') || {}).textContent || '');
   check(`${vp}: moon has a live countdown that ticks`, /\d+h \d{2}m \d{2}s/.test(m.cd) && cd2 !== m.cd && /\d+h \d{2}m \d{2}s/.test(cd2), `${m.cd} / ${cd2}`);
+  // only the phase (and the full-moon date worked out from it) is real; Saturn, the sky and the space station pass are made up, and say so where you can see it
+  const eg = await page.evaluate(() => [...document.querySelectorAll('#spec-body .dash .tile')].map(t => { const tag = t.querySelector('.eg'), r = tag && tag.getBoundingClientRect(), cs = tag && getComputedStyle(tag);
+    return { k: t.querySelector('.k').firstChild.textContent.trim(), tag: !!r && r.width > 10 && r.height > 8 && cs.visibility !== 'hidden' && +cs.opacity > .5 && /^example$/i.test(tag.textContent.trim()) }; }));
+  const MADEUP = ['Saturn', 'Sky', 'Space station'];
+  check(`${vp}: moon's made-up tiles (${MADEUP.join(', ')}) carry a visible "example" tag; the real phase and full moon do not`, eg.length === 5 && eg.every(t => t.tag === MADEUP.includes(t.k)), JSON.stringify(eg));
   await closeEsc(page);
+  // nothing on the page claims to show the real sky
+  const claims = [];
+  for (const id of await page.evaluate(() => Object.keys(SPECS))) { await page.evaluate(id => openSpec(id), id); await wait(150);
+    if (/real sky/i.test(await page.evaluate(() => document.getElementById('spec').innerText))) claims.push(id); await closeEsc(page); }
+  if (/real sky/i.test(await page.evaluate(() => document.body.innerText))) claims.push('page');
+  check(`${vp}: no rendered text says "real sky"`, claims.length === 0, claims.join(', '));
 }
 
 // The opening: gardens show through within ~1 s, and every line of the card stays readable (pixels).
