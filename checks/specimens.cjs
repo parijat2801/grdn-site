@@ -1065,9 +1065,43 @@ async function tapOut(browser) {
   }
 }
 
+// The card shrinks into the pill when it goes away and grows back out of it; reduced motion swaps with no transform.
+async function morph(browser) {
+  for (const vp of ['desktop', 'phone']) {
+    for (const rm of [false, true]) {
+      const { ctx, page, errors } = await newPage(browser, vp, rm ? { reducedMotion: 'reduce' } : {}); await wait(600);
+      const sample = (trigger) => page.evaluate(async trigger => {
+        const card = document.getElementById('card'), pill = document.getElementById('pill'), ctr = el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }; };
+        const rest = ctr(card), restTf = getComputedStyle(card).transform;
+        const t = document.getElementById(trigger); if (trigger === 'explore') t.click(); else t.click();
+        await new Promise(r => setTimeout(r, 170));
+        const mid = ctr(card), midTf = getComputedStyle(card).transform, anims = card.getAnimations().filter(a => a.playState === 'running').length, midOp = +getComputedStyle(card).opacity;
+        await new Promise(r => setTimeout(r, 650));
+        return { rest, mid, restTf, midTf, anims, midOp, endOp: +getComputedStyle(card).opacity, endTf: getComputedStyle(card).transform, pillOp: +getComputedStyle(pill).opacity, pillShow: pill.classList.contains('show'), pc: ctr(pill) };
+      }, trigger);
+      const go = await sample('explore');
+      const d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+      if (!rm) {
+        check(`${vp}: Explore: mid-animation the card's centre has moved toward the pill and it is shrinking`, go.anims > 0 && d(go.mid, go.pc) < d(go.rest, go.pc) - 20 && go.mid.w < go.rest.w, JSON.stringify(go));
+        check(`${vp}: Explore: the card ends hidden and the pill shows`, go.endOp === 0 && go.pillShow && go.pillOp === 1, JSON.stringify(go));
+        const back = await sample('pill');
+        check(`${vp}: pill: mid-animation the card is growing back from the pill toward its place`, back.anims > 0 && d(back.mid, back.pc) < d(back.mid, back.rest) + 400 && back.mid.y > back.rest.y + 2 && back.mid.w < back.rest.w, JSON.stringify(back));
+        check(`${vp}: pill: the card ends in place and fully shown, the pill hidden`, back.endOp === 1 && back.endTf === back.restTf && !back.pillShow, JSON.stringify(back));
+      } else {
+        check(`${vp} (reduced): Explore uses no transform and no animation; the card ends hidden and the pill shows`, go.anims === 0 && go.midTf === go.restTf && go.endTf === go.restTf && go.endOp === 0 && go.pillShow, JSON.stringify(go));
+        const back = await sample('pill');
+        check(`${vp} (reduced): the pill brings the card back with no transform`, back.anims === 0 && back.midTf === back.restTf && back.endOp === 1 && !back.pillShow, JSON.stringify(back));
+      }
+      check(`${vp}${rm ? ' (reduced)' : ''}: no errors in the morph pass`, errors.length === 0, errors.join(' | '));
+      await ctx.close();
+    }
+  }
+}
+
 async function audit(browser) {
   await reassureCentred(browser);
   await tapOut(browser);
+  await morph(browser);
   await tabletDialog(browser);
   await tabOrder(browser);
   await emailFocus(browser);
@@ -1114,7 +1148,7 @@ async function fullPass(browser, vp) {
         check(`${vp}: no errors in the polish pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await reducedPolish(browser, vp); await openingPolish(browser, vp); }
       throw 'only';
     }
-    if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); throw 'only'; }
+    if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); await morph(browser); throw 'only'; }
     if (process.env.ONLY === 'audit') { await audit(browser); throw 'only'; }
     const specs = await fullPass(browser, 'desktop');
     await fullPass(browser, 'phone');

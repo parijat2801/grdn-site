@@ -121,7 +121,6 @@
   #card { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(600px, calc(100vw - 32px));
     background: var(--card-glass); backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); border: 1px solid rgba(16,36,58,.08); border-radius: 28px; padding: 44px 44px 34px;
     box-shadow: 0 2px 6px rgba(16,36,58,.04), 0 24px 60px rgba(16,36,58,.10);
-    transition: opacity .5s cubic-bezier(.2,.7,.2,1), transform .5s cubic-bezier(.2,.7,.2,1);
     animation: cardIn .3s cubic-bezier(.2,.7,.2,1) backwards; }
   @keyframes cardIn { from { opacity: 0; transform: translate(-50%,-46%) scale(.98); } }
   /* the whole card is readable within 400 ms: a 280 ms rise, staggered by at most 120 ms */
@@ -131,7 +130,8 @@
   #scrim { position: fixed; inset: 0; pointer-events: none; transition: opacity .6s ease;
     display: none; }
   #scrim.away { opacity: 0; }
-  #card.away { opacity: 0; transform: translate(-50%,-47%) scale(.97); pointer-events: none; }
+  /* going away and coming back is a script-driven morph into and out of the pill (morph() below); the class only holds the end state */
+  #card.away { opacity: 0; pointer-events: none; }
   .mark { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
   #card h1 { text-wrap: balance; font-size: clamp(34px, 5vw, 50px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.04; margin-top: 22px; }
   #card .lede { text-wrap: pretty; font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; color: rgba(16,36,58,.75); margin-top: 16px; }
@@ -158,9 +158,10 @@
       linear-gradient(to bottom, var(--paper-0) 50%, var(--paper-fade) 100%);
     opacity: 0; pointer-events: none; transition: opacity .35s ease; }
   #pillbar.show { opacity: 1; pointer-events: auto; }
-  #pill { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
-    transition: opacity .35s ease, transform .35s ease; }
-  #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  /* the pill fades and grows in as the shrinking card reaches it, and leaves at once when the card grows back */
+  #pill { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 0) scale(.86); opacity: 0; pointer-events: none;
+    transition: opacity .2s cubic-bezier(.2,.7,.2,1), transform .2s cubic-bezier(.2,.7,.2,1); }
+  #pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; transition-duration: .26s; transition-delay: .16s; }
   @media (max-width: 560px) { #card { padding: 30px 24px 24px; } form { flex-direction: column; } }
 
   /* specimens: things made with Grdn that open into a live view, with Where next beside them */
@@ -797,7 +798,17 @@ function canvasKeys(on) {
   pill.inert = !on; card.inert = on;
 }
 canvasKeys(false);
-document.getElementById('explore').onclick = () => { card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); pillbar.classList.add('show'); drifting = false; canvasKeys(true);
+// The card shrinks into the pill (about 420 ms, ease-out, no overshoot) and grows back out of it. Uniform scale to the pill's width, so the text never squashes.
+// Reduced motion: no transform at all; the classes swap the card and pill at once.
+function morph(away) {
+  card.getAnimations().forEach(a => a.cancel());
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = card.getBoundingClientRect(), pw = pill.offsetWidth, ph = pill.offsetHeight;
+  const dx = document.documentElement.clientWidth / 2 - (r.left + r.width / 2), dy = innerHeight - parseFloat(getComputedStyle(pill).bottom) - ph / 2 - (r.top + r.height / 2);
+  const rest = { transform: 'translate(-50%,-50%)', opacity: 1 }, small = { transform: `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(${pw / r.width})`, opacity: 0 };
+  card.animate(away ? [rest, small] : [small, rest], { duration: 420, easing: 'cubic-bezier(.2,.7,.2,1)' });
+}
+document.getElementById('explore').onclick = () => { morph(true); card.classList.add('away'); scrim.classList.add('away'); pill.classList.add('show'); pillbar.classList.add('show'); drifting = false; canvasKeys(true);
   // a keyboard visitor lands on the specimen nearest the middle of the screen
   if (keyNav) { let best = null, bd = Infinity; world.querySelectorAll('.thing.spec').forEach(el => { const r = onScreen(el); if (!r) return; const d = Math.hypot(r.left + r.width / 2 - innerWidth / 2, r.top + r.height / 2 - innerHeight / 2); if (d < bd) { bd = d; best = el; } });
     if (best) best.focus({ preventScroll: true }); } };
@@ -810,7 +821,7 @@ document.addEventListener('click', e => {
   if (card.classList.contains('away') || e.detail === 0 || !d || d.inCard || e.target.closest('#card') || justDragged || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return;
   e.preventDefault(); e.stopPropagation(); document.getElementById('explore').click();
 }, true);
-pill.onclick = () => { card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); pillbar.classList.remove('show'); canvasKeys(false);
+pill.onclick = () => { morph(false); card.classList.remove('away'); scrim.classList.remove('away'); pill.classList.remove('show'); pillbar.classList.remove('show'); canvasKeys(false);
   if (keyNav) card.querySelector('input[type=email]').focus({ preventScroll: true }); };
 // Same-origin under grdn.page: the app's /api/waitlist answers 202 for every valid email.
 document.getElementById('f').addEventListener('submit', async e => {
