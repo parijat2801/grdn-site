@@ -519,193 +519,242 @@ async function agentCheck(page, vp) {
   check(`${vp}: agent: the run stops when the view closes mid-run`, !!c0 && !c0.done && c1.steps === c0.steps && c1.count === c0.count, JSON.stringify({ c0: c0 && c0.steps, c1: c1 && c1.steps }));
 }
 
-// ---------- Mess around and find out: Nico's explorable, a garden of doors in four acts ----------
+// ---------- Mess around and find out: Nico's explorable. One game (find what is hidden, in a race with three players on the same garden), then the rules to change ----------
 const MX_CAPS = ['Mess around and find out is how anything gets better. Every experiment teaches you something.',
   'Experiments create knowledge, skills and chances. They can also destroy them.',
   'What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.',
   'So the goal isn’t to avoid risk, or to chase every discovery. It’s to keep growing your room to experiment, without breaking what makes it possible.'];
 const MX_CLOSE = 'Mess around in ways that let you mess around better tomorrow.';
-const MX_ACTS = ['Mess around', 'Find out', 'The real variable', 'Your turn'];
-// one garden's state, read from the page: tiles by state, frontier, bold bets, the reach readout and the turn
-const mxGarden = (page, sel) => page.evaluate(sel => { const g = document.querySelector(sel); if (!g) return null; const tx = e => (e || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
-  const t = [...g.querySelectorAll('.mx-t')], by = v => t.filter(e => e.dataset.s === v).map(e => +e.dataset.i), act = g.closest('[data-act]') || g.closest('.mx-player');
-  return { seed: g.dataset.seed, n: t.length, lit: by('1'), dark: by('0'), scorched: by('2'), frontier: t.filter(e => e.hasAttribute('data-f')).map(e => +e.dataset.i), bold: t.filter(e => e.hasAttribute('data-bold')).map(e => +e.dataset.i),
-    reach: +tx(act.querySelector('[data-reach]')), turn: +(act.querySelector('[data-turn]') || {}).dataset?.turn, status: tx(act.querySelector('.mx-status')) }; }, sel);
+const MX_ACTS = ['Find what’s hidden', 'Change the rules'];
+const MX_HELLO = 'Tap a glowing tile to try it. Amber tiles are bold bets.';
+const MX_NUDGE = 'When does each style win? Try the sliders.';
+const MXP = '#spec-body [data-act="play"]', MXL = '#spec-body [data-act="lab"]', MXG = MXP + ' .mx-garden', MX_WHO = ['cautious', 'bold', 'steady'], MX_NAME = { cautious: 'Cautious', bold: 'Bold', steady: 'Steady' };
+// the play screen's whole state, read from the page (and the seed's hidden layout, from the model)
+const mxState = page => page.evaluate(sel => { const A = document.querySelector(sel); if (!A) return null; const g = A.querySelector('.mx-garden'), tx = e => (e || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
+  const t = [...g.querySelectorAll('.mx-t')], seed = +g.dataset.seed;
+  return { seed, s: t.map(e => +e.dataset.s), frontier: t.filter(e => e.hasAttribute('data-f')).map(e => +e.dataset.i), bold: t.filter(e => e.hasAttribute('data-bold')).map(e => +e.dataset.i),
+    gems: [...g.querySelectorAll('.mx-gem')].map(e => ({ i: +e.dataset.i, st: e.dataset.st, shown: getComputedStyle(e).display !== 'none' && +getComputedStyle(e).opacity > 0 })),
+    found: +tx(A.querySelector('[data-found]')), doors: +tx(A.querySelector('[data-doors]')), over: A.dataset.over === 'true', tries: +A.dataset.tries,
+    lines: Object.fromEntries([...A.querySelectorAll('path[data-line]')].map(p => [p.dataset.line, (p.dataset.pts || '').split(',').filter(x => x !== '').map(Number)])),
+    raceSeed: +((A.querySelector('.mx-race') || {}).dataset || {}).seed, score: tx(A.querySelector('.mx-score')), final: tx(A.querySelector('.mx-final')), nudge: tx(A.querySelector('.mx-nudge')),
+    hint: tx(A.querySelector('.mx-hint')), status: tx(A.querySelector('.mx-status')), newBtn: tx(A.querySelector('.mx-new')), hid: MX.world(seed).hid.slice() }; }, MXP);
 const mxClickTile = async (page, sel, i) => { const b = await page.evaluate(([sel, i]) => { const e = document.querySelector(`${sel} .mx-t[data-i="${i}"]`); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, [sel, i]);
   await page.mouse.click(b.x, b.y); await wait(40); };
-const mxShow = (page, act) => page.evaluate(a => document.querySelector(`#spec-body [data-act="${a}"]`).scrollIntoView({ block: 'start' }), act);
+// a try on tile i: a real mouse click, or a fast synthetic click on the tile
+const mxTap = (page, i, real) => real ? mxClickTile(page, MXG, i) : page.evaluate(([sel, i]) => document.querySelector(`${sel} .mx-t[data-i="${i}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true })), [MXG, i]);
+const mxShow = (page, sel) => page.evaluate(s => document.querySelector(s).scrollIntoView({ block: 'start' }), sel);
 const mxRuns = page => page.evaluate(() => Object.fromEntries(['cautious', 'bold', 'steady'].map(w => { const s = document.querySelector(`#spec-body .mx-strip[data-who="${w}"]`);
-  return [w, { runs: document.querySelectorAll(`#spec-body [data-act="4"] path[data-run][data-who="${w}"]`).length, median: s ? +s.dataset.median : NaN, dots: s ? s.querySelectorAll('[data-end]').length : 0 }]; })));
+  return [w, { runs: document.querySelectorAll(`#spec-body [data-act="lab"] path[data-run][data-who="${w}"]`).length, median: s ? +s.dataset.median : NaN, dots: s ? s.querySelectorAll('[data-end]').length : 0 }]; })));
 const mxSlide = (page, k, v) => page.evaluate(([k, v]) => { const i = document.querySelector(`#spec-body input[data-k="${k}"]`); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); }, [k, v]);
+// each player's whole game on a seed, from the model, with the play screen's rules
+const mxModelRuns = (page, seed) => page.evaluate(seed => Object.fromEntries(['cautious', 'bold', 'steady'].map(w => [w, MX.run(seed, w, MX.params3())])), seed);
+// the live score: You first, then the players, most found first
+const mxScoreText = (you, pl) => 'You ' + you + ' · ' + MX_WHO.map((w, k) => [w, pl[w], k]).sort((a, b) => b[1] - a[1] || a[2] - b[2]).map(([w, v]) => `${MX_NAME[w]} ${v}`).join(' · ');
 
-// the "tap a tile" affordance: an instruction on the stage, frontier tiles breathing until the first tap, a one-time hint mark
-const mxInvite = (page, act) => page.evaluate(a => { const r = document.querySelector(`#spec-body [data-act="${a}"]`), h = r.querySelector('.mx-hint'), st = r.querySelector('.mx-stage').getBoundingClientRect(), hb = h && h.getBoundingClientRect();
+// the "tap a tile" affordance: an instruction on the stage, doors breathing until the first tap, a one-time hint mark
+const mxInvite = page => page.evaluate(sel => { const r = document.querySelector(sel), h = r.querySelector('.mx-hint'), st = r.querySelector('.mx-stage').getBoundingClientRect(), hb = h && h.getBoundingClientRect();
   const f = [...r.querySelectorAll('.mx-t[data-f]')];
   return { text: h ? h.textContent.replace(/\s+/g, ' ').trim() : '', shown: !!hb && hb.height > 8 && hb.width > 40 && getComputedStyle(h).visibility !== 'hidden' && hb.top >= st.top - 60 && hb.bottom <= st.bottom && hb.left >= st.left - 2,
     breathing: f.filter(e => e.getAnimations().some(x => x.animationName === 'mxBreathe' && x.playState === 'running')).length, frontier: f.length, ring: f.length ? Math.min(...f.map(e => parseFloat(getComputedStyle(e).strokeWidth))) : 0,
-    mark: !!r.querySelector('.mx-tap'), cursor: f.length ? getComputedStyle(f[0]).cursor : '' }; }, act);
-async function mxAffordance(page, vp, act) {
-  const sel = `#spec-body [data-act="${act}"] .mx-garden`;
-  await mxShow(page, act); await wait(150);
-  const a = await mxInvite(page, act), g0 = await mxGarden(page, sel);
-  check(`${vp}: mess act ${act}: before any tap, an instruction on the stage says to tap a tile ("${a.text}")`, a.shown && /^tap a glowing tile/i.test(a.text), JSON.stringify(a));
-  check(`${vp}: mess act ${act}: before the first tap every edge tile breathes, one carries a hint mark, and the cursor is a pointer`, a.frontier > 0 && a.breathing === a.frontier && a.mark && a.cursor === 'pointer', JSON.stringify(a));
-  await mxClickTile(page, sel, g0.frontier[0]); await wait(80);
-  const b = await mxInvite(page, act), g1 = await mxGarden(page, sel), d = g1.lit.length - g0.lit.length;
-  check(`${vp}: mess act ${act}: after the first tap the breathing and the hint mark stop`, b.breathing === 0 && !b.mark, JSON.stringify(b));
-  check(`${vp}: mess act ${act}: the instruction now gives the try's result with its tile change (${d >= 0 ? '+' : ''}${d}) and counts tries ("${b.text}")`, /1 try so far/.test(b.text) && (d > 0 ? b.text.includes(`+${d} door`) : /^(It failed|Burned \d+ tiles?)/.test(b.text)), b.text);
+    mark: !!r.querySelector('.mx-tap'), cursor: f.length ? getComputedStyle(f[0]).cursor : '' }; }, MXP);
+async function mxAffordance(page, vp) {
+  await page.locator(MXP + ' .mx-new').click(); await mxShow(page, MXP + ' .mx-stage'); await wait(150);
+  const a = await mxInvite(page), g0 = await mxState(page);
+  check(`${vp}: mess: before any tap, the stage says "${MX_HELLO}"`, a.shown && a.text === MX_HELLO, JSON.stringify(a));
+  check(`${vp}: mess: before the first tap every door breathes, one carries a hint mark, and the cursor is a pointer`, a.frontier > 0 && a.breathing === a.frontier && a.mark && a.cursor === 'pointer', JSON.stringify(a));
+  await mxTap(page, g0.frontier[0], true); await wait(80);
+  const b = await mxInvite(page), g1 = await mxState(page);
+  check(`${vp}: mess: after the first tap the breathing and the hint mark stop, and the instruction stays`, b.breathing === 0 && !b.mark && b.text === MX_HELLO, JSON.stringify(b));
+  check(`${vp}: mess: the result line says what try 1 did ("${g1.status}")`, /^Try 1: /.test(g1.status) && g1.tries === 1, JSON.stringify(g1.status));
   // a tap just off a tile's edge, in the gap, still tries it
-  const t0 = g1.turn, pt = await page.evaluate(sel => { const g = document.querySelector(sel), e = g.querySelector('.mx-t[data-f]'), r = e.getBoundingClientRect(); return { x: r.right + 1, y: r.top + r.height / 2, w: r.width }; }, sel);
+  const pt = await page.evaluate(sel => { const e = document.querySelector(sel + ' .mx-t[data-f]'), r = e.getBoundingClientRect(); return { x: r.right + 1, y: r.top + r.height / 2, w: r.width }; }, MXG);
+  if (g1.over) { check(`${vp}: mess: a tap in the gap beside a door counts as a try (skipped: the game ended on try 1)`, true); return; }
   await page.mouse.click(pt.x, pt.y); await wait(60);
-  const t1 = (await mxGarden(page, sel)).turn;
-  check(`${vp}: mess act ${act}: a tap in the gap just beside an edge tile still counts as a try (tile ${pt.w.toFixed(0)}px wide)`, t1 === t0 + 1, JSON.stringify({ t0, t1, pt }));
+  const t1 = (await mxState(page)).tries;
+  check(`${vp}: mess: a tap in the gap just beside a door still counts as a try (tile ${pt.w.toFixed(0)}px wide)`, t1 === 2, JSON.stringify({ t1, pt }));
 }
+// the play screen and the race, side by side on wide screens, the race under the garden on phones
+const mxLayout = page => page.evaluate(sel => { const A = document.querySelector(sel), s = A.querySelector('.mx-stage').getBoundingClientRect(), r = A.querySelector('.mx-race').getBoundingClientRect();
+  return { stage: { l: s.left, r: s.right, t: s.top, b: s.bottom }, race: { l: r.left, r: r.right, t: r.top, b: r.bottom } }; }, MXP);
+function mxLayoutCheck(vp, L) {
+  const narrow = ['phone', 'small'].includes(vp);
+  check(`${vp}: mess: ${narrow ? 'the race sits under the garden' : 'the garden and the race sit side by side'}`, narrow ? L.race.t >= L.stage.b - 1 : L.race.l >= L.stage.r - 1 && L.race.t < L.stage.b, JSON.stringify(L));
+}
+
 async function messCheck(page, vp) {
   await page.evaluate(() => openSpec('mess')); await wait(450);
   const head = await page.evaluate(() => ({ kind: document.querySelector('#spec-kind .kind').textContent, home: document.querySelector('#spec-kind .home').textContent, title: document.getElementById('spec-title').textContent,
     caps: [...document.querySelectorAll('#spec-body .mx-cap')].map(e => e.textContent.replace(/\s+/g, ' ').trim()), acts: [...document.querySelectorAll('#spec-body .mx-act h4')].map(e => e.textContent.replace(/^\d+\s*/, '').trim()),
+    inPlay: [...document.querySelectorAll('#spec-body [data-act="play"] .mx-cap')].length, inLab: [...document.querySelectorAll('#spec-body [data-act="lab"] .mx-cap')].length,
+    capsAbove: (() => { const c = [...document.querySelectorAll('#spec-body [data-act="play"] .mx-cap')].pop(), g = document.querySelector('#spec-body [data-act="play"] .mx-game'); return !!c && !!g && c.getBoundingClientRect().bottom <= g.getBoundingClientRect().top; })(),
     close: (document.querySelector('#spec-body .mx-close') || {}).textContent?.trim(), order: (() => { const els = [...document.querySelectorAll('#spec-body .mx-cap, #spec-body .mx-close, #spec-made')]; return els.map(e => Math.round(e.getBoundingClientRect().top)); })(),
     navHead: document.querySelector('#spec .nx-head').textContent, rows: document.querySelectorAll('#spec-next .nx').length, below: document.querySelector('#spec .next').getBoundingClientRect().top >= document.querySelector('#spec .main').getBoundingClientRect().bottom - 1 }));
   check(`${vp}: mess: an explorable in Nico's garden, "Mess around and find out"`, head.kind === 'Explorable' && head.home === 'in Things that explain themselves, Nico’s garden' && head.title === 'Mess around and find out', JSON.stringify(head));
-  check(`${vp}: mess: four acts in order (${head.acts.join(' / ')})`, head.acts.join('|') === MX_ACTS.join('|'), JSON.stringify(head.acts));
-  check(`${vp}: mess: the four captions, in order, then the closing line, then the made line`, head.caps.join('|') === MX_CAPS.join('|') && head.close === MX_CLOSE && head.order.length === 6 && head.order.every((y, i) => !i || y > head.order[i - 1]), JSON.stringify({ caps: head.caps, close: head.close, order: head.order }));
+  check(`${vp}: mess: two parts in order (${head.acts.join(' / ')})`, head.acts.join('|') === MX_ACTS.join('|'), JSON.stringify(head.acts));
+  check(`${vp}: mess: captions 1 to 3 above the game, caption 4 above the sliders, then the closing line, then the made line`, head.caps.join('|') === MX_CAPS.join('|') && head.inPlay === 3 && head.inLab === 1 && head.capsAbove && head.close === MX_CLOSE && head.order.length === 6 && head.order.every((y, i) => !i || y > head.order[i - 1]), JSON.stringify({ caps: head.caps, inPlay: head.inPlay, inLab: head.inLab, capsAbove: head.capsAbove, close: head.close, order: head.order }));
   check(`${vp}: mess: "More to explore" sits under the view with 3 rows`, head.navHead === 'More to explore' && head.rows === 3 && head.below, JSON.stringify(head));
+  mxLayoutCheck(vp, await mxLayout(page));
 
-  await mxAffordance(page, vp, 1); await mxAffordance(page, vp, 2);
-  await page.locator('#spec-body [data-act="1"] .mx-again').click(); await page.locator('#spec-body [data-act="2"] .mx-again').click(); await mxShow(page, 1);
-  // Act 1: a click on a glowing edge tile is a try; success lights it, a miss costs the turn
-  const A1 = '#spec-body [data-act="1"] .mx-garden';
-  const a0 = await mxGarden(page, A1);
-  check(`${vp}: mess act 1: a few tiles start lit, with a glowing edge to try, and the reach readout counts the lit tiles`, a0 && a0.lit.length >= 3 && a0.lit.length <= 7 && a0.frontier.length >= 3 && a0.reach === a0.lit.length && a0.turn === 0 && a0.scorched.length === 0, JSON.stringify(a0));
-  let a = a0, grew = false, turns = [];
-  for (let k = 0; k < 14 && !grew; k++) { await mxClickTile(page, A1, a.frontier[0]); const b = await mxGarden(page, A1); turns.push(b.turn); grew = b.lit.length > a.lit.length && b.lit.includes(a.frontier[0]) && b.reach === b.lit.length; a = b; }
-  check(`${vp}: mess act 1: clicking an edge tile is a try (each one a turn) and a success lights it and raises the reach`, grew && turns.every((t, i) => t === i + 1), JSON.stringify({ turns, lit: a.lit.length }));
-  const line1 = await page.evaluate(() => ((document.querySelector('#spec-body [data-act="1"] path[data-line]') || {}).dataset || {}).pts);
-  check(`${vp}: mess act 1: the reach line has a point per turn and ends at the reach`, !!line1 && line1.split(',').length === a.turn + 1 && +line1.split(',').pop() === a.reach, JSON.stringify({ line1, turn: a.turn }));
-  // keyboard: Tab reaches one edge tile, arrows move between edge tiles, Enter tries it
-  const kb = await page.evaluate(() => { const g = document.querySelector('#spec-body [data-act="1"] .mx-garden'), t = g.querySelectorAll('.mx-t[tabindex="0"]'); return { tabbable: t.length, f: t.length && t[0].hasAttribute('data-f'), label: t.length && t[0].getAttribute('aria-label') }; });
-  await page.evaluate(() => document.querySelector('#spec-body [data-act="1"] .mx-t[tabindex="0"]').focus());
+  await mxAffordance(page, vp);
+
+  // "Play a different garden": a new seed for you and the three players, and everything starts over
+  const pre = await mxState(page);
+  await page.locator(MXP + ' .mx-new').click(); await wait(60);
+  const g0 = await mxState(page);
+  check(`${vp}: mess: the button says "Play a different garden"`, g0.newBtn === 'Play a different garden', g0.newBtn);
+  check(`${vp}: mess: "Play a different garden" deals a new seed and starts over (seed ${pre.seed} → ${g0.seed})`, g0.seed !== pre.seed && g0.raceSeed === g0.seed && g0.tries === 0 && g0.found === 0 && !g0.over && g0.final === '' && ['you', ...MX_WHO].every(w => g0.lines[w] && g0.lines[w].length === 1 && g0.lines[w][0] === 0),
+    JSON.stringify({ pre: pre.seed, seed: g0.seed, raceSeed: g0.raceSeed, tries: g0.tries, found: g0.found, over: g0.over, final: g0.final, lines: g0.lines }));
+  const lit0 = g0.s.map((v, i) => v === 1 ? i : -1).filter(i => i >= 0);
+  check(`${vp}: mess: the garden hides discoveries (${g0.hid.length}), none under the first lit tiles, and none shows yet`, g0.hid.length >= 10 && g0.hid.every(i => !lit0.includes(i)) && g0.gems.length === 0, JSON.stringify({ hid: g0.hid, lit0, gems: g0.gems }));
+  check(`${vp}: mess: at the start, Found is 0 and Doors left counts the glowing tiles (${g0.doors})`, g0.found === 0 && g0.doors === g0.frontier.length && g0.doors > 0, JSON.stringify({ found: g0.found, doors: g0.doors, frontier: g0.frontier.length }));
+  check(`${vp}: mess: the score starts at 0 for all four ("${g0.score}")`, g0.score === mxScoreText(0, { cautious: 0, bold: 0, steady: 0 }), g0.score);
+
+  // play the whole game: every try checks the counters, what shows, and the race
+  const model = await mxModelRuns(page, g0.seed), end = Object.fromEntries(MX_WHO.map(w => [w, model[w].length - 1]));
+  let st = g0, k = 0, everLit = new Set(lit0), bad = [], mid = null, overEarly = false;
+  for (; k < 160 && !st.over && st.frontier.length; k++) {
+    const pick = (k % 3 === 2 && st.bold.length) ? st.bold[0] : st.frontier[k % st.frontier.length];
+    await mxTap(page, pick, k < 2); st = await mxState(page);
+    st.s.forEach((v, i) => { if (v === 1) everLit.add(i); });
+    const n = k + 1, foundGems = st.gems.filter(g => g.st === 'found' && g.shown).map(g => g.i).sort((a, b) => a - b), want = st.hid.filter(i => everLit.has(i)).sort((a, b) => a - b);
+    if (st.tries !== n) bad.push(`try ${n}: tries reads ${st.tries}`);
+    if (st.found !== foundGems.length || foundGems.join() !== want.join()) bad.push(`try ${n}: found ${st.found}, gems ${foundGems}, lit hidden ${want}`);
+    if (!st.over && st.gems.some(g => g.st !== 'found')) bad.push(`try ${n}: a lost or missed mark shows before the end`);
+    if (st.doors !== st.frontier.length) bad.push(`try ${n}: doors left ${st.doors} but ${st.frontier.length} glow`);
+    if (st.over !== (st.frontier.length === 0)) { bad.push(`try ${n}: over=${st.over} with ${st.frontier.length} doors`); if (st.over) overEarly = true; }
+    if (st.lines.you.length !== n + 1 || st.lines.you[n] !== st.found) bad.push(`try ${n}: your line ${st.lines.you}`);
+    if (!st.over) for (const w of MX_WHO) { const m = Math.min(n, end[w]); if (st.lines[w].join() !== model[w].slice(0, m + 1).join()) bad.push(`try ${n}: ${w} line ${st.lines[w]} vs model ${model[w].slice(0, m + 1)}`); }
+    if (st.raceSeed !== g0.seed) bad.push(`try ${n}: race seed ${st.raceSeed}`);
+    if (!st.over && st.score !== mxScoreText(st.found, Object.fromEntries(MX_WHO.map(w => [w, st.lines[w][st.lines[w].length - 1]])))) bad.push(`try ${n}: score "${st.score}"`);
+    if (!mid && n >= 6 && !st.over) { mid = st; if (SHOTS) { await mxShow(page, MXP + ' .mx-game'); await page.screenshot({ path: `${SHOTS}/${vp}-mess-mid.png` }); } }
+    if (bad.length > 4) break;
+  }
+  check(`${vp}: mess: each try updates Found and Doors left, and a discovery shows only when its tile lights (${k} tries)`, !bad.some(b => /found|doors left|lost or missed/.test(b)), bad.join(' | '));
+  check(`${vp}: mess: the three players play the same seed and hidden layout, one try each time you try, and stop when they run out of doors`, !bad.some(b => /line|race seed/.test(b)), bad.join(' | '));
+  check(`${vp}: mess: the live score names all four, You first ("${mid ? mid.score : ''}")`, !!mid && !bad.some(b => /score/.test(b)) && /^You \d+ · \w+ \d+ · \w+ \d+ · \w+ \d+$/.test(mid.score), bad.join(' | '));
+  check(`${vp}: mess: the game ends exactly when no doors are left (${k} tries)`, st.over && st.frontier.length === 0 && st.doors === 0 && !overEarly && !bad.some(b => /over=/.test(b)), JSON.stringify({ over: st.over, frontier: st.frontier.length, doors: st.doors, bad }));
+  const fm = st.final.match(/^You found (\d+)\. On this garden, (Cautious|Bold|Steady) found (\d+), (Cautious|Bold|Steady) (\d+), (Cautious|Bold|Steady) (\d+)\.$/);
+  const fin = fm ? { [fm[2]]: +fm[3], [fm[4]]: +fm[5], [fm[6]]: +fm[7] } : {};
+  check(`${vp}: mess: the final line names all four scores ("${st.final}")`, !!fm && +fm[1] === st.found && new Set([fm[2], fm[4], fm[6]]).size === 3 && MX_WHO.every(w => fin[MX_NAME[w]] === model[w][model[w].length - 1]) && +fm[3] >= +fm[5] && +fm[5] >= +fm[7], JSON.stringify({ final: st.final, model: Object.fromEntries(MX_WHO.map(w => [w, model[w][model[w].length - 1]])) }));
+  check(`${vp}: mess: at the end, the players' lines show their whole games`, MX_WHO.every(w => st.lines[w].join() === model[w].join()), JSON.stringify({ lines: st.lines, model }));
+  check(`${vp}: mess: then a nudge to the sliders ("${st.nudge}")`, st.nudge === MX_NUDGE, st.nudge);
+  const reveal = st.hid.map(i => ({ i, st: (st.gems.find(g => g.i === i) || {}).st, want: everLit.has(i) ? 'found' : st.s[i] === 2 ? 'lost' : 'missed' }));
+  check(`${vp}: mess: the end shows every hidden discovery: found, lost under a burned tile, or missed`, reveal.every(r => r.st === r.want) && st.gems.every(g => st.hid.includes(g.i)) && st.gems.length === st.hid.length, JSON.stringify(reveal));
+  if (SHOTS) { await mxShow(page, MXP + ' .mx-game'); await wait(400); await page.screenshot({ path: `${SHOTS}/${vp}-mess-end.png` }); }
+  const after = await page.evaluate(sel => { const e = document.querySelector(sel + ' .mx-t'); e.dispatchEvent(new MouseEvent('click', { bubbles: true })); return +document.querySelector('#spec-body [data-act="play"]').dataset.tries; }, MXG);
+  check(`${vp}: mess: after the end, a tap changes nothing`, after === st.tries, String(after));
+  await page.locator(MXP + ' .mx-new').click(); await wait(60);
+  const g2 = await mxState(page);
+  check(`${vp}: mess: after the end, "Play a different garden" starts a new game`, g2.seed !== g0.seed && g2.tries === 0 && !g2.over && g2.final === '' && g2.nudge === '' && g2.gems.length === 0, JSON.stringify({ seed: g2.seed, tries: g2.tries, over: g2.over, final: g2.final, gems: g2.gems.length }));
+  if (SHOTS) { await mxShow(page, MXP); await wait(300); await page.screenshot({ path: `${SHOTS}/${vp}-mess-start.png` }); }
+
+  // keyboard: Tab reaches one door, arrows move between doors, Enter tries it
+  const kb = await page.evaluate(sel => { const t = document.querySelectorAll(sel + ' .mx-t[tabindex="0"]'); return { tabbable: t.length, f: t.length && t[0].hasAttribute('data-f'), label: t.length && t[0].getAttribute('aria-label') }; }, MXG);
+  await page.evaluate(sel => document.querySelector(sel + ' .mx-t[tabindex="0"]').focus(), MXG);
   const f0 = await page.evaluate(() => document.activeElement.dataset.i); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowDown');
-  const f1 = await page.evaluate(() => ({ i: document.activeElement.dataset.i, f: document.activeElement.hasAttribute('data-f'), ring: getComputedStyle(document.activeElement).outlineStyle !== 'none' || getComputedStyle(document.activeElement).strokeWidth !== '0px' }));
-  const t0 = (await mxGarden(page, A1)).turn; await page.keyboard.press('Enter'); await wait(60); const t1 = (await mxGarden(page, A1)).turn;
-  check(`${vp}: mess act 1: one edge tile is in the Tab order, named; arrows move to another edge tile; Enter tries it`, kb.tabbable === 1 && kb.f && /try/i.test(kb.label || '') && f1.f && f1.i !== f0 && t1 === t0 + 1, JSON.stringify({ kb, f0, f1, t0, t1 }));
+  const f1 = await page.evaluate(() => ({ i: document.activeElement.dataset.i, f: document.activeElement.hasAttribute('data-f') }));
+  await page.keyboard.press('Enter'); await wait(60); const t1 = (await mxState(page)).tries;
+  check(`${vp}: mess: one door is in the Tab order, named; arrows move to another door; Enter tries it`, kb.tabbable === 1 && kb.f && /try/i.test(kb.label || '') && f1.f && f1.i !== f0 && t1 === 1, JSON.stringify({ kb, f0, f1, t1 }));
+  // bold bets glow more than plain doors
+  const glow = await page.evaluate(sel => { const g = document.querySelector(sel), bd = g.querySelector('.mx-t[data-bold]'), f = g.querySelector('.mx-t[data-f]:not([data-bold])'), w = e => e ? parseFloat(getComputedStyle(e).strokeWidth) : 0; return { has: !!bd, bold: w(bd), plain: w(f), filter: bd ? getComputedStyle(bd).filter : '' }; }, MXG);
+  check(`${vp}: mess: bold bets are marked amber, with a bigger glow than plain doors`, !glow.has || glow.bold > glow.plain || glow.filter !== 'none', JSON.stringify(glow));
 
-  // Act 2: bold bets glow bigger; a ruinous one scorches tiles that never light again; waiting lets the edge fade
-  const A2 = '#spec-body [data-act="2"] .mx-garden';
-  await mxShow(page, 2);
-  let b = await mxGarden(page, A2);
-  const glow = await page.evaluate(() => { const g = document.querySelector('#spec-body [data-act="2"] .mx-garden'), bd = g.querySelector('.mx-t[data-bold]'), f = g.querySelector('.mx-t[data-f]:not([data-bold])'), w = e => e ? parseFloat(getComputedStyle(e).strokeWidth) : 0; return { bold: w(bd), plain: w(f), filter: bd ? getComputedStyle(bd).filter : '' }; });
-  check(`${vp}: mess act 2: bold bets are marked with a bigger glow than ordinary edge tiles`, b.bold.length >= 1 && b.bold.every(i => b.frontier.includes(i)) && (glow.bold > glow.plain || glow.filter !== 'none'), JSON.stringify({ bold: b.bold, glow }));
-  let burnt = [], tries = 0;
-  for (; tries < 40 && !burnt.length; tries++) { const pick = b.bold[0] ?? b.frontier[0]; if (pick === undefined) { await page.locator('#spec-body [data-act="2"] .mx-again').click(); b = await mxGarden(page, A2); continue; }
-    await mxClickTile(page, A2, pick); const c = await mxGarden(page, A2); burnt = c.scorched.filter(i => !b.scorched.includes(i)); b = c; }
-  check(`${vp}: mess act 2: a ruinous bold bet scorches a patch (${burnt.length} tiles after ${tries} tries) and says so`, burnt.length >= 2 && new RegExp(`^Burned ${burnt.length} tiles\\.`).test(b.status), JSON.stringify({ burnt, status: b.status }));
-  let relit = [];
-  for (let k = 0; k < 30; k++) { const c = await mxGarden(page, A2); const pick = c.bold[0] ?? c.frontier[0]; if (pick === undefined) break; await mxClickTile(page, A2, pick); const d = await mxGarden(page, A2); relit.push(...burnt.filter(i => !d.scorched.includes(i))); }
-  check(`${vp}: mess act 2: scorched tiles never light again (30 more tries)`, burnt.length > 0 && relit.length === 0, JSON.stringify(relit));
-  await page.locator('#spec-body [data-act="2"] .mx-again').click(); await wait(60);
-  const w0 = await mxGarden(page, A2);
-  for (let k = 0; k < 60; k++) await page.locator('#spec-body [data-act="2"] .mx-wait').click();
-  const w1 = await mxGarden(page, A2);
-  check(`${vp}: mess act 2: waiting 60 turns lets unused edge doors fade dark (${w0.lit.length} → ${w1.lit.length}), and none are scorched`, w1.turn === w0.turn + 60 && w1.lit.length < w0.lit.length && w1.lit.length >= 1 && w1.scorched.length === 0, JSON.stringify({ w0: w0.lit, w1: w1.lit, turn: w1.turn }));
-
-  // Act 3: three players on one seed; the shown run is that seed's run; re-roll changes the seed
-  await mxShow(page, 3); await wait(200);
-  const p0 = await page.evaluate(() => ({ who: [...document.querySelectorAll('#spec-body .mx-player')].map(p => p.dataset.who), seeds: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => g.dataset.seed), shown: (document.querySelector('#spec-body [data-act="3"] [data-seed-out]') || {}).textContent,
-    homes: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => [...g.querySelectorAll('.mx-t[data-s="1"]')].map(e => e.dataset.i).join()) }));
-  check(`${vp}: mess act 3: Cautious, Bold and Steady play the same seed, shown on the page, from the same start`, p0.who.join() === 'cautious,bold,steady' && new Set(p0.seeds).size === 1 && p0.shown && p0.shown.includes(p0.seeds[0]) && new Set(p0.homes).size === 1, JSON.stringify(p0));
-  const playing = await page.evaluate(() => document.querySelector('#spec-body [data-act="3"] .mx-play').getAttribute('aria-pressed') === 'true');
-  if (!playing) await page.locator('#spec-body [data-act="3"] .mx-play').click();
-  let p1 = null; const tp = Date.now();
-  for (let k = 0; k < 200; k++) { p1 = await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'); return { turn: +r.querySelector('[data-turn]').dataset.turn, turns: +r.dataset.turns, lines: Object.fromEntries([...r.querySelectorAll('path[data-line]')].map(p => [p.dataset.line, p.dataset.pts])) }; }); if (p1.turn >= p1.turns) break; await wait(100); }
-  const secs = (Date.now() - tp) / 1000;
-  check(`${vp}: mess act 3: the three runs play out turn by turn to the end (${p1.turns} turns in ${secs.toFixed(1)} s)`, p1.turn === p1.turns && secs >= 4 && secs <= 16 && ['cautious', 'bold', 'steady'].every(w => p1.lines[w] && p1.lines[w].split(',').length === p1.turns + 1), JSON.stringify({ turn: p1.turn, turns: p1.turns, secs }));
-  const model = await page.evaluate(([seed, turns]) => { const P = MX.params3(); return Object.fromEntries(['cautious', 'bold', 'steady'].map(w => [w, [MX.run(+seed, w, { ...P, turns }).join(), MX.run(+seed, w, { ...P, turns }).join()]])); }, [p0.seeds[0], p1.turns]);
-  check(`${vp}: mess act 3: each shown line is exactly that seed's run, and the same seed gives the same line twice`, ['cautious', 'bold', 'steady'].every(w => model[w][0] === model[w][1] && model[w][0] === p1.lines[w]), JSON.stringify({ model, shown: p1.lines }));
-  const players = await page.evaluate(() => [...document.querySelectorAll('#spec-body .mx-player')].map(p => ({ who: p.dataset.who, reach: +p.querySelector('[data-reach]').textContent.trim(), lit: p.querySelectorAll('.mx-t[data-s="1"]').length })));
-  check(`${vp}: mess act 3: each player's garden and reach readout match its line's last point`, players.every(p => p.reach === p.lit && p.reach === +p1.lines[p.who].split(',').pop()), JSON.stringify(players));
-  await page.locator('#spec-body [data-act="3"] .mx-reroll').click(); await wait(150);
-  const p2 = await page.evaluate(() => ({ seeds: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => g.dataset.seed), turn: +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn }));
-  check(`${vp}: mess act 3: Re-roll gives all three a new seed, the same for each, and starts over`, new Set(p2.seeds).size === 1 && p2.seeds[0] !== p0.seeds[0] && p2.turn <= 2, JSON.stringify({ before: p0.seeds[0], p2 }));
-  // offscreen, it does not run
-  await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'), pl = r.querySelector('.mx-play'); if (pl.getAttribute('aria-pressed') !== 'true') pl.click(); }); await wait(50);
-  await mxShow(page, 1); await wait(400);
-  const off0 = await page.evaluate(() => +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn); await wait(1200); const off1 = await page.evaluate(() => +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn);
-  check(`${vp}: mess act 3: the run pauses while it is scrolled out of view`, off0 === off1, `${off0} → ${off1}`);
-
-  // Act 4: sliders and run 100 times; the sliders, not the strategy names, decide
-  await mxShow(page, 4); await wait(150);
-  const sl = await page.evaluate(() => [...document.querySelectorAll('#spec-body [data-act="4"] input[type=range]')].map(i => ({ k: i.dataset.k, label: (i.labels && i.labels[0] ? i.labels[0].textContent : i.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim() })));
-  check(`${vp}: mess act 4: four sliders, each a plain question`, sl.map(s => s.k).join() === 'size,rev,turns,fade' && sl.map(s => s.label).join('|') === 'How big are bold bets?|How often can a mistake be undone?|How long do they play?|How fast do untouched doors close?', JSON.stringify(sl));
-  const words = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="4"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '', i = document.querySelector('#spec-body input[data-k="rev"]'), o = k => t(`[data-o="${k}"]`);
+  // The lab: sliders, once or a hundred times; the metric is discoveries found
+  await mxShow(page, MXL); await wait(150);
+  const sl = await page.evaluate(() => [...document.querySelectorAll('#spec-body [data-act="lab"] input[type=range]')].map(i => ({ k: i.dataset.k, label: (i.labels && i.labels[0] ? i.labels[0].textContent : i.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim() })));
+  check(`${vp}: mess lab: four sliders, each a plain question`, sl.map(s => s.k).join() === 'size,rev,turns,fade' && sl.map(s => s.label).join('|') === 'How big are bold bets?|How often can a mistake be undone?|How long do they play?|How fast do untouched doors close?', JSON.stringify(sl));
+  const words = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="lab"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '', i = document.querySelector('#spec-body input[data-k="rev"]'), o = k => t(`[data-o="${k}"]`);
     const hint = k => t(`#mx-d-${k}`), before = { rev: o('rev'), revHint: hint('rev') }; i.value = 30; i.dispatchEvent(new Event('input', { bubbles: true }));
     const after = { rev: o('rev'), revHint: hint('rev') }; i.value = 50; i.dispatchEvent(new Event('input', { bubbles: true }));
-    return { before, after, size: o('size'), sizeHint: hint('size'), turns: o('turns'), fade: o('fade'), fadeHint: hint('fade'), modes: [...A.querySelectorAll('[data-mode]')].map(b => b.textContent.trim()), reroll: t('.mx-reroll4'), yLabel: t('.mx-ylab') }; });
-  check(`${vp}: mess act 4: slider values and hints read plainly, and the undo hint updates live (${words.after.revHint})`, words.size === '19 tiles' && words.sizeHint === 'Bold risks this many tiles at once, and can win as many.' && words.before.rev === '50%' && words.before.revHint === 'The other 50% burn tiles for good.'
-    && words.after.rev === '30%' && words.after.revHint === 'The other 70% burn tiles for good.' && /^\d+ turns$/.test(words.turns) && /^\d+% a turn$/.test(words.fade) && words.fadeHint === 'Leave a door alone and it may shut.', JSON.stringify(words));
-  check(`${vp}: mess act 4: the toggle says "Play once" / "Play 100 times", Re-roll in one-run mode, and the chart's y axis says "open doors"`, words.modes.join('|') === 'Play once|Play 100 times' && words.reroll === 'Re-roll' && words.yLabel === 'open doors', JSON.stringify(words));
-  const one = await page.evaluate(() => document.querySelector('#spec-body [data-act="4"] .mx-verdict').textContent.trim());
-  check(`${vp}: mess act 4: one run says who ended with the most open doors ("${one}")`, /^(Cautious|Bold|Steady)( and (Cautious|Bold|Steady))? (ended|tied) with the most open doors: \d+\.$/.test(one), one);
-  await page.locator('#spec-body [data-act="4"] [data-mode="many"]').click(); await wait(200);
-  const r0 = await mxRuns(page);
-  check(`${vp}: mess act 4: "100 runs" draws 100 runs per strategy, with each one's ending as a dot and its median`, Object.values(r0).every(r => r.runs === 100 && r.dots === 100 && Number.isFinite(r.median)), JSON.stringify(r0));
+    return { before, after, size: o('size'), sizeHint: hint('size'), turns: o('turns'), turnsHint: hint('turns'), fade: o('fade'), fadeHint: hint('fade'), modes: [...A.querySelectorAll('[data-mode]')].map(b => b.textContent.trim()), reroll: t('.mx-reroll4'), yLabel: t('.mx-ylab') }; });
+  check(`${vp}: mess lab: slider values and hints read plainly, and the undo hint updates live (${words.after.revHint})`, words.size === '19 tiles' && words.sizeHint === 'Bold risks this many tiles at once, and can win as many.' && words.before.rev === '50%' && words.before.revHint === 'The other 50% burn tiles for good.'
+    && words.after.rev === '30%' && words.after.revHint === 'The other 70% burn tiles for good.' && /^\d+ tries$/.test(words.turns) && words.turnsHint === 'They stop sooner if no doors are left.' && /^\d+% a try$/.test(words.fade) && words.fadeHint === 'Leave a door alone and it may close for good.', JSON.stringify(words));
+  check(`${vp}: mess lab: the toggle says "Play once" / "Play 100 times", the button says "Try a different garden", and the y axis says "found"`, words.modes.join('|') === 'Play once|Play 100 times' && words.reroll === 'Try a different garden' && words.yLabel === 'found', JSON.stringify(words));
+  const one = await page.evaluate(() => document.querySelector('#spec-body [data-act="lab"] .mx-verdict').textContent.trim());
+  check(`${vp}: mess lab: one game says who found the most ("${one}")`, /^((Cautious|Bold|Steady) found the most|(Cautious|Bold|Steady) and (Cautious|Bold|Steady) tied for the most|All three found the same): \d+\.$/.test(one), one);
+  await page.locator(MXL + ' [data-mode="many"]').click(); await wait(200);
+  const r0 = await mxRuns(page), s0 = await page.evaluate(() => document.querySelector('#spec-body [data-act="lab"]').dataset.seed);
+  check(`${vp}: mess lab: "Play 100 times" draws 100 games per player, with each one's ending as a mark and its median`, Object.values(r0).every(r => r.runs === 100 && r.dots === 100 && Number.isFinite(r.median)), JSON.stringify(r0));
+  const rr = await page.evaluate(() => (document.querySelector('#spec-body [data-act="lab"] .mx-reroll4') || {}).textContent.trim());
+  await page.locator(MXL + ' .mx-reroll4').click(); await wait(200);
+  const s1 = await page.evaluate(() => document.querySelector('#spec-body [data-act="lab"]').dataset.seed);
+  check(`${vp}: mess lab: in 100-game mode the button says "Try 100 different gardens" and deals new ones`, rr === 'Try 100 different gardens' && s1 !== s0, JSON.stringify({ rr, s0, s1 }));
   await mxSlide(page, 'rev', 90); await wait(200); const hi = await mxRuns(page);
   await mxSlide(page, 'rev', 10); await wait(200); const lo = await mxRuns(page);
-  check(`${vp}: mess act 4: more failures you can undo raise Bold's median reach over 100 runs (${lo.bold.median} → ${hi.bold.median})`, hi.bold.median > lo.bold.median + 5, JSON.stringify({ hi, lo }));
-  await mxSlide(page, 'rev', 50); await mxSlide(page, 'fade', 0); await wait(200); const f0r = await mxRuns(page); await mxSlide(page, 'fade', 12); await wait(200); const f1r = await mxRuns(page);
-  check(`${vp}: mess act 4: doors that close faster lower Cautious and Steady (${f0r.cautious.median}/${f0r.steady.median} → ${f1r.cautious.median}/${f1r.steady.median})`, f1r.cautious.median < f0r.cautious.median && f1r.steady.median < f0r.steady.median, JSON.stringify({ f0r, f1r }));
-  const who = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="4"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
-    return { v: t('.mx-verdict'), note: t('[data-explain]'), title: t('.mx-strips-t'), axis: t('.mx-strip-ax'), typ: [...A.querySelectorAll('.mx-strip-m')].map(e => e.textContent.trim()), reroll: t('.mx-reroll4') }; });
-  const vm = who.v.match(/^In 100 gardens, (Cautious|Bold|Steady) ended with the most open doors (once|\d+ times)\. (Cautious|Bold|Steady) (\d+)\. (Cautious|Bold|Steady) (\d+)\.( (One tie|\d+ ties)\.)?$/);
-  check(`${vp}: mess act 4: the 100-run sentence reads "In 100 gardens, X ended with the most open doors N times. Y n. Z n." ("${who.v}")`, !!vm && !/ 1 times| 1 ties|One ties/.test(who.v) && new Set([vm[1], vm[3], vm[5]]).size === 3, who.v);
-  check(`${vp}: mess act 4: the chart caption, the strip title, its axis and "typical: N" read plainly; Re-roll becomes "New gardens"`, who.note === 'Each faint line is one garden. The thick line is a typical one.' && who.title === 'Where each garden ended' && /open doors at the end/.test(who.axis) && who.typ.length === 3 && who.typ.every(x => /^typical: \d+$/.test(x)) && who.reroll === 'New gardens', JSON.stringify(who));
+  check(`${vp}: mess lab: more mistakes you can undo raise Bold's median found over 100 gardens (${lo.bold.median} → ${hi.bold.median})`, hi.bold.median >= lo.bold.median + 3, JSON.stringify({ hi, lo }));
+  await mxSlide(page, 'rev', 50); await mxSlide(page, 'fade', 0); await wait(200); const f0r = await mxRuns(page); await mxSlide(page, 'fade', 30); await wait(200); const f1r = await mxRuns(page);
+  check(`${vp}: mess lab: doors that close faster lower Steady's median found (${f0r.steady.median} → ${f1r.steady.median})`, f1r.steady.median < f0r.steady.median, JSON.stringify({ f0r, f1r }));
+  await mxSlide(page, 'fade', 12);
+  const who = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="lab"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
+    return { v: t('.mx-verdict'), note: t('[data-explain]'), title: t('.mx-strips-t'), axis: t('.mx-strip-ax'), typ: [...A.querySelectorAll('.mx-strip-m')].map(e => e.textContent.trim()) }; });
+  const vm = who.v.match(/^In 100 gardens, (Cautious|Bold|Steady) found the most (once|\d+ times)\. (Cautious|Bold|Steady) (\d+)\. (Cautious|Bold|Steady) (\d+)\.( (One tie|\d+ ties)\.)?$/);
+  check(`${vp}: mess lab: the 100-game sentence reads "In 100 gardens, X found the most N times. Y n. Z n." ("${who.v}")`, !!vm && !/ 1 times| 1 ties|One ties/.test(who.v) && new Set([vm[1], vm[3], vm[5]]).size === 3, who.v);
+  check(`${vp}: mess lab: the chart caption, the strip title, its axis and "typical: N" read plainly`, who.note === 'Each faint line is one garden. The thick line is a typical one.' && who.title === 'Where each garden ended' && /found at the end/.test(who.axis) && who.typ.length === 3 && who.typ.every(x => /^typical: \d+$/.test(x)), JSON.stringify(who));
+  if (SHOTS) { await mxShow(page, MXL); await wait(350); await page.screenshot({ path: `${SHOTS}/${vp}-mess-lab.png` }); }
   const vocab = await page.evaluate(() => [...document.querySelectorAll('#spec-body *')].filter(e => !e.closest('.mx-cap') && [...e.childNodes].some(n => n.nodeType === 3 && /\b(room|reach)\b/i.test(n.textContent))).map(e => e.textContent.trim().slice(0, 40)));
   check(`${vp}: mess: outside the owner's captions, no text says "room" or "reach" (one word: open doors)`, vocab.length === 0, JSON.stringify(vocab));
-  await mxSlide(page, 'fade', 4);
+  const gardener = await page.evaluate(async () => ({ src: /gardener/i.test(await (await fetch(location.href)).text()), text: /gardener/i.test(document.body.innerText) }));
+  check(`${vp}: mess: no "Gardener" anywhere, in the page source or on screen`, !gardener.src && !gardener.text, JSON.stringify(gardener));
   const o = await overflow(page);
   check(`${vp}: mess view has no horizontal overflow`, noOverflow(o), JSON.stringify(o));
-  if (SHOTS) for (const k of [1, 2, 3, 4]) { await mxShow(page, k); await wait(k === 3 ? 2500 : 350); await page.screenshot({ path: `${SHOTS}/${vp}-mess-act${k}.png` }); }
 
-  // closing stops every loop and observer
-  await mxShow(page, 3); await page.evaluate(() => { const pl = document.querySelector('#spec-body [data-act="3"] .mx-play'); if (pl.getAttribute('aria-pressed') !== 'true') pl.click(); }); await wait(500);
-  const live0 = await page.evaluate(() => MX.live());
-  await closeEsc(page);
-  const fr0 = await page.evaluate(() => MX.frames); await wait(1200); const fr1 = await page.evaluate(() => ({ frames: MX.frames, live: MX.live() }));
-  check(`${vp}: mess: closing the view stops its run loop and observers (${live0} live while open, ${fr1.live} after)`, live0 >= 1 && fr1.live === 0 && fr1.frames === fr0, JSON.stringify({ live0, fr0, fr1 }));
+  // closing leaves nothing running
+  await mxSlide(page, 'fade', 14); await closeEsc(page);
+  const fr0 = await page.evaluate(() => ({ frames: MX.frames, live: MX.live() })); await wait(1200); const fr1 = await page.evaluate(() => ({ frames: MX.frames, live: MX.live() }));
+  check(`${vp}: mess: closing the view leaves no frame or observer running`, fr0.live === 0 && fr1.live === 0 && fr1.frames === fr0.frames, JSON.stringify({ fr0, fr1 }));
 }
 // the model on its own: honest, seeded, and the dials move it
 async function messModel(page) {
-  const m = await page.evaluate(() => { const P = { size: 2, rev: .5, fade: .04, turns: 40 }, out = {};
-    out.same = ['cautious', 'bold', 'steady'].every(w => MX.run(7, w, P).join() === MX.run(7, w, P).join());
+  const m = await page.evaluate(() => { const P = MX.params3(), out = {};
+    out.same = ['cautious', 'bold', 'steady'].every(w => MX.run(7, w, P).join() === MX.run(7, w, P).join() && MX.run(7, w, P).join() === MX.game(7, w, P).log.join());
     out.differ = [1, 2, 3, 4, 5].some(s => MX.run(s, 'bold', P).join() !== MX.run(s + 1, 'bold', P).join());
-    out.idle = Array.from({ length: 20 }, (_, s) => { const r = MX.run(s + 1, 'cautious', P); return r[r.length - 1] < r[0]; }).filter(Boolean).length;
-    out.still = Array.from({ length: 20 }, (_, s) => { const r = MX.run(s + 1, 'cautious', { ...P, fade: 0 }); return r.every(v => v === r[0]); }).filter(Boolean).length;
-    const wins = { bold: 0, steady: 0 }; for (let s = 1; s <= 100; s++) { const b = MX.run(s, 'bold', P).pop(), g = MX.run(s, 'steady', P).pop(); if (b > g) wins.bold++; else if (g > b) wins.steady++; } out.wins = wins;
+    out.hidSame = MX.world(9).hid.join() === MX.world(9).hid.join() && MX.world(9).hid.join() !== MX.world(10).hid.join();
+    // burning destroys: a burned tile's discovery is lost, never found, and never lit again
+    let lost = 0, okBurn = true; for (let s = 1; s <= 60; s++) { const G = MX.game(s, 'bold', P), hid = MX.world(s).hid; lost += G.lost.length;
+      if (G.found.length + G.lost.length > hid.length || G.lost.some(i => G.s[i] !== 2 || G.found.includes(i) || !hid.includes(i)) || G.found.length !== G.log[G.log.length - 1]) okBurn = false; }
+    out.lost = lost; out.okBurn = okBurn;
+    // every game ends with no doors left, well before the safety cap
+    out.ends = ['cautious', 'bold', 'steady'].every(w => Array.from({ length: 30 }, (_, s) => MX.game(s + 1, w, P)).every(G => MX.frontier(G).length === 0 && G.tries < P.turns));
+    // doing nothing: doors close slowly; with no closing, Cautious keeps every door to the cap
+    out.idleEnds = Array.from({ length: 20 }, (_, s) => MX.game(s + 1, 'cautious', P)).every(G => G.found.length === 0 && G.tries > 3);
+    out.still = Array.from({ length: 10 }, (_, s) => MX.game(s + 1, 'cautious', { ...P, fade: 0, turns: 60 })).every(G => G.tries === 60 && MX.frontier(G).length > 0);
+    const D = { ...P, turns: 100 }, wins = { bold: 0, steady: 0 }; for (let s = 1; s <= 100; s++) { const b = MX.run(s, 'bold', D).pop(), g = MX.run(s, 'steady', D).pop(); if (b > g) wins.bold++; else if (g > b) wins.steady++; } out.wins = wins;
     return out; });
-  check('mess model: the same seed gives the same run; different seeds differ', m.same && m.differ, JSON.stringify(m));
-  check(`mess model: doing nothing loses doors slowly (${m.idle}/20 seeds lose reach), and with no fading it holds (${m.still}/20)`, m.idle >= 15 && m.still === 20, JSON.stringify(m));
-  check(`mess model: not rigged: at the default dials both Bold and Steady win some runs (${m.wins.bold} / ${m.wins.steady} of 100)`, m.wins.bold >= 15 && m.wins.steady >= 15, JSON.stringify(m.wins));
+  check('mess model: the same seed gives the same game and the same hidden layout; different seeds differ', m.same && m.differ && m.hidSame, JSON.stringify(m));
+  check(`mess model: a burned tile destroys the discovery under it (${m.lost} lost in 60 Bold games), and it is never found`, m.lost > 0 && m.okBurn, JSON.stringify(m));
+  check('mess model: every game ends when no doors are left; Cautious finds nothing and loses its doors slowly; with no closing, its doors stay', m.ends && m.idleEnds && m.still, JSON.stringify(m));
+  check(`mess model: not rigged: at the default dials both Bold and Steady win some gardens (${m.wins.bold} / ${m.wins.steady} of 100)`, m.wins.bold >= 15 && m.wins.steady >= 15, JSON.stringify(m.wins));
 }
 async function messReduced(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp, { reducedMotion: 'reduce' });
   await explore(page); await page.evaluate(() => openSpec('mess')); await wait(300);
-  const inv = await mxInvite(page, 1);
-  check(`${vp}: reduced motion: mess act 1 shows the instruction and a still, thicker ring on edge tiles instead of breathing`, inv.shown && /tap/i.test(inv.text) && inv.breathing === 0 && inv.ring >= 2.5 && inv.mark && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(inv));
-  const A1 = '#spec-body [data-act="1"] .mx-garden'; let a = await mxGarden(page, A1), n = 0;
-  for (let k = 0; k < 10; k++) { await mxClickTile(page, A1, a.frontier[0]); n += await bodyAnims(page, '#spec-body *'); a = await mxGarden(page, A1); }
-  check(`${vp}: reduced motion: mess act 1 tries apply at once with nothing animating`, a.turn === 10 && n === 0, JSON.stringify({ turn: a.turn, n }));
-  await mxShow(page, 3); await wait(800);
-  const s0 = await page.evaluate(() => +document.querySelector('#spec-body [data-act="3"] [data-turn]').dataset.turn);
-  await page.locator('#spec-body [data-act="3"] .mx-play').click(); await wait(80);
-  const s1 = await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'); return { turn: +r.querySelector('[data-turn]').dataset.turn, turns: +r.dataset.turns, lines: [...r.querySelectorAll('path[data-line]')].map(p => p.dataset.pts.split(',').length) }; });
-  const n3 = await bodyAnims(page, '#spec-body *');
-  check(`${vp}: reduced motion: act 3 does not play on its own; Play shows the whole run at once, drawn still`, s0 === 0 && s1.turn === s1.turns && s1.lines.every(l => l === s1.turns + 1) && n3 === 0, JSON.stringify({ s0, s1, n3 }));
-  await mxShow(page, 4); await page.locator('#spec-body [data-act="4"] [data-mode="many"]').click(); await wait(100);
+  await mxShow(page, MXP + ' .mx-stage'); await wait(100);
+  const inv = await mxInvite(page);
+  check(`${vp}: reduced motion: mess shows the instruction and a still, thicker ring on doors instead of breathing`, inv.shown && inv.text === MX_HELLO && inv.breathing === 0 && inv.ring >= 2.5 && inv.mark && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(inv));
+  let a = await mxState(page), n = 0, k = 0;
+  for (; k < 10 && !a.over; k++) { await mxTap(page, a.bold[0] ?? a.frontier[0], k < 3); n += await bodyAnims(page, '#spec-body *'); a = await mxState(page); }
+  check(`${vp}: reduced motion: tries apply at once and nothing grows or animates`, a.tries === k && n === 0, JSON.stringify({ tries: a.tries, k, n }));
+  check(`${vp}: reduced motion: the race chart is drawn at once, a point per try for you`, a.lines.you.length === k + 1 && MX_WHO.every(w => a.lines[w].length >= 1) && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(a.lines));
+  await mxShow(page, MXL); await page.locator(MXL + ' [data-mode="many"]').click(); await wait(100);
   const r = await mxRuns(page);
-  check(`${vp}: reduced motion: 100 runs draw at once`, r.bold.runs === 100 && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(r));
+  check(`${vp}: reduced motion: 100 games draw at once`, r.bold.runs === 100 && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(r));
   await closeEsc(page);
   check(`${vp}: no errors in the reduced-motion mess pass`, errors.length === 0, errors.join(' | '));
   await ctx.close();
+}
+// the other screen sizes: layout and no overflow, before and after a few tries and in the lab
+async function messFit(browser) {
+  for (const vp of ['small', 'tablet', 'mid', 'laptop']) {
+    const { ctx, page, errors } = await newPage(browser, vp); await explore(page);
+    await page.evaluate(() => openSpec('mess')); await wait(400);
+    if (vp === 'small') await mxAffordance(page, vp);
+    mxLayoutCheck(vp, await mxLayout(page));
+    let st = await mxState(page); for (let k = 0; k < 5 && !st.over; k++) { await mxTap(page, st.frontier[0]); st = await mxState(page); }
+    for (const sel of [MXP, MXP + ' .mx-race', MXL]) { await mxShow(page, sel); await wait(150); const o = await overflow(page); check(`${vp}: mess ${sel.split(' ').pop()} has no horizontal overflow`, noOverflow(o), JSON.stringify(o)); }
+    await page.locator(MXL + ' [data-mode="many"]').click(); await wait(150); { const o = await overflow(page); check(`${vp}: mess lab with 100 games has no horizontal overflow`, noOverflow(o), JSON.stringify(o)); }
+    await closeEsc(page);
+    check(`${vp}: no errors in the mess fit pass`, errors.length === 0, errors.join(' | ')); await ctx.close();
+  }
 }
 
 // ---------- polish checks: measured, not presence-only ----------
@@ -1659,7 +1708,7 @@ async function fullPass(browser, vp) {
     if (process.env.ONLY === 'card') { await reassureCentred(browser); await tapOut(browser); await morph(browser); throw 'only'; }
     if (process.env.ONLY === 'pill') { for (let k = 0; k < 3; k++) { const { ctx, page } = await newPage(browser, 'desktop'); await explore(page); await pillClear(page, 'desktop'); await ctx.close(); } throw 'only'; }
     if (process.env.ONLY === 'mess') { for (const vp of (process.env.VPS || 'desktop,phone').split(',')) { const { ctx, page, errors } = await newPage(browser, vp); await explore(page); await messCheck(page, vp); if (vp === 'desktop') await messModel(page);
-        check(`${vp}: no errors in the mess pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await messReduced(browser, vp); } throw 'only'; }
+        check(`${vp}: no errors in the mess pass`, errors.length === 0, errors.join(' | ')); await ctx.close(); await messReduced(browser, vp); } if (!process.env.VPS) await messFit(browser); throw 'only'; }
     if (process.env.ONLY === 'agentmade') { await agentMade(browser); throw 'only'; }
     if (process.env.ONLY === 'bump') { await bumpContrast(browser); throw 'only'; }
     if (process.env.ONLY === 'speed') { await loadSpeed(browser); throw 'only'; }
@@ -1676,8 +1725,8 @@ async function fullPass(browser, vp) {
     { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
       await page.evaluate(() => openSpec('stream')); await wait(400); { const o = await overflow(page); check('small: stream view has no horizontal overflow', noOverflow(o), JSON.stringify(o)); }
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/small-stream-initial.png` }); await closeEsc(page);
-      await page.evaluate(() => openSpec('mess')); await wait(400); await mxAffordance(page, 'small', 1); await mxAffordance(page, 'small', 2); for (const k of [1, 2, 3, 4]) { await mxShow(page, k); await wait(150); const o = await overflow(page); check(`small: mess act ${k} has no horizontal overflow`, noOverflow(o), JSON.stringify(o)); } await closeEsc(page);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
+    await messFit(browser);
     await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone'); await messReduced(browser, 'desktop'); await messReduced(browser, 'phone'); await openingPolish(browser, 'desktop'); await openingPolish(browser, 'phone');
     await motion(browser, 'desktop', specs);
     await motion(browser, 'phone', specs);
