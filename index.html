@@ -1217,7 +1217,7 @@ const SPECS = {
     render: el => agentRun(el) },
   // Nico built this one himself, so the made line is in his voice (lead); a long explorable, so its rows read "More to explore", under the view (navBelow)
   mess: { act: 'Play', noun: 'explorable', kind: 'Explorable', title: 'Mess around and find out', owner: 'Nico', garden: 'Things that explain themselves', lead: '{owner} built this explorable from 3 things he kept:', navBelow: true,
-    from: [{ t: 'The Evolution of Trust', img: 'ncase-me-20.webp', became: 'the three players, side by side' }, { t: 'Parable of the Polygons', img: 'ncase-me-6.webp', became: 'the sliders and the sandbox' }, { t: 'Nico’s note: “mess around in ways that let you mess around better tomorrow”', icon: '📝', became: 'the captions' }],
+    from: [{ t: 'The Evolution of Trust', img: 'ncase-me-20.webp', became: 'the three players, side by side' }, { t: 'Parable of the Polygons', img: 'ncase-me-6.webp', became: 'the sliders in act 4' }, { t: 'Nico’s note: “mess around in ways that let you mess around better tomorrow”', icon: '📝', became: 'the captions' }],
     next: [{ t: 'The Evolution of Trust', s: 'Nico', why: 'Where the three players come from', garden: 'Things that explain themselves' }, { t: 'Land on Titan', s: 'Leo, age 11 · game', why: 'Crash, learn, then land softly', open: 'titan' }, { t: 'What the jar grows to', s: 'Dami · chart', why: 'Another slider that changes the ending', open: 'savings' }],
     render: el => mess(el) },
 };
@@ -1681,7 +1681,7 @@ const MX = (() => {
 
 function mess(el) {
   const calm = still(), WHO = ['cautious', 'bold', 'gardener'], NAME = { cautious: 'Cautious', bold: 'Bold', gardener: 'Gardener' };
-  const DESC = { cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', gardener: 'Small tries that never risk an open door.' };
+  const DESC = { cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', gardener: 'Tries one tile at a time. Never risks an open door.' };
   const SIZE_TILES = { 1: 7, 2: 19, 3: 37 }, newSeed = old => { let s; do s = 1000 + (Math.random() * 9000 | 0); while (s === old); return s; };
   const { C, N, HOME } = MX, HX = Math.sqrt(3) * 10, VW = C * HX + HX / 2, VH = (MX.R - 1) * 15 + 20, f2 = v => v.toFixed(2);
   const cx = i => (i % C) * HX + ((i / C | 0) & 1) * HX / 2 + HX / 2, cy = i => (i / C | 0) * 15 + 10;
@@ -1713,20 +1713,20 @@ function mess(el) {
   el.innerHTML = `<div class="mx">
     <section class="mx-act" data-act="1"><h4><span class="n">1</span>Mess around</h4><p class="mx-cap">Mess around and find out is how anything gets better. Every experiment teaches you something.</p>
       <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(1, 'Your garden')}</div>
-        <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b><span>you can try from</span></div>
+        <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b></div>
           <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
           <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-again">Start over</button></div></div></div></section>
     <section class="mx-act" data-act="2"><h4><span class="n">2</span>Find out</h4><p class="mx-cap">Experiments create knowledge, skills and chances. They can also destroy them.</p>
       <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(2, 'Your second garden, with bold bets')}</div>
-        <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b><span>you can try from</span></div>
+        <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b></div>
           <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
           <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-wait">Wait a turn</button><button type="button" class="mx-btn mx-again">Start over</button></div></div></div>
-      <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A small try: one tile</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Scorched: closed for good</span></div></section>
+      <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A small try: one tile</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Burned: closed for good</span></div></section>
     <section class="mx-act" data-act="3"><h4><span class="n">3</span>The real variable</h4><p class="mx-cap">What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.</p>
       <div class="mx-fig"><div class="mx-players">${WHO.map(w => `<div class="mx-player" data-who="${w}"><div class="mx-ph"><i aria-hidden="true"></i><b>${NAME[w]}</b><span data-reach></span><small>${DESC[w]}</small></div><div class="mx-stage">${garden(1, NAME[w] + '’s garden')}</div></div>`).join('')}</div>
         <div class="mx-chart" role="img" aria-label="Open doors, turn by turn, for each player"><div class="mx-yax"></div><div class="mx-plot"><span class="mx-ylab">open doors</span><svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g>${WHO.map(w => `<path data-line="${w}" fill="none" stroke="var(--mf-${w === 'bold' ? 'boldline' : w})" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')}</svg></div><div class="mx-ends"></div><div class="mx-xax"></div></div>
         <div class="mx-ctl"><button type="button" class="mx-btn ink mx-play" aria-pressed="false"></button><button type="button" class="mx-btn mx-reroll">Re-roll</button><span class="mx-meta"><b data-seed-out></b> · <span data-turn="0"></span></span></div>
-        <p class="mx-note">All three start from the same garden and the same dice. Whatever happens, happens: re-roll and it may go the other way.</p></div></section>
+        <p class="mx-note">All three players start in the same garden, with the same dice. The result is not fixed. Re-roll, and the result can change.</p></div></section>
     <section class="mx-act" data-act="4"><h4><span class="n">4</span>Your turn</h4><p class="mx-cap">So the goal isn’t to avoid risk, or to chase every discovery. It’s to keep growing your room to experiment, without breaking what makes it possible.</p>
       <div class="mx-fig mx-lab"><div class="mx-dials">
           <div class="mx-dial"><span><label for="mx-k-size">How big are bold bets?</label><output data-o="size" for="mx-k-size"></output></span><input type="range" id="mx-k-size" data-k="size" min="1" max="3" step="1" value="2" aria-describedby="mx-d-size"><small id="mx-d-size">Bold risks this many tiles at once, and can win as many.</small></div>
@@ -1763,7 +1763,7 @@ function mess(el) {
     const svg = $('.mx-garden', act), reachEl = $('[data-reach]', act), turnEl = $('[data-turn]', act), statusEl = $('.mx-status', act), line = $('path[data-line]', act), area = $('path.area', act);
     let W, G, rng, tried, boldNow = [], front = new Set(), focusI = null, tries = 0, invite = true;
     // until the first tap in this act: the edge breathes, and one tile near the middle carries a small ripple
-    const HELLO = bold ? 'Tap a glowing tile, or an amber one for a bold bet.' : 'Tap a glowing tile to try it.';
+    const HELLO = bold ? 'Tap a glowing tile, or an amber one for a bold bet.' : 'Tap a glowing tile to try to open it.';
     svg.classList.add('invite');
     const mark = () => { svg.querySelector('.mx-tap')?.remove(); if (!invite || !front.size) return;
       const t = [...front].sort((a, b) => MX.dist(a, HOME) - MX.dist(b, HOME) || cx(b) - cx(a))[0];
@@ -1776,10 +1776,10 @@ function mess(el) {
       // one edge tile is in the Tab order at a time; arrows move between them
       if (!front.has(focusI)) focusI = f.length ? f.reduce((a, b) => (MX.dist(b, focusI ?? HOME) < MX.dist(a, focusI ?? HOME) ? b : a)) : null;
       svg._t.forEach((e, i) => { const fr = front.has(i); e.tabIndex = fr ? (i === focusI ? 0 : -1) : -1; if (!fr) e.removeAttribute('tabindex');
-        if (fr) { e.setAttribute('role', 'button'); e.removeAttribute('aria-hidden'); e.setAttribute('aria-label', `${boldNow.includes(i) ? `Bold bet, ${MX.stake(G, i, P.size).length} tiles` : 'Try the door'} at row ${(i / C | 0) + 1}, column ${i % C + 1}`); }
+        if (fr) { e.setAttribute('role', 'button'); e.removeAttribute('aria-hidden'); e.setAttribute('aria-label', `${boldNow.includes(i) ? `Bold bet, ${MX.stake(G, i, P.size).length} tiles` : 'Try the tile'} at row ${(i / C | 0) + 1}, column ${i % C + 1}`); }
         else { e.removeAttribute('role'); e.removeAttribute('aria-label'); e.setAttribute('aria-hidden', 'true'); } });
       const n = MX.lit(G.s); reachEl.textContent = n; turnEl.dataset.turn = G.turn; turnEl.textContent = G.turn ? `Turn ${G.turn}` : 'Turn 0: nothing tried yet';
-      svg.setAttribute('aria-label', `${bold ? 'Your second garden' : 'Your garden'}: ${n} door${n === 1 ? '' : 's'} open`);
+      svg.setAttribute('aria-label', `${bold ? 'Your second garden' : 'Your garden'}: ${n} open door${n === 1 ? '' : 's'}`);
       const top = niceTop(Math.max(...G.reach)), turns = Math.max(20, G.turn); line.dataset.pts = G.reach.join(); const d = lineD(G.reach, turns, top, 200, 60);
       line.setAttribute('d', d); area.setAttribute('d', `${d}L${f2(G.turn / turns * 200)} 60L0 60Z`);
     };
@@ -1787,7 +1787,7 @@ function mess(el) {
     // the line on the stage: what the last try did to the garden, in tiles, then how many tries so far
     const say = (out, d) => { const pl = n => `${n} door${n === 1 ? '' : 's'}`, so = `Keep going: ${tries} ${tries === 1 ? 'try' : 'tries'} so far.`;
       if (out.kind === 'wait') return out.faded.length ? `A turn passed: ${pl(out.faded.length)} closed. ${tries ? so : HELLO}` : `A turn passed. ${tries ? so : HELLO}`;
-      const r = out.burnt.length ? `Scorched ${pl(out.burnt.length)}` : d > 0 ? `It grew: +${pl(d)}` : d < 0 ? `No luck, and ${pl(-d)} closed` : 'No luck this time';
+      const r = out.burnt.length ? `Burned ${out.burnt.length} tile${out.burnt.length === 1 ? '' : 's'}` : d > 0 ? `It grew: +${pl(d)}` : d < 0 ? `It failed, and ${pl(-d)} closed` : 'It failed. You lost one turn';
       return `${r}. ${so}`; };
     const act1 = (move) => {
       if (move) { tries++; if (invite) { invite = false; svg.classList.remove('invite'); mark(); } }
@@ -1868,7 +1868,7 @@ function mess(el) {
       ends(chart4, WHO.map(w => ({ who: w, label: NAME[w], v: rs[w][P4.turns] })), top);
       const fin = WHO.map(w => [w, rs[w][P4.turns]]).sort((a, b) => b[1] - a[1]);
       verdict.textContent = fin[0][1] === fin[1][1] ? `${NAME[fin[0][0]]} and ${NAME[fin[1][0]]} tied with the most open doors: ${fin[0][1]}.` : `${NAME[fin[0][0]]} ended with the most open doors: ${fin[0][1]}.`;
-      strips.hidden = true; explain.textContent = `This is one garden (#${seed4}), played once. One game proves little. Play 100 times to see the spread.`; reroll4.textContent = 'Re-roll';
+      strips.hidden = true; explain.textContent = `This is one game in one garden (#${seed4}). One game proves little. Play 100 times to compare the results.`; reroll4.textContent = 'Re-roll';
       return;
     }
     const all = Object.fromEntries(WHO.map(w => [w, Array.from({ length: 100 }, (_, k) => MX.run((seed4 * 101 + k) >>> 0, w, P4))]));

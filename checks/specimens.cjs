@@ -553,7 +553,7 @@ async function mxAffordance(page, vp, act) {
   await mxClickTile(page, sel, g0.frontier[0]); await wait(80);
   const b = await mxInvite(page, act), g1 = await mxGarden(page, sel), d = g1.lit.length - g0.lit.length;
   check(`${vp}: mess act ${act}: after the first tap the breathing and the hint mark stop`, b.breathing === 0 && !b.mark, JSON.stringify(b));
-  check(`${vp}: mess act ${act}: the instruction now gives the try's result with its tile change (${d >= 0 ? '+' : ''}${d}) and counts tries ("${b.text}")`, /1 try so far/.test(b.text) && (d > 0 ? b.text.includes(`+${d} door`) : /no luck|scorched/i.test(b.text)), b.text);
+  check(`${vp}: mess act ${act}: the instruction now gives the try's result with its tile change (${d >= 0 ? '+' : ''}${d}) and counts tries ("${b.text}")`, /1 try so far/.test(b.text) && (d > 0 ? b.text.includes(`+${d} door`) : /^(It failed|Burned \d+ tiles?)/.test(b.text)), b.text);
   // a tap just off a tile's edge, in the gap, still tries it
   const t0 = g1.turn, pt = await page.evaluate(sel => { const g = document.querySelector(sel), e = g.querySelector('.mx-t[data-f]'), r = e.getBoundingClientRect(); return { x: r.right + 1, y: r.top + r.height / 2, w: r.width }; }, sel);
   await page.mouse.click(pt.x, pt.y); await wait(60);
@@ -599,7 +599,7 @@ async function messCheck(page, vp) {
   let burnt = [], tries = 0;
   for (; tries < 40 && !burnt.length; tries++) { const pick = b.bold[0] ?? b.frontier[0]; if (pick === undefined) { await page.locator('#spec-body [data-act="2"] .mx-again').click(); b = await mxGarden(page, A2); continue; }
     await mxClickTile(page, A2, pick); const c = await mxGarden(page, A2); burnt = c.scorched.filter(i => !b.scorched.includes(i)); b = c; }
-  check(`${vp}: mess act 2: a ruinous bold bet scorches a patch (${burnt.length} tiles after ${tries} tries) and says so`, burnt.length >= 2 && /closed for good|burn|scorch/i.test(b.status), JSON.stringify({ burnt, status: b.status }));
+  check(`${vp}: mess act 2: a ruinous bold bet scorches a patch (${burnt.length} tiles after ${tries} tries) and says so`, burnt.length >= 2 && new RegExp(`^Burned ${burnt.length} tiles\\.`).test(b.status), JSON.stringify({ burnt, status: b.status }));
   let relit = [];
   for (let k = 0; k < 30; k++) { const c = await mxGarden(page, A2); const pick = c.bold[0] ?? c.frontier[0]; if (pick === undefined) break; await mxClickTile(page, A2, pick); const d = await mxGarden(page, A2); relit.push(...burnt.filter(i => !d.scorched.includes(i))); }
   check(`${vp}: mess act 2: scorched tiles never light again (30 more tries)`, burnt.length > 0 && relit.length === 0, JSON.stringify(relit));
