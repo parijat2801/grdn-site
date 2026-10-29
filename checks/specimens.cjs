@@ -636,7 +636,16 @@ async function messCheck(page, vp) {
   // Act 4: sliders and run 100 times; the sliders, not the strategy names, decide
   await mxShow(page, 4); await wait(150);
   const sl = await page.evaluate(() => [...document.querySelectorAll('#spec-body [data-act="4"] input[type=range]')].map(i => ({ k: i.dataset.k, label: (i.labels && i.labels[0] ? i.labels[0].textContent : i.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim() })));
-  check(`${vp}: mess act 4: four labelled sliders: bet size, reversibility, patience, how fast doors close`, sl.map(s => s.k).join() === 'size,rev,turns,fade' && sl.every(s => s.label.length > 4), JSON.stringify(sl));
+  check(`${vp}: mess act 4: four sliders, each a plain question`, sl.map(s => s.k).join() === 'size,rev,turns,fade' && sl.map(s => s.label).join('|') === 'How big are bold bets?|How often can a mistake be undone?|How long do they play?|How fast do untouched doors close?', JSON.stringify(sl));
+  const words = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="4"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '', i = document.querySelector('#spec-body input[data-k="rev"]'), o = k => t(`[data-o="${k}"]`);
+    const hint = k => t(`#mx-d-${k}`), before = { rev: o('rev'), revHint: hint('rev') }; i.value = 30; i.dispatchEvent(new Event('input', { bubbles: true }));
+    const after = { rev: o('rev'), revHint: hint('rev') }; i.value = 50; i.dispatchEvent(new Event('input', { bubbles: true }));
+    return { before, after, size: o('size'), sizeHint: hint('size'), turns: o('turns'), fade: o('fade'), fadeHint: hint('fade'), modes: [...A.querySelectorAll('[data-mode]')].map(b => b.textContent.trim()), reroll: t('.mx-reroll4'), yLabel: t('.mx-ylab') }; });
+  check(`${vp}: mess act 4: slider values and hints read plainly, and the undo hint updates live (${words.after.revHint})`, words.size === '19 tiles' && words.sizeHint === 'Bold risks this many tiles at once, and can win as many.' && words.before.rev === '50%' && words.before.revHint === 'The other 50% burn tiles for good.'
+    && words.after.rev === '30%' && words.after.revHint === 'The other 70% burn tiles for good.' && /^\d+ turns$/.test(words.turns) && /^\d+% a turn$/.test(words.fade) && words.fadeHint === 'Leave a door alone and it may shut.', JSON.stringify(words));
+  check(`${vp}: mess act 4: the toggle says "Play once" / "Play 100 times", Re-roll in one-run mode, and the chart's y axis says "open doors"`, words.modes.join('|') === 'Play once|Play 100 times' && words.reroll === 'Re-roll' && words.yLabel === 'open doors', JSON.stringify(words));
+  const one = await page.evaluate(() => document.querySelector('#spec-body [data-act="4"] .mx-verdict').textContent.trim());
+  check(`${vp}: mess act 4: one run says who ended with the most open doors ("${one}")`, /^(Cautious|Bold|Gardener)( and (Cautious|Bold|Gardener))? (ended|tied) with the most open doors: \d+\.$/.test(one), one);
   await page.locator('#spec-body [data-act="4"] [data-mode="many"]').click(); await wait(200);
   const r0 = await mxRuns(page);
   check(`${vp}: mess act 4: "100 runs" draws 100 runs per strategy, with each one's ending as a dot and its median`, Object.values(r0).every(r => r.runs === 100 && r.dots === 100 && Number.isFinite(r.median)), JSON.stringify(r0));
@@ -645,8 +654,13 @@ async function messCheck(page, vp) {
   check(`${vp}: mess act 4: more failures you can undo raise Bold's median reach over 100 runs (${lo.bold.median} → ${hi.bold.median})`, hi.bold.median > lo.bold.median + 5, JSON.stringify({ hi, lo }));
   await mxSlide(page, 'rev', 50); await mxSlide(page, 'fade', 0); await wait(200); const f0r = await mxRuns(page); await mxSlide(page, 'fade', 12); await wait(200); const f1r = await mxRuns(page);
   check(`${vp}: mess act 4: doors that close faster lower Cautious and Gardener (${f0r.cautious.median}/${f0r.gardener.median} → ${f1r.cautious.median}/${f1r.gardener.median})`, f1r.cautious.median < f0r.cautious.median && f1r.gardener.median < f0r.gardener.median, JSON.stringify({ f0r, f1r }));
-  const who = await page.evaluate(() => (document.querySelector('#spec-body [data-act="4"] .mx-verdict') || {}).textContent || '');
-  check(`${vp}: mess act 4: a line says how often each strategy ended ahead`, /Cautious/.test(who) && /Bold/.test(who) && /Gardener/.test(who) && /\d/.test(who), who);
+  const who = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="4"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
+    return { v: t('.mx-verdict'), note: t('[data-explain]'), title: t('.mx-strips-t'), axis: t('.mx-strip-ax'), typ: [...A.querySelectorAll('.mx-strip-m')].map(e => e.textContent.trim()), reroll: t('.mx-reroll4') }; });
+  const vm = who.v.match(/^In 100 gardens, (Cautious|Bold|Gardener) ended with the most open doors (once|\d+ times)\. (Cautious|Bold|Gardener) (\d+)\. (Cautious|Bold|Gardener) (\d+)\.( (One tie|\d+ ties)\.)?$/);
+  check(`${vp}: mess act 4: the 100-run sentence reads "In 100 gardens, X ended with the most open doors N times. Y n. Z n." ("${who.v}")`, !!vm && !/ 1 times| 1 ties|One ties/.test(who.v) && new Set([vm[1], vm[3], vm[5]]).size === 3, who.v);
+  check(`${vp}: mess act 4: the chart caption, the strip title, its axis and "typical: N" read plainly; Re-roll becomes "New gardens"`, who.note === 'Each faint line is one garden. The thick line is a typical one.' && who.title === 'Where each garden ended' && /open doors at the end/.test(who.axis) && who.typ.length === 3 && who.typ.every(x => /^typical: \d+$/.test(x)) && who.reroll === 'New gardens', JSON.stringify(who));
+  const vocab = await page.evaluate(() => [...document.querySelectorAll('#spec-body *')].filter(e => !e.closest('.mx-cap') && [...e.childNodes].some(n => n.nodeType === 3 && /\b(room|reach)\b/i.test(n.textContent))).map(e => e.textContent.trim().slice(0, 40)));
+  check(`${vp}: mess: outside the owner's captions, no text says "room" or "reach" (one word: open doors)`, vocab.length === 0, JSON.stringify(vocab));
   await mxSlide(page, 'fade', 4);
   const o = await overflow(page);
   check(`${vp}: mess view has no horizontal overflow`, noOverflow(o), JSON.stringify(o));
