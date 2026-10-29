@@ -626,7 +626,7 @@ async function messCheck(page, vp) {
     if (!st.over) for (const w of MX_WHO) { const m = Math.min(n, end[w]); if (st.lines[w].join() !== model[w].slice(0, m + 1).join()) bad.push(`try ${n}: ${w} line ${st.lines[w]} vs model ${model[w].slice(0, m + 1)}`); }
     if (st.raceSeed !== g0.seed) bad.push(`try ${n}: race seed ${st.raceSeed}`);
     if (!st.over && st.score !== mxScoreText(st.found, Object.fromEntries(MX_WHO.map(w => [w, st.lines[w][st.lines[w].length - 1]])))) bad.push(`try ${n}: score "${st.score}"`);
-    if (!mid && n >= 6 && !st.over) { mid = st; if (SHOTS) { await mxShow(page, MXP + ' .mx-game'); await wait(1600); await page.screenshot({ path: `${SHOTS}/${vp}-mess-mid.png` }); } }
+    if (!mid && n >= 6 && !st.over) { mid = st; if (SHOTS) { await mxShow(page, MXP + ' .mx-game'); await page.screenshot({ path: `${SHOTS}/${vp}-mess-mid.png` }); } }
     if (bad.length > 4) break;
   }
   check(`${vp}: mess: each try updates Found and Doors left, and a discovery shows only when its tile lights (${k} tries)`, !bad.some(b => /found|doors left|lost or missed/.test(b)), bad.join(' | '));
@@ -640,7 +640,7 @@ async function messCheck(page, vp) {
   check(`${vp}: mess: then a nudge to the sliders ("${st.nudge}")`, st.nudge === MX_NUDGE, st.nudge);
   const reveal = st.hid.map(i => ({ i, st: (st.gems.find(g => g.i === i) || {}).st, want: everLit.has(i) ? 'found' : st.s[i] === 2 ? 'lost' : 'missed' }));
   check(`${vp}: mess: the end shows every hidden discovery: found, lost under a burned tile, or missed`, reveal.every(r => r.st === r.want) && st.gems.every(g => st.hid.includes(g.i)) && st.gems.length === st.hid.length, JSON.stringify(reveal));
-  if (SHOTS) { await mxShow(page, MXP + ' .mx-game'); await wait(2000); await page.screenshot({ path: `${SHOTS}/${vp}-mess-end.png` }); }
+  if (SHOTS) { await mxShow(page, MXP + ' .mx-game'); await wait(400); await page.screenshot({ path: `${SHOTS}/${vp}-mess-end.png` }); }
   const after = await page.evaluate(sel => { const e = document.querySelector(sel + ' .mx-t'); e.dispatchEvent(new MouseEvent('click', { bubbles: true })); return +document.querySelector('#spec-body [data-act="play"]').dataset.tries; }, MXG);
   check(`${vp}: mess: after the end, a tap changes nothing`, after === st.tries, String(after));
   await page.locator(MXP + ' .mx-new').click(); await wait(60);

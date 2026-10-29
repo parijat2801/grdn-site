@@ -60,10 +60,9 @@
     --mood-paper: #F5EDD5; --mood-ink: #2C4C6A;
     --jar-bg: #F4F6FB; --jar-fill: rgba(15,143,128,.14); --jar-put: rgba(16,36,58,.5); --jar-track: #E3E6EE;
     --moon-dark: #24394F; --moon-lit: #F3E7C8; --moon-crater: rgba(170,150,110,.22);
-    /* Mess around and find out: a night garden of doors. Unopened ground, a glowing edge, lit leaves, a bold bet's amber, scorched ash, a closed door; berries and seed pods hidden under the tiles; one line colour per player */
+    /* Mess around and find out: a night garden of doors. Unopened ground, a glowing edge, lit leaves, a bold bet's amber, scorched ash; one line colour per player */
     --mf-ground: #16302D; --mf-ground-hi: #1D3C38; --mf-dark: #24463F; --mf-door: #2C5650; --mf-door-hi: #386A62; --mf-edge: #8FD3BE; --mf-lit: #C4E8A4; --mf-lit-deep: #9FD08A; --mf-fresh: #F5EBAF;
-    --mf-bold: #F2B45A; --mf-scorch: #0C1413; --mf-ember: #D2693A; --mf-focus: #FFFFFF; --mf-shut: #142A27; --mf-shut-line: rgba(143,211,190,.16);
-    --mf-fruit: #D8445C; --mf-fruit-hi: #FFD2CF; --mf-pod: #7B4BA8; --mf-stem: #2F6B3A; --mf-ash: #7F8C87; --mf-you: #10243A;
+    --mf-bold: #F2B45A; --mf-scorch: #0C1413; --mf-ember: #D2693A; --mf-focus: #FFFFFF;
     --mf-cautious: #5b6b8c; --mf-boldline: #c4552f; --mf-steady: #3f7f3a; --mf-cautious-ink: #4a5876; --mf-bold-ink: #a8431f; --mf-steady-ink: #356c31;
     --card-glass: rgba(250,248,242,.9); --rise: .65s; --peek-h: 56px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
@@ -575,25 +574,21 @@
     .paper .stories article + article { border-left: 0; border-top: 1px solid var(--line); padding-top: var(--sp-3); } .paper .stories img { grid-row: span 3; height: 96px; margin: 0; }
   }
 
-  /* Mess around and find out: one game, then the rules to change. Captions in Nico's voice, then the thing to poke. The garden is a night-dark stage; the race and the readouts sit on paper beside it. */
+  /* Mess around and find out: four acts down one column. A caption in Nico's voice, then the thing to poke. The gardens are night-dark stages; the readouts sit on paper beside them. */
   .mx { padding-bottom: var(--sp-2); }
   .mx-act + .mx-act { margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--line); }
   .mx-act h4 { display: flex; align-items: center; gap: 10px; font-size: var(--fs-garden); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
   .mx-act h4 .n { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--mf-ground); color: var(--mf-lit); font-size: var(--fs-meta); font-weight: 800; letter-spacing: 0; }
   .mx-cap { max-width: 34em; margin-top: var(--sp-3); font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 21px; line-height: 1.45; color: var(--ink); text-wrap: pretty; }
   .mx-fig { margin-top: var(--sp-5); }
-  .mx-caps { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); }
-  .mx-caps .mx-cap { margin-top: 0; }
-  .mx-game { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
-  .mx-you { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
-  .mx-counts { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-6); }
-  .mx-count { display: flex; flex-direction: column; gap: 2px; }
+  .mx-play-area { display: grid; grid-template-columns: minmax(0, 1fr) 252px; gap: var(--sp-4); align-items: stretch; }
   .mx-stage { position: relative; display: grid; place-items: center; padding: var(--sp-4); border-radius: var(--r-stage); background: radial-gradient(ellipse 70% 80% at 50% 45%, var(--mf-ground-hi), var(--mf-ground)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); }
   .mx-garden { display: block; width: 100%; height: auto; overflow: visible; -webkit-tap-highlight-color: transparent; }
+  .mx-play-area .mx-garden { max-width: 560px; }
   /* tiles: a little lighter or darker each, so the ground reads as growth, not a spreadsheet */
-  .mx-t { fill: color-mix(in srgb, var(--mf-dark), var(--mf-ground) calc(var(--v) * 55%)); stroke: transparent; stroke-width: 0; vector-effect: non-scaling-stroke; paint-order: stroke;
+  .mx-t { fill: color-mix(in oklab, var(--mf-dark), var(--mf-ground) calc(var(--v) * 55%)); stroke: transparent; stroke-width: 0; vector-effect: non-scaling-stroke; paint-order: stroke;
     transform-box: fill-box; transform-origin: center; outline: none; transition: fill .6s var(--ease), stroke-width .25s ease; }
-  .mx-t[data-s="1"] { fill: color-mix(in srgb, var(--mf-lit), var(--mf-lit-deep) calc(var(--v) * 70%)); }
+  .mx-t[data-s="1"] { fill: color-mix(in oklab, var(--mf-lit), var(--mf-lit-deep) calc(var(--v) * 70%)); }
   .mx-t[data-s="1"].fresh { fill: var(--mf-fresh); }
   .mx-t[data-s="2"] { fill: var(--mf-scorch); }
   .mx-t[data-f] { fill: var(--mf-door); stroke: var(--mf-edge); stroke-width: 1.5px; stroke-opacity: .85; cursor: pointer; }
@@ -607,19 +602,6 @@
   .mx-t[data-tried] + .mx-m { stroke: rgba(143,211,190,.55); }
   .mx-t[data-s="2"] + .mx-m { stroke: rgba(210,105,58,.3); }
   .mx-home { fill: var(--mf-ground); opacity: .78; }
-  /* a closed door sinks into the night: the ground's own colour, a faint rim */
-  .mx-t[data-s="3"] { fill: var(--mf-shut); stroke: var(--mf-shut-line); stroke-width: 1px; }
-  /* discoveries: a berry or a seed pod, in colour when found; an ash outline when lost under a burned tile; a faint outline when never reached */
-  .mx-gem { pointer-events: none; }
-  .mx-gem-in { transform-box: fill-box; transform-origin: center; }
-  .mx-gem .g-body { fill: var(--mf-fruit); stroke: var(--mf-ground); stroke-width: .5px; }
-  .mx-gem.pod .g-body { fill: var(--mf-pod); }
-  .mx-gem .g-leaf { fill: var(--mf-stem); } .mx-gem .g-shine { fill: var(--mf-fruit-hi); } .mx-gem .g-line { fill: none; stroke: var(--mf-fruit-hi); stroke-width: .8px; stroke-linecap: round; opacity: .8; }
-  .mx-gem[data-st="lost"] .g-body, .mx-gem[data-st="missed"] .g-body { fill: none; stroke-width: 1px; }
-  .mx-gem[data-st="lost"] .g-body { stroke: var(--mf-ash); stroke-dasharray: 1.4 1.2; }
-  .mx-gem[data-st="missed"] .g-body { stroke: var(--mf-edge); stroke-opacity: .55; }
-  .mx-gem:not([data-st="found"]) :is(.g-leaf, .g-shine, .g-line) { display: none; }
-  .mx-garden.over .mx-t[data-s="0"] { fill: color-mix(in srgb, var(--mf-dark), var(--mf-ground) 60%); }
   /* until the first tap: an instruction on the stage, the edge breathing, and a ripple on one tile */
   .mx-stage:has(.mx-hint) { place-items: stretch; align-content: start; }
   .mx-stage .mx-hint { display: flex; align-items: center; gap: 9px; min-height: 22px; margin: 0 0 var(--sp-3); font: 600 var(--fs-lead) / 1.3 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; color: var(--mf-lit); text-wrap: pretty; }
@@ -631,31 +613,16 @@
   @keyframes mxTap { 0% { transform: scale(.5); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.45); opacity: 0; } }
   @media (hover: hover) { .mx-t[data-f] { transition: fill .6s var(--ease), stroke-width .25s ease, transform .25s var(--ease); } .mx-t[data-f]:hover { transform: scale(1.07); } }
   @media (prefers-reduced-motion: reduce) { .mx-garden.invite .mx-t[data-f] { stroke-width: 2.6px; stroke-opacity: 1; } .mx-garden.invite .mx-t[data-bold] { stroke-width: 3px; } .mx-tap { opacity: .9; } }
-  /* beside the garden: the counters, then the race on paper */
+  /* beside the garden: the reach, its line, the turn */
+  .mx-side { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep); }
   .mx-k { font-size: var(--fs-meta); font-weight: 650; color: var(--muted-strong); line-height: 1.25; }
   .mx-big { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
   .mx-big b { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
   .mx-big span { font-size: var(--fs-meta); color: var(--muted-strong); }
-  .mx-race { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep); }
-  .mx-race-t { font-size: var(--fs-title); font-weight: 800; letter-spacing: -.01em; line-height: 1.2; }
-  .mx-race-d { font-size: var(--fs-meta); color: var(--muted-strong); line-height: 1.35; }
-  .mx-race .mx-chart { margin-top: var(--sp-1); padding-bottom: 0; background: none; grid-template-columns: 30px minmax(0, 1fr) 82px; grid-template-rows: 190px 22px; }
-  .mx-key { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px var(--sp-3); margin-top: var(--sp-1); }
-  .mx-key li { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-content: start; column-gap: 7px; font-size: var(--fs-tag); line-height: 1.3; color: var(--muted-strong); }
-  .mx-key i { grid-row: span 2; align-self: start; width: 16px; height: 3px; margin-top: 7px; border-radius: 2px; background: var(--who); }
-  .mx-key li[data-who="you"] i { height: 4px; }
-  .mx-key b { font-size: var(--fs-meta); font-weight: 750; color: var(--who-ink); }
-  .mx-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin-top: var(--sp-2); padding-top: var(--sp-3); border-top: 1px solid var(--line); font-size: var(--fs-row); font-variant-numeric: tabular-nums; color: var(--ink); }
-  .mx-score span { white-space: nowrap; font-weight: 800; } .mx-score b { font-weight: 700; color: var(--who-ink); margin-right: 2px; }
-  .mx-score i { font-style: normal; color: var(--muted); white-space: pre; }
-  .mx-final { font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 19px; line-height: 1.35; color: var(--ink); text-wrap: pretty; }
-  .mx-final:empty, .mx-nudge:empty { display: none; }
-  .mx-nudge { font-size: var(--fs-lead); font-weight: 600; color: var(--ink); line-height: 1.35; }
-  .mx-link { border: 0; background: none; padding: 0; font: inherit; color: var(--teal-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-  .mx-link:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 3px; }
-  .mx-race .mx-btns { margin-top: var(--sp-2); }
-  [data-who="you"] { --who: var(--mf-you); --who-ink: var(--ink); } .mx-key [data-who="cautious"], .mx-score [data-who="cautious"] { --who: var(--mf-cautious); } .mx-key [data-who="bold"], .mx-score [data-who="bold"] { --who: var(--mf-boldline); } .mx-key [data-who="steady"], .mx-score [data-who="steady"] { --who: var(--mf-steady); }
-  .mx-status { min-height: 2.6em; margin-top: calc(-1 * var(--sp-1)); font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); line-height: 1.3; color: var(--ink); text-wrap: pretty; }
+  .mx-spark { position: relative; flex: 1 1 auto; min-height: 64px; max-height: 150px; margin: 2px 0 var(--sp-2); }
+  .mx-spark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .mx-turn { font-size: var(--fs-meta); font-weight: 600; color: var(--muted-strong); font-variant-numeric: tabular-nums; }
+  .mx-status { min-height: 2.6em; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: var(--fs-lead); line-height: 1.3; color: var(--ink); text-wrap: pretty; }
   .mx-btns { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: auto; padding-top: var(--sp-1); }
   .mx-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; padding: 0 16px; border-radius: var(--r-pill); border: 1px solid var(--seen-line); background: var(--card); color: var(--ink);
     font: 600 var(--fs-meta) 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; cursor: pointer; white-space: nowrap; transition: background-color var(--fade) ease, border-color var(--fade) ease, color var(--fade) ease; }
@@ -663,10 +630,19 @@
   @media (hover: hover) { .mx-btn:hover { border-color: var(--ink); } .mx-btn.ink:hover { background: var(--teal-ink); } }
   .mx-btn:focus-visible, .mx-seg button:focus-visible, .mx input[type=range]:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
   .mx-btn svg { width: 12px; height: 12px; }
-  .mx-legend { display: flex; flex-wrap: wrap; gap: 6px var(--sp-4); margin-top: 0; font-size: var(--fs-meta); color: var(--muted-strong); }
+  .mx-legend { display: flex; flex-wrap: wrap; gap: 6px var(--sp-4); margin-top: var(--sp-3); font-size: var(--fs-meta); color: var(--muted-strong); }
   .mx-legend span { display: inline-flex; align-items: center; gap: 7px; }
   .mx-legend svg { width: 16px; height: 18px; flex: none; }
-  .mx-legend span[hidden] { display: none; }
+  /* act 3: three players, one garden each, and one chart for all of them */
+  .mx-players { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+  .mx-player { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+  .mx-ph { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; align-items: baseline; }
+  .mx-ph i { width: 10px; height: 10px; border-radius: 50%; background: var(--who); align-self: center; }
+  .mx-ph b { font-size: var(--fs-row); font-weight: 750; color: var(--who-ink); }
+  .mx-ph [data-reach] { font-size: 22px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .mx-ph small { grid-column: 2 / -1; font-size: var(--fs-tag); color: var(--muted-strong); line-height: 1.3; }
+  .mx-player .mx-stage { padding: var(--sp-3); }
+  .mx-player[data-who="cautious"] { --who: var(--mf-cautious); --who-ink: var(--mf-cautious-ink); } .mx-player[data-who="bold"] { --who: var(--mf-boldline); --who-ink: var(--mf-bold-ink); } .mx-player[data-who="steady"] { --who: var(--mf-steady); --who-ink: var(--mf-steady-ink); }
   .mx-chart { display: grid; grid-template-columns: 34px minmax(0, 1fr) 96px; grid-template-rows: 180px 22px; margin-top: var(--sp-4); padding: var(--sp-3) 0 var(--sp-2); border-radius: 14px; background: var(--paper-deep); }
   .mx-chart.tall { grid-template-rows: 220px 22px; }
   .mx-yax, .mx-plot, .mx-ends, .mx-xax { position: relative; }
@@ -677,6 +653,9 @@
   .mx-end { position: absolute; left: 10px; transform: translateY(-50%); font-size: var(--fs-tag); font-weight: 700; color: var(--who-ink); white-space: nowrap; font-variant-numeric: tabular-nums; transition: top .25s var(--ease); }
   .mx-end b { font-size: var(--fs-row); font-weight: 800; color: var(--ink); margin-left: 4px; }
   .mx-end[data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } .mx-end[data-who="bold"] { --who-ink: var(--mf-bold-ink); } .mx-end[data-who="steady"] { --who-ink: var(--mf-steady-ink); }
+  .mx-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-3); }
+  .mx-ctl .mx-meta { font-size: var(--fs-meta); color: var(--muted-strong); font-variant-numeric: tabular-nums; }
+  .mx-ctl .mx-meta b { color: var(--ink); font-weight: 650; }
   .mx-note { margin-top: var(--sp-2); font-size: var(--fs-meta); color: var(--muted-strong); line-height: 1.4; max-width: 46em; }
   /* act 4: the dials on the left, what they do on the right */
   .mx-lab { display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
@@ -711,16 +690,22 @@
   .mx-coda { margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--line); text-align: center; }
   .mx-coda svg { width: 64px; height: 22px; }
   .mx-close { max-width: 18em; margin: var(--sp-3) auto 0; font-family: 'Newsreader', 'Newsreader Fallback', serif; font-size: 30px; font-weight: 500; line-height: 1.2; letter-spacing: -.01em; color: var(--ink); text-wrap: balance; }
-  @media (min-width: 761px) and (max-width: 1127px) { .mx-lab { grid-template-columns: 240px minmax(0, 1fr); gap: var(--sp-4); } .mx-game { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-4); } .mx-race { padding: var(--sp-3); } .mx-big b { font-size: 38px; } }
+  @media (min-width: 761px) and (max-width: 1127px) { .mx-lab { grid-template-columns: 240px minmax(0, 1fr); gap: var(--sp-4); } .mx-play-area { grid-template-columns: minmax(0, 1fr) 220px; } }
   @media (max-width: 760px) {
     .mx-cap { font-size: 19px; }
-    .mx-game { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
-    .mx-race { padding: var(--sp-3) var(--sp-4) var(--sp-4); }
+    .mx-play-area { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
     .mx-stage { padding: var(--sp-3); }
     .mx-act { scroll-margin-top: 60px; }
+    .mx-side { padding: var(--sp-3) var(--sp-4); }
+    .mx-side .mx-spark { flex: none; height: 56px; min-height: 0; }
     .mx-big b { font-size: 38px; }
+    /* the three players become rows: a small garden beside its name */
+    .mx-players { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+    .mx-player { display: grid; grid-template-columns: 46% minmax(0, 1fr); column-gap: var(--sp-3); align-items: center; }
+    .mx-player .mx-stage { grid-column: 1; grid-row: 1; padding: var(--sp-2); }
+    .mx-ph { grid-column: 2; grid-row: 1; grid-template-columns: auto minmax(0, 1fr); row-gap: 2px; }
+    .mx-ph [data-reach] { grid-column: 2; grid-row: 2; font-size: 26px; } .mx-ph small { grid-column: 1 / -1; grid-row: 3; }
     .mx-chart { grid-template-columns: 30px minmax(0, 1fr) 84px; grid-template-rows: 160px 22px; }
-    .mx-race .mx-chart { grid-template-rows: 170px 22px; }
     .mx-chart.tall { grid-template-rows: 190px 22px; }
     .mx-lab { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
     .mx-strips { grid-template-columns: 72px minmax(0, 1fr) 76px; }
@@ -1232,7 +1217,7 @@ const SPECS = {
     render: el => agentRun(el) },
   // Nico built this one himself, so the made line is in his voice (lead); a long explorable, so its rows read "More to explore", under the view (navBelow)
   mess: { act: 'Play', noun: 'explorable', kind: 'Explorable', title: 'Mess around and find out', owner: 'Nico', garden: 'Things that explain themselves', lead: '{owner} built this explorable from 3 things he kept:', navBelow: true,
-    from: [{ t: 'The Evolution of Trust', img: 'ncase-me-20.webp', became: 'the three players in the race' }, { t: 'Parable of the Polygons', img: 'ncase-me-6.webp', became: 'the sliders that change the rules' }, { t: 'Nico’s note: “mess around in ways that let you mess around better tomorrow”', icon: '📝', became: 'the captions' }],
+    from: [{ t: 'The Evolution of Trust', img: 'ncase-me-20.webp', became: 'the three players, side by side' }, { t: 'Parable of the Polygons', img: 'ncase-me-6.webp', became: 'the sliders in act 4' }, { t: 'Nico’s note: “mess around in ways that let you mess around better tomorrow”', icon: '📝', became: 'the captions' }],
     next: [{ t: 'The Evolution of Trust', s: 'Nico', why: 'Where the three players come from', garden: 'Things that explain themselves' }, { t: 'Land on Titan', s: 'Leo, age 11 · game', why: 'Crash, learn, then land softly', open: 'titan' }, { t: 'What the jar grows to', s: 'Dami · chart', why: 'Another slider that changes the ending', open: 'savings' }],
     render: el => mess(el) },
 };
@@ -1640,91 +1625,74 @@ function agentRun(el) {
   root.querySelector('.ag-again').onclick = play; play();
   return () => clearInterval(iv);
 }
-// Mess around and find out: a garden of doors, with discoveries hidden under some dark tiles. Lit tiles are what you can try from; a door is a dark tile next to one.
-// A try succeeds with that tile's hidden chance (smaller for a bold bet, which stakes a whole patch). Success lights the staked tiles and finds what is under them.
-// A failure is ruinous with chance 1 - reversibility: it burns what was staked, and a discovery under a burned tile is lost. After each try, a door left alone for more
-// than one try may close for good. The game ends when no doors are left. Nothing is rigged: outcomes come from the dials and a seeded random stream.
+// Mess around and find out: a garden of doors. Lit tiles are what you can try from; each try is on a dark tile next to them.
+// A try succeeds with that tile's hidden chance (smaller for a bold bet, which stakes a whole patch). A failed try costs the turn; some failures (1 - reversibility) are ruinous and
+// scorch what was staked, for good. Each turn, lit edge tiles nobody has used for a while may fade dark. Nothing is rigged: outcomes come from the dials and a seeded random stream.
 const MX = (() => {
   const rnd = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  const C = 11, R = 9, N = C * R, HOME = (R >> 1) * C + (C >> 1), HIDDEN = 16, q = [], r = [], nb = [];
+  const C = 11, R = 9, N = C * R, HOME = (R >> 1) * C + (C >> 1), q = [], r = [], nb = [];
   for (let i = 0; i < N; i++) { const row = i / C | 0; r[i] = row; q[i] = i % C - (row - (row & 1)) / 2; }
   for (let i = 0; i < N; i++) { const row = r[i], col = i % C, d = row & 1 ? [[1, 0], [-1, 0], [0, -1], [1, -1], [0, 1], [1, 1]] : [[1, 0], [-1, 0], [-1, -1], [0, -1], [-1, 1], [0, 1]];
     nb[i] = d.map(([dc, dr]) => [col + dc, row + dr]).filter(([c, rr]) => c >= 0 && c < C && rr >= 0 && rr < R).map(([c, rr]) => rr * C + c); }
-  const FIRST = [HOME, ...nb[HOME].slice(0, 3)]; // the tiles lit at the start
   const dist = (a, b) => { const dq = q[a] - q[b], dr = r[a] - r[b]; return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2; };
   const near = [0, 1, 2, 3].map(k => Array.from({ length: N }, (_, t) => [...Array(N).keys()].filter(i => dist(i, t) <= k))); // the tiles within k steps of each tile
   const cache = new Map();
-  // a garden: each tile's hidden chance of opening (smooth, so good ground clusters), a texture value for drawing, and the tiles that hide a discovery
+  // a garden: each tile's hidden chance of opening (smooth, so good ground clusters) and a texture value for drawing
   function world(seed) {
     if (cache.has(seed)) return cache.get(seed);
     const g = rnd(seed * 2654435761 >>> 0); let raw = Array.from({ length: N }, g);
     for (let k = 0; k < 2; k++) raw = raw.map((v, i) => (v * 2 + nb[i].reduce((s, j) => s + raw[j], 0) / nb[i].length) / 3);
-    const lo = Math.min(...raw), hi = Math.max(...raw), t = rnd(seed ^ 0x2545f491), h = rnd(seed ^ 0x3c6ef372);
-    const pool = [...Array(N).keys()].filter(i => !FIRST.includes(i)), hid = [];
-    while (hid.length < HIDDEN) hid.push(pool.splice(h() * pool.length | 0, 1)[0]);
-    hid.sort((a, b) => a - b);
-    const W = { seed, p: raw.map(v => .3 + .6 * (v - lo) / (hi - lo)), tex: Array.from({ length: N }, t), hid, hidSet: new Set(hid) };
+    const lo = Math.min(...raw), hi = Math.max(...raw), t = rnd(seed ^ 0x2545f491);
+    const W = { seed, p: raw.map(v => .3 + .6 * (v - lo) / (hi - lo)), tex: Array.from({ length: N }, t) };
     if (cache.size > 400) cache.clear(); cache.set(seed, W); return W;
   }
   const lit = s => { let n = 0; for (let i = 0; i < N; i++) n += s[i] === 1; return n; };
-  // tile states: 0 dark, 1 lit, 2 burned, 3 closed (a door left alone too long)
-  function start() { const s = new Uint8Array(N); FIRST.forEach(j => { s[j] = 1; }); return { s, idle: new Int16Array(N), tries: 0, found: [], lost: [], log: [0] }; }
+  function start() { const s = new Uint8Array(N); s[HOME] = 1; nb[HOME].slice(0, 3).forEach(j => { s[j] = 1; }); return { s, idle: new Int16Array(N), turn: 0, reach: [lit(s)] }; }
   const frontier = G => { const out = []; for (let i = 0; i < N; i++) if (G.s[i] === 0 && nb[i].some(j => G.s[j] === 1)) out.push(i); return out; };
-  const stake = (G, t, k) => near[k][t].filter(i => G.s[i] === 0 || G.s[i] === 1); // what a try puts at risk: the target and, for a bold bet, everything still in play within k steps
-  // one try; P: { size, rev, fade, turns }
+  const stake = (G, t, k) => near[k][t].filter(i => G.s[i] !== 2); // what a try puts at risk: the target and, for a bold bet, everything within k steps
+  // one move (or none), then a turn of time; P: { size, rev, fade }
   function play(W, G, move, P, rng) {
-    const out = { kind: move.kind, t: move.t, ok: null, opened: [], burnt: [], closed: [], found: [], lost: [] };
-    const t = move.t, k = move.kind === 'bold' ? P.size : 0, reg = stake(G, t, k), roll = rng(), ruin = rng();
-    if (roll < W.p[t] * Math.pow(.72, k)) { out.ok = true; reg.forEach(i => { if (G.s[i] === 0) { G.s[i] = 1; out.opened.push(i); if (W.hidSet.has(i)) { G.found.push(i); out.found.push(i); } } }); }
-    else { out.ok = false; if (ruin >= P.rev) reg.forEach(i => { if (i === HOME) return; if (G.s[i] === 0 && W.hidSet.has(i)) { G.lost.push(i); out.lost.push(i); } G.s[i] = 2; out.burnt.push(i); }); }
-    G.idle[t] = 0;
-    for (const i of frontier(G)) { if (i === t) continue; G.idle[i]++; const x = rng(); if (G.idle[i] > 1 && x < P.fade) { G.s[i] = 3; out.closed.push(i); } }
-    G.tries++; G.log.push(G.found.length); return out;
+    const out = { kind: move ? move.kind : 'wait', ok: null, opened: [], burnt: [], faded: [] };
+    if (move) {
+      const t = move.t, k = move.kind === 'bold' ? P.size : 0, reg = stake(G, t, k);
+      nb[t].forEach(j => { if (G.s[j] === 1) G.idle[j] = 0; }); // using a door keeps it open
+      const roll = rng(), ruin = rng();
+      if (roll < W.p[t] * Math.pow(.72, k)) { reg.forEach(i => { if (G.s[i] === 0) { G.s[i] = 1; G.idle[i] = 0; out.opened.push(i); } }); out.ok = true; }
+      else { out.ok = false; if (ruin >= P.rev) reg.forEach(i => { if (i !== HOME) { G.s[i] = 2; out.burnt.push(i); } }); }
+    }
+    for (let i = 0; i < N; i++) { if (G.s[i] !== 1 || i === HOME) continue; G.idle[i]++; const f = rng(); if (G.idle[i] > 2 && f < P.fade && nb[i].some(j => G.s[j] === 0)) { G.s[i] = 0; out.faded.push(i); } }
+    G.turn++; G.reach.push(lit(G.s)); return out;
   }
-  // a player's turn when it has nothing to try is no turn at all; Cautious only waits, and doors close around it
-  function wait(W, G, P, rng) { const out = { kind: 'wait', closed: [], opened: [], burnt: [], found: [], lost: [] };
-    for (const i of frontier(G)) { G.idle[i]++; const x = rng(); if (G.idle[i] > 1 && x < P.fade) { G.s[i] = 3; out.closed.push(i); } }
-    G.tries++; G.log.push(G.found.length); return out; }
   // the three players. Ties break on the shared random stream, so a seed always plays the same way.
   const pick = (f, score, rng) => { let best = -Infinity, ps = []; for (const t of f) { const v = score(t); if (v > best) { best = v; ps = [t]; } else if (v === best) ps.push(t); } return ps[rng() * ps.length | 0]; };
   const STRATS = {
     cautious: () => null,
-    bold: (W, G, P, rng, f) => ({ kind: 'bold', t: pick(f, t => stake(G, t, P.size).filter(i => G.s[i] === 0).length, rng) }),
-    steady: (W, G, P, rng, f) => ({ kind: 'small', t: pick(f, t => G.idle[t], rng) }),
+    bold: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'bold', t: pick(f, t => stake(G, t, P.size).filter(i => G.s[i] === 0).length, rng) } : null; },
+    steady: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'small', t: pick(f, t => Math.max(...nb[t].filter(j => G.s[j] === 1).map(j => G.idle[j])), rng) } : null; },
   };
   const stream = seed => rnd(seed ^ 0x5bd1e995);
-  // a player on a seed, one try per step; it stops when no doors are left or at the cap
-  function player(seed, who, P) { const W = world(seed), G = start(), rng = stream(seed);
-    return { who, W, G, get done() { return G.tries >= P.turns || !frontier(G).length; },
-      step() { const f = frontier(G); if (G.tries >= P.turns || !f.length) return null; const m = STRATS[who](W, G, P, rng, f); return m ? play(W, G, m, P, rng) : wait(W, G, P, rng); } }; }
-  const game = (seed, who, P) => { const p = player(seed, who, P); while (p.step()); return p.G; };
-  const run = (seed, who, P) => game(seed, who, P).log; // discoveries found after each try
+  function run(seed, who, P, keep) { const W = world(seed), G = start(), rng = stream(seed), states = keep ? [G.s.slice()] : null;
+    for (let k = 0; k < P.turns; k++) { play(W, G, STRATS[who](W, G, P, rng), P, rng); if (keep) states.push(G.s.slice()); }
+    return keep ? { reach: G.reach, states } : G.reach; }
   const live = { raf: 0, obs: 0 }; let frames = 0;
-  return { C, R, N, HOME, HIDDEN, nb, dist, near, world, start, frontier, stake, play, STRATS, stream, player, game, run, lit, params3: () => ({ size: 2, rev: .5, fade: .12, turns: 200 }),
+  return { C, R, N, HOME, nb, dist, near, world, start, frontier, stake, play, STRATS, stream, run, lit, params3: () => ({ size: 2, rev: .5, fade: .04, turns: 40 }),
     live: () => live.raf + live.obs, _live: live, get frames() { return frames; }, tick() { frames++; } };
 })();
 
 function mess(el) {
-  const calm = still(), WHO = ['cautious', 'bold', 'steady'], NAME = { cautious: 'Cautious', bold: 'Bold', steady: 'Steady', you: 'You' };
-  const DESC = { you: 'Your tries.', cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', steady: 'Tries one tile at a time, oldest door first.' };
-  const COL = { you: 'var(--mf-you)', cautious: 'var(--mf-cautious)', bold: 'var(--mf-boldline)', steady: 'var(--mf-steady)' };
+  const calm = still(), WHO = ['cautious', 'bold', 'steady'], NAME = { cautious: 'Cautious', bold: 'Bold', steady: 'Steady' };
+  const DESC = { cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', steady: 'Tries one tile at a time. Never risks an open door.' };
   const SIZE_TILES = { 1: 7, 2: 19, 3: 37 }, newSeed = old => { let s; do s = 1000 + (Math.random() * 9000 | 0); while (s === old); return s; };
-  const { C, N, HOME, HIDDEN } = MX, HX = Math.sqrt(3) * 10, VW = C * HX + HX / 2, VH = (MX.R - 1) * 15 + 20, f2 = v => v.toFixed(2);
+  const { C, N, HOME } = MX, HX = Math.sqrt(3) * 10, VW = C * HX + HX / 2, VH = (MX.R - 1) * 15 + 20, f2 = v => v.toFixed(2);
   const cx = i => (i % C) * HX + ((i / C | 0) & 1) * HX / 2 + HX / 2, cy = i => (i / C | 0) * 15 + 10;
-  const pl = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   // a pointy-top hexagon with softened corners
   const HEX = (() => { const s = 9.2, k = .2, P = [...Array(6)].map((_, j) => { const a = Math.PI / 180 * (60 * j - 90); return [s * Math.cos(a), s * Math.sin(a)]; }); let d = '';
     P.forEach((p, j) => { const a = P[(j + 5) % 6], b = P[(j + 1) % 6]; d += `${j ? 'L' : 'M'}${f2(p[0] + (a[0] - p[0]) * k)} ${f2(p[1] + (a[1] - p[1]) * k)}Q${f2(p[0])} ${f2(p[1])} ${f2(p[0] + (b[0] - p[0]) * k)} ${f2(p[1] + (b[1] - p[1]) * k)}`; }); return d + 'Z'; })();
   const DOOR = 'M-2.6 4V-.4A2.6 2.6 0 0 1 2.6 -.4V4Z', css = getComputedStyle(document.documentElement), K = n => css.getPropertyValue('--mf-' + n).trim(); // keyframes need real colours, not var()
-  // a discovery: a berry on even tiles, a seed pod on odd ones. Found, it is in colour; lost under a burned tile, an ash outline; never reached, a faint outline.
-  const GEM = i => i % 2 ? '<path class="g-body" d="M0 -4.3C2.7 -2 3 1.6 0 3.9 -3 1.6 -2.7 -2 0 -4.3Z"/><path class="g-line" d="M0 -2.4V2.3"/>'
-    : '<path class="g-leaf" d="M.3 -2.3C.9 -4.4 2.7 -5 4.1 -4.4 3.5 -2.8 1.9 -2.2 .3 -2.3Z"/><circle class="g-body" cy=".7" r="3.1"/><circle class="g-shine" cx="-1.1" cy="-.4" r=".9"/>';
-  const gemSvg = (i, st, x = cx(i), y = cy(i)) => `<g class="mx-gem${i % 2 ? ' pod' : ''}" data-i="${i}" data-st="${st}" transform="translate(${f2(x)} ${y})" aria-hidden="true"><g class="mx-gem-in">${GEM(i)}</g></g>`;
   const garden = (seed, label) => { const W = MX.world(seed); return `<svg class="mx-garden" viewBox="0 0 ${f2(VW)} ${VH}" data-seed="${seed}" role="group" aria-label="${esc(label)}">${[...Array(N).keys()].map(i =>
-    `<g transform="translate(${f2(cx(i))} ${cy(i)})"><path class="mx-t" d="${HEX}" data-i="${i}" data-s="0" style="--v:${f2(W.tex[i])}" aria-hidden="true"/>${i === HOME ? `<path class="mx-home" d="${DOOR}"/>` : '<circle class="mx-m" r="2"/>'}</g>`).join('')}<g class="mx-gems"></g></svg>`; };
+    `<g transform="translate(${f2(cx(i))} ${cy(i)})"><path class="mx-t" d="${HEX}" data-i="${i}" data-s="0" style="--v:${f2(W.tex[i])}" aria-hidden="true"/>${i === HOME ? `<path class="mx-home" d="${DOOR}"/>` : '<circle class="mx-m" r="2"/>'}</g>`).join('')}</svg>`; };
   const reseed = (svg, seed) => { const W = MX.world(seed); svg.dataset.seed = seed; svg.querySelectorAll('.mx-t').forEach((e, i) => { e.style.setProperty('--v', f2(W.tex[i])); }); };
-  const hexIcon = (fill, stroke = 'none', sw = 0, extra = '') => `<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="${HEX}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>${extra}</svg>`;
-  const gemIcon = (st, base) => `<svg viewBox="-10 -10 20 20" aria-hidden="true" class="mx-gem-key"><path d="${HEX}" fill="${base}"/>${gemSvg(0, st, 0, 0)}</svg>`;
+  const hexIcon = (fill, stroke = 'none', sw = 0) => `<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="${HEX}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
   // paint a garden from a state: what changed animates (a pop for a tile that opens, rippling out from where you tried; a burn for a scorched one), unless motion is reduced
   function paint(svg, s, o = {}) {
     const ts = svg._t || (svg._t = [...svg.querySelectorAll('.mx-t')]);
@@ -1738,196 +1706,196 @@ function mess(el) {
       if (f !== e.hasAttribute('data-f')) e.toggleAttribute('data-f', f); if (b !== e.hasAttribute('data-bold')) e.toggleAttribute('data-bold', b);
       if (o.tried) { const t = o.tried.has(i) && s[i] === 0; if (t !== e.hasAttribute('data-tried')) e.toggleAttribute('data-tried', t); } }
   }
-  // a line over tries, in a 600×200 box, from 0 to top
+  // a line of reach over turns, in a 600×200 box (or the sparkline's 200×60), from 0 to top
   const lineD = (pts, turns, top, w = 600, h = 200) => pts.map((v, i) => `${i ? 'L' : 'M'}${f2(i / Math.max(1, turns) * w)} ${f2(h - v / top * h)}`).join('');
-  const topFound = m => [4, 8, 12, 16].find(v => v >= m) || HIDDEN;
-  const order = vals => WHO.map((w, k) => [w, vals[w], k]).sort((a, b) => b[1] - a[1] || a[2] - b[2]).map(x => x[0]); // most found first; ties keep the fixed order
-  const chart = (label, tall) => `<div class="mx-chart${tall ? ' tall' : ''}" role="img" aria-label="${label}"><div class="mx-yax"></div><div class="mx-plot"><span class="mx-ylab">found</span><svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g><g class="runs"></g></svg></div><div class="mx-ends"></div><div class="mx-xax"></div></div>`;
-  const HELLO = 'Tap a glowing tile to try it. Amber tiles are bold bets.', START = `${HIDDEN} discoveries hide under the dark tiles. Find as many as you can.`;
+  const niceTop = m => [10, 20, 30, 40, 50, 60, 80, 100].find(v => v >= m * 1.08) || 100;
 
   el.innerHTML = `<div class="mx">
-    <section class="mx-act" data-act="play" data-tries="0"><h4><span class="n">1</span>Find what’s hidden</h4>
-      <div class="mx-caps"><p class="mx-cap">Mess around and find out is how anything gets better. Every experiment teaches you something.</p><p class="mx-cap">Experiments create knowledge, skills and chances. They can also destroy them.</p>
-        <p class="mx-cap">What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.</p></div>
-      <div class="mx-fig mx-game">
-        <div class="mx-you">
-          <div class="mx-counts"><div class="mx-count"><span class="mx-k">Found</span><span class="mx-big"><b data-found>0</b><span>of ${HIDDEN} hidden</span></span></div><div class="mx-count"><span class="mx-k">Doors left</span><span class="mx-big"><b data-doors>0</b><span>to try</span></span></div></div>
-          <div class="mx-stage"><p class="mx-hint">${HELLO}</p>${garden(1, 'Your garden')}</div>
-          <p class="mx-status" aria-live="polite"></p>
-          <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A door: try it</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Burned: closed for good</span><span>${hexIcon('var(--mf-shut)', 'var(--mf-shut-line)', 1)}Closed: left alone too long</span><span>${gemIcon('found', 'var(--mf-lit)')}A discovery</span>
-            <span data-end hidden>${gemIcon('lost', 'var(--mf-scorch)')}Lost when its tile burned</span><span data-end hidden>${gemIcon('missed', 'var(--mf-dark)')}Never reached</span></div>
-        </div>
-        <div class="mx-race">
-          <p class="mx-race-t">The race</p><p class="mx-race-d">Three players play this same garden. Each takes a try when you do.</p>
-          ${chart('Discoveries found, try by try, for you and each player')}
-          <ul class="mx-key">${['you', ...WHO].map(w => `<li data-who="${w}"><i aria-hidden="true"></i><b>${NAME[w]}</b><span>${DESC[w]}</span></li>`).join('')}</ul>
-          <p class="mx-score" aria-live="polite"></p><p class="mx-final"></p><p class="mx-nudge"></p>
-          <div class="mx-btns"><button type="button" class="mx-btn mx-new">Play a different garden</button></div>
-        </div></div></section>
-    <section class="mx-act" data-act="lab"><h4><span class="n">2</span>Change the rules</h4><p class="mx-cap">So the goal isn’t to avoid risk, or to chase every discovery. It’s to keep growing your room to experiment, without breaking what makes it possible.</p>
+    <section class="mx-act" data-act="1"><h4><span class="n">1</span>Mess around</h4><p class="mx-cap">Mess around and find out is how anything gets better. Every experiment teaches you something.</p>
+      <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(1, 'Your garden')}</div>
+        <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b></div>
+          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-steady)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
+          <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-again">Start over</button></div></div></div></section>
+    <section class="mx-act" data-act="2"><h4><span class="n">2</span>Find out</h4><p class="mx-cap">Experiments create knowledge, skills and chances. They can also destroy them.</p>
+      <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(2, 'Your second garden, with bold bets')}</div>
+        <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b></div>
+          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-steady)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
+          <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-wait">Wait a turn</button><button type="button" class="mx-btn mx-again">Start over</button></div></div></div>
+      <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A small try: one tile</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Burned: closed for good</span></div></section>
+    <section class="mx-act" data-act="3"><h4><span class="n">3</span>The real variable</h4><p class="mx-cap">What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.</p>
+      <div class="mx-fig"><div class="mx-players">${WHO.map(w => `<div class="mx-player" data-who="${w}"><div class="mx-ph"><i aria-hidden="true"></i><b>${NAME[w]}</b><span data-reach></span><small>${DESC[w]}</small></div><div class="mx-stage">${garden(1, NAME[w] + '’s garden')}</div></div>`).join('')}</div>
+        <div class="mx-chart" role="img" aria-label="Open doors, turn by turn, for each player"><div class="mx-yax"></div><div class="mx-plot"><span class="mx-ylab">open doors</span><svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g>${WHO.map(w => `<path data-line="${w}" fill="none" stroke="var(--mf-${w === 'bold' ? 'boldline' : w})" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')}</svg></div><div class="mx-ends"></div><div class="mx-xax"></div></div>
+        <div class="mx-ctl"><button type="button" class="mx-btn ink mx-play" aria-pressed="false"></button><button type="button" class="mx-btn mx-reroll">Re-roll</button><span class="mx-meta"><b data-seed-out></b> · <span data-turn="0"></span></span></div>
+        <p class="mx-note">All three players start in the same garden, with the same dice. The result is not fixed. Re-roll, and the result can change.</p></div></section>
+    <section class="mx-act" data-act="4"><h4><span class="n">4</span>Your turn</h4><p class="mx-cap">So the goal isn’t to avoid risk, or to chase every discovery. It’s to keep growing your room to experiment, without breaking what makes it possible.</p>
       <div class="mx-fig mx-lab"><div class="mx-dials">
           <div class="mx-dial"><span><label for="mx-k-size">How big are bold bets?</label><output data-o="size" for="mx-k-size"></output></span><input type="range" id="mx-k-size" data-k="size" min="1" max="3" step="1" value="2" aria-describedby="mx-d-size"><small id="mx-d-size">Bold risks this many tiles at once, and can win as many.</small></div>
           <div class="mx-dial"><span><label for="mx-k-rev">How often can a mistake be undone?</label><output data-o="rev" for="mx-k-rev"></output></span><input type="range" id="mx-k-rev" data-k="rev" min="0" max="100" step="10" value="50" aria-describedby="mx-d-rev"><small id="mx-d-rev"></small></div>
-          <div class="mx-dial"><span><label for="mx-k-turns">How long do they play?</label><output data-o="turns" for="mx-k-turns"></output></span><input type="range" id="mx-k-turns" data-k="turns" min="10" max="100" step="5" value="100" aria-describedby="mx-d-turns"><small id="mx-d-turns">They stop sooner if no doors are left.</small></div>
-          <div class="mx-dial"><span><label for="mx-k-fade">How fast do untouched doors close?</label><output data-o="fade" for="mx-k-fade"></output></span><input type="range" id="mx-k-fade" data-k="fade" min="0" max="30" step="2" value="12" aria-describedby="mx-d-fade"><small id="mx-d-fade">Leave a door alone and it may close for good.</small></div>
+          <div class="mx-dial"><span><label for="mx-k-turns">How long do they play?</label><output data-o="turns" for="mx-k-turns"></output></span><input type="range" id="mx-k-turns" data-k="turns" min="10" max="80" step="5" value="40"></div>
+          <div class="mx-dial"><span><label for="mx-k-fade">How fast do untouched doors close?</label><output data-o="fade" for="mx-k-fade"></output></span><input type="range" id="mx-k-fade" data-k="fade" min="0" max="15" step="1" value="4" aria-describedby="mx-d-fade"><small id="mx-d-fade">Leave a door alone and it may shut.</small></div>
           <div class="mx-seg" role="group" aria-label="How many gardens to play"><button type="button" data-mode="one" aria-pressed="true">Play once</button><button type="button" data-mode="many" aria-pressed="false">Play 100 times</button></div>
-          <button type="button" class="mx-btn mx-reroll4">Try a different garden</button></div>
-        <div class="mx-out">${chart('Discoveries found, try by try, for each player', true)}
+          <button type="button" class="mx-btn mx-reroll4">Re-roll</button></div>
+        <div class="mx-out"><div class="mx-chart tall" role="img" aria-label="Open doors, turn by turn, for each player"><div class="mx-yax"></div><div class="mx-plot"><span class="mx-ylab">open doors</span><svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><g class="grid"></g><g class="runs"></g></svg></div><div class="mx-ends"></div><div class="mx-xax"></div></div>
           <p class="mx-verdict" aria-live="polite"></p>
-          <div class="mx-strips" hidden><p class="mx-strips-t">Where each garden ended</p>${WHO.map(w => `<span class="mx-strip-n" data-who="${w}">${NAME[w]}</span><div class="mx-strip" data-who="${w}"><svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg></div><span class="mx-strip-m"></span>`).join('')}<div class="mx-strip-ax"><span>0</span><span>found at the end</span><span>${HIDDEN}</span></div></div>
+          <div class="mx-strips" hidden><p class="mx-strips-t">Where each garden ended</p>${WHO.map(w => `<span class="mx-strip-n" data-who="${w}">${NAME[w]}</span><div class="mx-strip" data-who="${w}"><svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg></div><span class="mx-strip-m"></span>`).join('')}<div class="mx-strip-ax"><span>0</span><span>open doors at the end</span><span>${N}</span></div></div>
           <p class="mx-note" data-explain></p></div></div>
       <div class="mx-coda"><svg viewBox="0 0 64 22" aria-hidden="true">${[0, 1, 2].map(k => `<path d="${HEX}" transform="translate(${12 + k * 20} 11)" fill="${['var(--mf-lit)', 'var(--mf-lit-deep)', 'var(--mf-door)'][k]}" ${k === 2 ? 'stroke="var(--mf-edge)" stroke-width="1.4"' : ''}/>`).join('')}</svg><p class="mx-close">Mess around in ways that let you mess around better tomorrow.</p></div></section></div>`;
-  const $ = (q, r = el) => r.querySelector(q), A1 = $('[data-act="play"]'), A4 = $('[data-act="lab"]');
+  const $ = (q, r = el) => r.querySelector(q), acts = [1, 2, 3, 4].map(k => $(`[data-act="${k}"]`));
   let gone = false; const later = new Set(); // one-shot frames, cancelled on close
-  const keep = id => { later.add(id); MX._live.raf = later.size; }, done = id => { later.delete(id); MX._live.raf = later.size; };
 
-  // a chart's axes: ticks on the left, tries underneath
+  // a chart's axes: ticks on the left, turns underneath
   function axes(box, top, turns) {
     $('.grid', box).innerHTML = [0, top / 2, top].map(v => `<line x1="0" x2="600" y1="${f2(200 - v / top * 200)}" y2="${f2(200 - v / top * 200)}" stroke="var(--ink)" stroke-opacity="${v ? .08 : .25}" vector-effect="non-scaling-stroke"/>`).join('');
     $('.mx-yax', box).innerHTML = [0, Math.round(top / 2), top].map(v => `<span class="mx-yt" style="top:${f2(100 - v / top * 100)}%">${v}</span>`).join('');
-    const step = turns <= 20 ? 5 : turns <= 50 ? 10 : 20, xs = []; for (let t = 0; t < turns; t += step) xs.push(t); if (turns - xs[xs.length - 1] < step / 2) xs.pop(); xs.push(turns);
-    $('.mx-xax', box).innerHTML = xs.map(t => `<span class="mx-xt" style="left:${f2(t / turns * 100)}%">${t === 0 ? 'try 0' : t}</span>`).join('');
+    const step = turns <= 20 ? 5 : turns <= 50 ? 10 : 20, xs = []; for (let t = 0; t < turns; t += step) xs.push(t); xs.push(turns);
+    $('.mx-xax', box).innerHTML = xs.map(t => `<span class="mx-xt" style="left:${f2(t / turns * 100)}%">${t === 0 ? 'turn 0' : t}</span>`).join('');
   }
   // end labels beside the plot, nudged apart so they never overlap
   function ends(box, items, top) {
-    const gap = 9.5, ys = items.map(it => ({ ...it, y: 100 - it.v / top * 100 })).sort((a, b) => a.y - b.y || (a.rank ?? 0) - (b.rank ?? 0));
+    const gap = 9.5, ys = items.map(it => ({ ...it, y: 100 - it.v / top * 100 })).sort((a, b) => a.y - b.y);
     for (let k = 1; k < ys.length; k++) if (ys[k].y - ys[k - 1].y < gap) ys[k].y = ys[k - 1].y + gap;
     const over = ys.length ? ys[ys.length - 1].y - 100 : 0; if (over > 0) ys.forEach(it => { it.y -= over; });
     $('.mx-ends', box).innerHTML = ys.map(it => `<span class="mx-end" data-who="${it.who}" style="top:${f2(it.y)}%">${it.label}<b>${it.v}</b></span>`).join('');
   }
 
-  // ----- the game: your garden, and the race on the same seed -----
-  const P = MX.params3(), svg = $('.mx-garden', A1), foundEl = $('[data-found]', A1), doorsEl = $('[data-doors]', A1), hintEl = $('.mx-hint', A1), statusEl = $('.mx-status', A1);
-  const race = $('.mx-race', A1), chartR = $('.mx-chart', race), scoreEl = $('.mx-score', race), finalEl = $('.mx-final', race), nudgeEl = $('.mx-nudge', race), gems = $('.mx-gems', svg);
-  $('.runs', chartR).innerHTML = [...WHO, 'you'].map(w => `<path data-line="${w}" fill="none" stroke="${COL[w]}" stroke-width="${w === 'you' ? 3.5 : 2.5}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('');
-  let W, G, rng, tried, players, boldNow = [], front = new Set(), focusI = null, invite = true, over = false;
-  const mark = () => { svg.querySelector('.mx-tap')?.remove(); if (!invite || !front.size) return;
-    const t = [...front].sort((a, b) => MX.dist(a, HOME) - MX.dist(b, HOME) || cx(b) - cx(a))[0];
-    svg.insertAdjacentHTML('beforeend', `<circle class="mx-tap" cx="${f2(cx(t))}" cy="${cy(t)}" r="5.5" aria-hidden="true"/>`); };
-  const boldPicks = f => { const sc = f.map(t => [t, MX.stake(G, t, P.size).filter(i => G.s[i] === 0).length]).filter(x => x[1] >= 6).sort((a, b) => b[1] - a[1] || a[0] - b[0]), out = [];
-    for (const [t] of sc) { if (out.length < 3 && out.every(o => MX.dist(o, t) >= 3)) out.push(t); } return out; };
-  // the race: four lines on one chart, the live score under it
-  const drawRace = () => {
-    const logs = { you: G.log, ...Object.fromEntries(players.map(p => [p.who, p.G.log])) }, all = ['you', ...WHO];
-    const top = topFound(Math.max(...all.map(w => logs[w][logs[w].length - 1]))), most = Math.max(...all.map(w => logs[w].length - 1)), turns = Math.max(20, Math.ceil(most / 10) * 10);
-    axes(chartR, top, turns);
-    all.forEach(w => { const p = $(`path[data-line="${w}"]`, chartR); p.dataset.pts = logs[w].join(); p.setAttribute('d', lineD(logs[w], turns, top)); });
-    const last = Object.fromEntries(all.map(w => [w, logs[w][logs[w].length - 1]]));
-    ends(chartR, all.map((w, k) => ({ who: w, label: NAME[w], v: last[w], rank: k })), top);
-    const rank = order(last);
-    scoreEl.innerHTML = [`<span data-who="you"><b>You</b> ${last.you}</span>`, ...rank.map(w => `<span data-who="${w}"><b>${NAME[w]}</b> ${last[w]}</span>`)].join('<i aria-hidden="true"> · </i>');
-    if (over) { finalEl.textContent = `You found ${last.you}. On this garden, ${rank.map((w, k) => `${NAME[w]}${k ? '' : ' found'} ${last[w]}`).join(', ')}.`;
-      nudgeEl.innerHTML = 'When does each style win? <button type="button" class="mx-link">Try the sliders.</button>'; nudgeEl.querySelector('.mx-link').onclick = () => { A4.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' }); $('#mx-k-size', A4).focus({ preventScroll: true }); }; }
-    else { finalEl.textContent = ''; nudgeEl.textContent = ''; }
-  };
-  const showGem = (i, st, delay) => { gems.insertAdjacentHTML('beforeend', gemSvg(i, st)); const g = gems.lastElementChild.firstElementChild;
-    if (!calm) g.animate([{ transform: 'scale(.2)', opacity: 0 }, { transform: 'scale(1.3)', opacity: 1, offset: .6 }, { transform: 'scale(1)', opacity: 1 }], { duration: 560, delay, easing: EASE, fill: 'backwards' }); };
-  const draw = (o = {}) => {
-    const f = over ? [] : MX.frontier(G); front = new Set(f); boldNow = boldPicks(f);
-    paint(svg, G.s, { ...o, front, bold: boldNow, tried });
-    // one door is in the Tab order at a time; arrows move between them
-    if (!front.has(focusI)) focusI = f.length ? f.reduce((a, b) => (MX.dist(b, focusI ?? HOME) < MX.dist(a, focusI ?? HOME) ? b : a)) : null;
-    svg._t.forEach((e, i) => { const fr = front.has(i); e.tabIndex = fr ? (i === focusI ? 0 : -1) : -1; if (!fr) e.removeAttribute('tabindex');
-      if (fr) { e.setAttribute('role', 'button'); e.removeAttribute('aria-hidden'); e.setAttribute('aria-label', `${boldNow.includes(i) ? `Bold bet, ${MX.stake(G, i, P.size).length} tiles` : 'Try the tile'} at row ${(i / C | 0) + 1}, column ${i % C + 1}`); }
-      else { e.removeAttribute('role'); e.removeAttribute('aria-label'); e.setAttribute('aria-hidden', 'true'); } });
-    foundEl.textContent = G.found.length; doorsEl.textContent = f.length; A1.dataset.tries = G.tries; A1.dataset.over = String(over);
-    svg.setAttribute('aria-label', `Your garden: ${G.found.length} of ${HIDDEN} found, ${pl(f.length, 'door')} left`);
-    drawRace();
-  };
-  // at the end, the garden shows what was hidden: lost under burned tiles, or never reached
-  const reveal = () => { const lost = new Set(G.lost); W.hid.forEach((i, k) => { if (!G.found.includes(i)) showGem(i, lost.has(i) || G.s[i] === 2 ? 'lost' : 'missed', 300 + k * 40); });
-    A1.querySelectorAll('.mx-legend [data-end]').forEach(e => { e.hidden = false; }); };
-  const reset = seed => { W = MX.world(seed); reseed(svg, seed); G = MX.start(); rng = MX.stream(seed); tried = new Set(); focusI = null; over = false; invite = true;
-    players = WHO.map(w => MX.player(seed, w, P)); race.dataset.seed = seed; gems.innerHTML = ''; svg.classList.add('invite'); svg.classList.remove('over');
-    A1.querySelectorAll('.mx-legend [data-end]').forEach(e => { e.hidden = true; }); hintEl.textContent = HELLO; statusEl.textContent = START; draw(); mark(); };
-  // the line under the stage: what the last try did
-  const say = out => { const n = G.tries, b = [];
-    if (out.ok) { b.push(`it worked: ${pl(out.opened.length, 'new tile')}.`); if (out.found.length) b.push(out.found.length === 1 ? 'You found one!' : `You found ${out.found.length}!`); }
-    else b.push(out.burnt.length ? `it failed and burned ${pl(out.burnt.length, 'tile')}.` : 'it failed.');
-    if (out.closed.length) b.push(`${pl(out.closed.length, 'door')} closed.`);
-    if (over) b.push('No doors are left. The game is over.');
-    return `Try ${n}: ${b.join(' ')}`; };
-  const act = move => {
-    if (over) return;
-    if (invite) { invite = false; svg.classList.remove('invite'); mark(); }
-    const hadFocus = svg.contains(document.activeElement), out = MX.play(W, G, move, P, rng);
-    if (!out.ok && !out.burnt.length) tried.add(move.t);
-    if (!out.ok && !out.burnt.length && !calm) svg._t[move.t].animate([{ transform: 'none' }, { transform: 'translateX(-1.4px)' }, { transform: 'translateX(1.2px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-in-out' });
-    players.forEach(p => p.step()); // each player takes one try when you do
-    if (!MX.frontier(G).length) { over = true; players.forEach(p => { while (p.step()); }); svg.classList.add('over'); hintEl.textContent = 'No doors left. Here is what was hidden.'; }
-    draw({ anim: true, from: move.t, fresh: new Set(out.opened) });
-    out.found.forEach(i => showGem(i, 'found', MX.dist(i, move.t) * 70 + 260));
-    if (over) reveal();
-    statusEl.textContent = say(out);
-    if (hadFocus && focusI != null) svg._t[focusI].focus({ preventScroll: true });
-  };
-  const tryAt = i => { if (!front.has(i)) return; focusI = i; act({ kind: boldNow.includes(i) ? 'bold' : 'small', t: i }); };
-  // a tap counts for the nearest door when it lands in the gap or the margin beside one, so small screens forgive a near miss
-  svg.addEventListener('click', e => { const t = e.target.closest('.mx-t[data-f]'); if (t) { tryAt(+t.dataset.i); return; }
-    const m = svg.getScreenCTM(); if (!m || (e.target.closest('.mx-t') && e.target.closest('.mx-t').dataset.s === '1')) return;
-    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); let best = null, bd = 11.5;
-    front.forEach(i => { const d = Math.hypot(cx(i) - pt.x, cy(i) - pt.y); if (d < bd) { bd = d; best = i; } }); if (best != null) tryAt(best); });
-  // a bold bet shows what it stakes while you point at it or focus it
-  const zone = i => { svg._t.forEach(e => e.classList.remove('zone')); if (i != null && boldNow.includes(i)) MX.stake(G, i, P.size).forEach(j => svg._t[j].classList.add('zone')); };
-  svg.addEventListener('pointerover', e => { const t = e.target.closest('.mx-t[data-bold]'); zone(t ? +t.dataset.i : null); });
-  svg.addEventListener('pointerleave', () => zone(null));
-  svg.addEventListener('focusin', e => { const t = e.target.closest('.mx-t'); if (t) { focusI = +t.dataset.i; zone(focusI); } });
-  svg.addEventListener('focusout', () => zone(null));
-  svg.addEventListener('keydown', e => {
-    const i = focusI; if (i == null) return;
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tryAt(i); return; }
-    const dir = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[e.key]; if (!dir) return; e.preventDefault();
-    let best = null, bd = Infinity; front.forEach(j => { if (j === i) return; const dx = cx(j) - cx(i), dy = cy(j) - cy(i), along = dx * dir[0] + dy * dir[1], off = Math.abs(dx * dir[1]) + Math.abs(dy * dir[0]);
-      if (along <= 0) return; const d = along + off * 2; if (d < bd) { bd = d; best = j; } });
-    if (best != null) { svg._t[i].tabIndex = -1; focusI = best; svg._t[best].tabIndex = 0; svg._t[best].focus({ preventScroll: false }); }
-  });
-  $('.mx-new', A1).onclick = () => reset(newSeed(W && W.seed));
-  reset(newSeed());
+  // ----- acts 1 and 2: your own garden -----
+  function playable(act, P, bold) {
+    const svg = $('.mx-garden', act), reachEl = $('[data-reach]', act), turnEl = $('[data-turn]', act), statusEl = $('.mx-status', act), line = $('path[data-line]', act), area = $('path.area', act);
+    let W, G, rng, tried, boldNow = [], front = new Set(), focusI = null, tries = 0, invite = true;
+    // until the first tap in this act: the edge breathes, and one tile near the middle carries a small ripple
+    const HELLO = bold ? 'Tap a glowing tile, or an amber one for a bold bet.' : 'Tap a glowing tile to try to open it.';
+    svg.classList.add('invite');
+    const mark = () => { svg.querySelector('.mx-tap')?.remove(); if (!invite || !front.size) return;
+      const t = [...front].sort((a, b) => MX.dist(a, HOME) - MX.dist(b, HOME) || cx(b) - cx(a))[0];
+      svg.insertAdjacentHTML('beforeend', `<circle class="mx-tap" cx="${f2(cx(t))}" cy="${cy(t)}" r="5.5" aria-hidden="true"/>`); };
+    const boldPicks = f => { if (!bold) return []; const sc = f.map(t => [t, MX.stake(G, t, P.size).filter(i => G.s[i] === 0).length]).filter(x => x[1] >= 6).sort((a, b) => b[1] - a[1] || a[0] - b[0]), out = [];
+      for (const [t] of sc) { if (out.length < 3 && out.every(o => MX.dist(o, t) >= 3)) out.push(t); } return out; };
+    const draw = (o = {}) => {
+      const f = MX.frontier(G); front = new Set(f); boldNow = boldPicks(f);
+      paint(svg, G.s, { ...o, front, bold: boldNow, tried });
+      // one edge tile is in the Tab order at a time; arrows move between them
+      if (!front.has(focusI)) focusI = f.length ? f.reduce((a, b) => (MX.dist(b, focusI ?? HOME) < MX.dist(a, focusI ?? HOME) ? b : a)) : null;
+      svg._t.forEach((e, i) => { const fr = front.has(i); e.tabIndex = fr ? (i === focusI ? 0 : -1) : -1; if (!fr) e.removeAttribute('tabindex');
+        if (fr) { e.setAttribute('role', 'button'); e.removeAttribute('aria-hidden'); e.setAttribute('aria-label', `${boldNow.includes(i) ? `Bold bet, ${MX.stake(G, i, P.size).length} tiles` : 'Try the tile'} at row ${(i / C | 0) + 1}, column ${i % C + 1}`); }
+        else { e.removeAttribute('role'); e.removeAttribute('aria-label'); e.setAttribute('aria-hidden', 'true'); } });
+      const n = MX.lit(G.s); reachEl.textContent = n; turnEl.dataset.turn = G.turn; turnEl.textContent = G.turn ? `Turn ${G.turn}` : 'Turn 0: nothing tried yet';
+      svg.setAttribute('aria-label', `${bold ? 'Your second garden' : 'Your garden'}: ${n} open door${n === 1 ? '' : 's'}`);
+      const top = niceTop(Math.max(...G.reach)), turns = Math.max(20, G.turn); line.dataset.pts = G.reach.join(); const d = lineD(G.reach, turns, top, 200, 60);
+      line.setAttribute('d', d); area.setAttribute('d', `${d}L${f2(G.turn / turns * 200)} 60L0 60Z`);
+    };
+    const reset = seed => { W = MX.world(seed); reseed(svg, seed); G = MX.start(); rng = MX.stream(seed); tried = new Set(); focusI = null; tries = 0; statusEl.textContent = HELLO; draw(); mark(); };
+    // the line on the stage: what the last try did to the garden, in tiles, then how many tries so far
+    const say = (out, d) => { const pl = n => `${n} door${n === 1 ? '' : 's'}`, so = `Keep going: ${tries} ${tries === 1 ? 'try' : 'tries'} so far.`;
+      if (out.kind === 'wait') return out.faded.length ? `A turn passed: ${pl(out.faded.length)} closed. ${tries ? so : HELLO}` : `A turn passed. ${tries ? so : HELLO}`;
+      const r = out.burnt.length ? `Burned ${out.burnt.length} tile${out.burnt.length === 1 ? '' : 's'}` : d > 0 ? `It grew: +${pl(d)}` : d < 0 ? `It failed, and ${pl(-d)} closed` : 'It failed. You lost one turn';
+      return `${r}. ${so}`; };
+    const act1 = (move) => {
+      if (move) { tries++; if (invite) { invite = false; svg.classList.remove('invite'); mark(); } }
+      const n0 = MX.lit(G.s), hadFocus = svg.contains(document.activeElement), out = MX.play(W, G, move, P, rng);
+      if (move && !out.ok && !out.burnt.length) tried.add(move.t);
+      if (move && !out.ok && !out.burnt.length && !calm) svg._t[move.t].animate([{ transform: 'none' }, { transform: 'translateX(-1.4px)' }, { transform: 'translateX(1.2px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-in-out' });
+      draw({ anim: true, from: move ? move.t : null, fresh: new Set(out.opened) }); statusEl.textContent = say(out, MX.lit(G.s) - n0);
+      if (hadFocus && focusI != null) svg._t[focusI].focus({ preventScroll: true });
+    };
+    const tryAt = i => { if (!front.has(i)) return; focusI = i; act1({ kind: boldNow.includes(i) ? 'bold' : 'small', t: i }); };
+    // a tap counts for the nearest edge tile when it lands in the gap or the margin beside one, so small screens forgive a near miss
+    svg.addEventListener('click', e => { const t = e.target.closest('.mx-t[data-f]'); if (t) { tryAt(+t.dataset.i); return; }
+      const m = svg.getScreenCTM(); if (!m || (e.target.closest('.mx-t') && !e.target.closest('.mx-t[data-s="0"], .mx-t[data-s="2"]') && e.target.closest('.mx-t').dataset.s === '1')) return;
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); let best = null, bd = 11.5;
+      front.forEach(i => { const d = Math.hypot(cx(i) - pt.x, cy(i) - pt.y); if (d < bd) { bd = d; best = i; } }); if (best != null) tryAt(best); });
+    // a bold bet shows what it stakes while you point at it or focus it
+    const zone = i => { svg._t.forEach(e => e.classList.remove('zone')); if (i != null && boldNow.includes(i)) MX.stake(G, i, P.size).forEach(j => svg._t[j].classList.add('zone')); };
+    svg.addEventListener('pointerover', e => { const t = e.target.closest('.mx-t[data-bold]'); zone(t ? +t.dataset.i : null); });
+    svg.addEventListener('pointerleave', () => zone(null));
+    svg.addEventListener('focusin', e => { const t = e.target.closest('.mx-t'); if (t) { focusI = +t.dataset.i; zone(focusI); } });
+    svg.addEventListener('focusout', () => zone(null));
+    svg.addEventListener('keydown', e => {
+      const i = focusI; if (i == null) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tryAt(i); return; }
+      const dir = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[e.key]; if (!dir) return; e.preventDefault();
+      let best = null, bd = Infinity; front.forEach(j => { if (j === i) return; const dx = cx(j) - cx(i), dy = cy(j) - cy(i), along = dx * dir[0] + dy * dir[1], off = Math.abs(dx * dir[1]) + Math.abs(dy * dir[0]);
+        if (along <= 0) return; const d = along + off * 2; if (d < bd) { bd = d; best = j; } });
+      if (best != null) { svg._t[i].tabIndex = -1; focusI = best; svg._t[best].tabIndex = 0; svg._t[best].focus({ preventScroll: false }); }
+    });
+    $('.mx-again', act).onclick = () => reset(newSeed(W && W.seed));
+    const w = $('.mx-wait', act); if (w) w.onclick = () => act1(null);
+    reset(newSeed());
+  }
+  playable(acts[0], { size: 0, rev: 1, fade: 0 }, false);
+  playable(acts[1], { size: 2, rev: .5, fade: .04 }, true);
 
-  // ----- the lab: the dials, once or a hundred times -----
-  const chart4 = $('.mx-chart', A4), P4 = { size: 2, rev: .5, turns: 100, fade: .12 }; let mode = 'one', seed4 = newSeed(), pend = 0;
-  const reroll4 = $('.mx-reroll4', A4), med = a => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
-  const pad = (r, n) => r.length > n ? r : r.concat(Array(n - r.length).fill(r[r.length - 1])); // a game that ended early keeps what it found
-  const outs = () => { const o = k => $(`[data-o="${k}"]`, A4); o('size').textContent = `${SIZE_TILES[P4.size]} tiles`; o('rev').textContent = `${Math.round(P4.rev * 100)}%`; $('#mx-d-rev', A4).textContent = `The other ${100 - Math.round(P4.rev * 100)}% burn tiles for good.`; o('turns').textContent = `${P4.turns} tries`; o('fade').textContent = `${Math.round(P4.fade * 100)}% a try`;
+  // ----- act 3: three players, one seed, played out turn by turn -----
+  const A3 = acts[2], P3 = MX.params3(), STEP = 220, svgs3 = Object.fromEntries(WHO.map(w => [w, $(`.mx-player[data-who="${w}"] .mx-garden`, A3)]));
+  const playBtn = $('.mx-play', A3), turn3 = $('[data-turn]', A3), chart3 = $('.mx-chart', A3);
+  let seed3, runs3, top3, k3 = 0, playing = false, visible = false, started = false, raf = 0, last = 0, acc = 0;
+  A3.dataset.turns = P3.turns;
+  const label3 = () => { playBtn.innerHTML = playing ? '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5h2.4v9H2.5zM7.1 1.5h2.4v9H7.1z" fill="currentColor"/></svg>Pause' : `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.4l7.4 4.6L3 10.6z" fill="currentColor"/></svg>${k3 >= P3.turns ? 'Play again' : k3 ? 'Play' : 'Play'}`;
+    playBtn.setAttribute('aria-pressed', String(playing)); };
+  const show3 = (k, anim) => { const prev = k3; k3 = k;
+    WHO.forEach(w => { const R3 = runs3[w], fresh = new Set(); if (anim) for (let i = 0; i < N; i++) if (R3.states[k][i] === 1 && R3.states[prev] && R3.states[prev][i] !== 1) fresh.add(i);
+      paint(svgs3[w], R3.states[k], { anim, fresh }); $(`.mx-player[data-who="${w}"] [data-reach]`, A3).textContent = R3.reach[k];
+      const pts = R3.reach.slice(0, k + 1), path = $(`path[data-line="${w}"]`, A3); path.dataset.pts = pts.join(); path.setAttribute('d', lineD(pts, P3.turns, top3)); });
+    ends(chart3, WHO.map(w => ({ who: w, label: NAME[w], v: runs3[w].reach[k] })), top3);
+    turn3.dataset.turn = k; turn3.textContent = `turn ${k} of ${P3.turns}`; label3(); };
+  const reset3 = seed => { seed3 = seed; runs3 = Object.fromEntries(WHO.map(w => [w, MX.run(seed, w, P3, true)])); top3 = niceTop(Math.max(...WHO.flatMap(w => runs3[w].reach)));
+    WHO.forEach(w => reseed(svgs3[w], seed)); $('[data-seed-out]', A3).textContent = `Garden #${seed}`; axes(chart3, top3, P3.turns); k3 = 0; show3(0, false); };
+  const stopLoop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; MX._live.raf = 0; };
+  const frame = now => { raf = 0; MX._live.raf = 0; if (gone) return; MX.tick(); if (!playing || !visible) return;
+    acc += Math.min(200, now - last); last = now; let moved = false; while (acc >= STEP && k3 < P3.turns) { acc -= STEP; k3++; moved = true; }
+    if (moved) show3(k3, true); if (k3 >= P3.turns) { playing = false; label3(); return; }
+    raf = requestAnimationFrame(frame); MX._live.raf = 1; };
+  const loop = () => { if (raf || gone || !playing || !visible || calm) return; last = performance.now(); acc = 0; raf = requestAnimationFrame(frame); MX._live.raf = 1; };
+  const play3 = () => { if (k3 >= P3.turns) show3(0, false); if (calm) { show3(P3.turns, false); return; } playing = true; started = true; label3(); loop(); };
+  playBtn.onclick = () => { if (playing) { playing = false; stopLoop(); label3(); } else play3(); };
+  $('.mx-reroll', A3).onclick = () => { stopLoop(); playing = false; reset3(newSeed(seed3)); if (!calm) play3(); };
+  // it plays by itself the first time it comes into view, and only while it is in view
+  const io = new IntersectionObserver(es => { const e = es[es.length - 1]; visible = e.isIntersecting && e.intersectionRatio >= .2;
+    if (visible && !started && !calm) play3(); else if (visible) loop(); else stopLoop(); }, { threshold: [0, .2, .5] });
+  io.observe($('.mx-fig', A3)); MX._live.obs = 1;
+  reset3(newSeed());
+
+  // ----- act 4: the dials, once or a hundred times -----
+  const A4 = acts[3], chart4 = $('.mx-chart', A4), P4 = { size: 2, rev: .5, turns: 40, fade: .04 }; let mode = 'one', seed4 = newSeed(), pend = 0;
+  const reroll4 = $('.mx-reroll4', A4), COL = { cautious: 'var(--mf-cautious)', bold: 'var(--mf-boldline)', steady: 'var(--mf-steady)' }, med = a => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
+  const outs = () => { const o = k => $(`[data-o="${k}"]`, A4); o('size').textContent = `${SIZE_TILES[P4.size]} tiles`; o('rev').textContent = `${Math.round(P4.rev * 100)}%`; $('#mx-d-rev', A4).textContent = `The other ${100 - Math.round(P4.rev * 100)}% burn tiles for good.`; o('turns').textContent = `${P4.turns} turns`; o('fade').textContent = `${Math.round(P4.fade * 100)}% a turn`;
     A4.querySelectorAll('input[type=range]').forEach(i => i.style.setProperty('--p', ((i.value - i.min) / (i.max - i.min) * 100) + '%')); };
   function compute() {
-    pend = 0; const runsG = $('.runs', A4), strips = $('.mx-strips', A4), verdict = $('.mx-verdict', A4), explain = $('[data-explain]', A4); A4.dataset.seed = seed4;
+    pend = 0; const runsG = $('.runs', A4), strips = $('.mx-strips', A4), verdict = $('.mx-verdict', A4), explain = $('[data-explain]', A4);
     if (mode === 'one') {
-      const rs = Object.fromEntries(WHO.map(w => [w, MX.run(seed4, w, P4)])), last = Object.fromEntries(WHO.map(w => [w, rs[w][rs[w].length - 1]])), top = topFound(Math.max(...Object.values(last)));
+      const rs = Object.fromEntries(WHO.map(w => [w, MX.run(seed4, w, P4)])), top = niceTop(Math.max(...WHO.flatMap(w => rs[w])));
       axes(chart4, top, P4.turns);
       runsG.innerHTML = WHO.map(w => `<path data-line="${w}" data-pts="${rs[w].join()}" d="${lineD(rs[w], P4.turns, top)}" fill="none" stroke="${COL[w]}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('');
-      ends(chart4, WHO.map(w => ({ who: w, label: NAME[w], v: last[w] })), top);
-      const rank = order(last), a = rank[0], b = rank[1];
-      verdict.textContent = last[a] === last[rank[2]] ? `All three found the same: ${last[a]}.` : last[a] === last[b] ? `${NAME[a]} and ${NAME[b]} tied for the most: ${last[a]}.` : `${NAME[a]} found the most: ${last[a]}.`;
-      strips.hidden = true; explain.textContent = `This is one game in one garden (#${seed4}). One game proves little. Play 100 times to compare.`; reroll4.textContent = 'Try a different garden';
+      ends(chart4, WHO.map(w => ({ who: w, label: NAME[w], v: rs[w][P4.turns] })), top);
+      const fin = WHO.map(w => [w, rs[w][P4.turns]]).sort((a, b) => b[1] - a[1]);
+      verdict.textContent = fin[0][1] === fin[1][1] ? `${NAME[fin[0][0]]} and ${NAME[fin[1][0]]} tied with the most open doors: ${fin[0][1]}.` : `${NAME[fin[0][0]]} ended with the most open doors: ${fin[0][1]}.`;
+      strips.hidden = true; explain.textContent = `This is one game in one garden (#${seed4}). One game proves little. Play 100 times to compare the results.`; reroll4.textContent = 'Re-roll';
       return;
     }
     const all = Object.fromEntries(WHO.map(w => [w, Array.from({ length: 100 }, (_, k) => MX.run((seed4 * 101 + k) >>> 0, w, P4))]));
-    const fin = Object.fromEntries(WHO.map(w => [w, all[w].map(r => r[r.length - 1])])), top = topFound(Math.max(...WHO.flatMap(w => fin[w]))); axes(chart4, top, P4.turns);
-    const medLine = w => { const ps = all[w].map(r => pad(r, P4.turns + 1)); return Array.from({ length: P4.turns + 1 }, (_, t) => med(ps.map(r => r[t]))); };
+    const top = niceTop(Math.max(...WHO.flatMap(w => all[w].flat()))); axes(chart4, top, P4.turns);
+    const medLine = w => Array.from({ length: P4.turns + 1 }, (_, t) => med(all[w].map(r => r[t])));
     runsG.innerHTML = WHO.map(w => `<g data-who="${w}" stroke="${COL[w]}" fill="none" vector-effect="non-scaling-stroke">${all[w].map((r, k) => `<path data-run="${k}" data-who="${w}" d="${lineD(r, P4.turns, top)}" stroke-opacity=".07" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`).join('')}</g>`).join('')
-      + WHO.map(w => `<path data-median-line="${w}" d="${lineD(medLine(w), P4.turns, top)}" fill="none" stroke="${COL[w]}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('');
-    const M = Object.fromEntries(WHO.map(w => [w, med(fin[w])]));
+      + WHO.map(w => { const m = medLine(w); return `<path data-median-line="${w}" d="${lineD(m, P4.turns, top)}" fill="none" stroke="${COL[w]}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`; }).join('');
+    const fin = Object.fromEntries(WHO.map(w => [w, all[w].map(r => r[P4.turns])])), M = Object.fromEntries(WHO.map(w => [w, med(fin[w])]));
     ends(chart4, WHO.map(w => ({ who: w, label: NAME[w], v: M[w] })), top);
-    // each garden's ending is a mark; marks on the same number spread a little up and down so a crowd shows as a crowd
-    WHO.forEach(w => { const st = $(`.mx-strip[data-who="${w}"]`, A4), seen = {}; st.dataset.median = M[w];
-      st.querySelector('svg').innerHTML = fin[w].map(v => { const k = seen[v] = (seen[v] || 0) + 1, x = f2((v + .5) / (HIDDEN + 1) * 100), h = Math.min(10, 2 + k * .45);
-        return `<line data-end="${v}" x1="${x}" x2="${x}" y1="${f2(13 - h)}" y2="${f2(13 + h)}" stroke="${COL[w]}" stroke-opacity=".22" stroke-width="3" vector-effect="non-scaling-stroke"/>`; }).join('')
-        + `<line x1="${f2((M[w] + .5) / (HIDDEN + 1) * 100)}" x2="${f2((M[w] + .5) / (HIDDEN + 1) * 100)}" y1="1" y2="25" stroke="var(--ink)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
+    WHO.forEach(w => { const st = $(`.mx-strip[data-who="${w}"]`, A4); st.dataset.median = M[w];
+      st.querySelector('svg').innerHTML = fin[w].map(v => `<line data-end="${v}" x1="${f2(v / N * 100)}" x2="${f2(v / N * 100)}" y1="5" y2="21" stroke="${COL[w]}" stroke-opacity=".28" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('')
+        + `<line x1="${f2(M[w] / N * 100)}" x2="${f2(M[w] / N * 100)}" y1="1" y2="25" stroke="var(--ink)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
       st.nextElementSibling.innerHTML = `typical: <b>${M[w]}</b>`; });
     const wins = { cautious: 0, bold: 0, steady: 0 }; let ties = 0;
     for (let k = 0; k < 100; k++) { const e = WHO.map(w => [w, fin[w][k]]).sort((a, b) => b[1] - a[1]); if (e[0][1] === e[1][1]) ties++; else wins[e[0][0]]++; }
-    const rank = [...WHO].sort((a, b) => wins[b] - wins[a]), n0 = wins[rank[0]];
-    verdict.textContent = `In 100 gardens, ${NAME[rank[0]]} found the most ${n0 === 1 ? 'once' : `${n0} times`}. ${NAME[rank[1]]} ${wins[rank[1]]}. ${NAME[rank[2]]} ${wins[rank[2]]}.${ties ? ` ${ties === 1 ? 'One tie' : `${ties} ties`}.` : ''}`;
-    strips.hidden = false; explain.textContent = 'Each faint line is one garden. The thick line is a typical one.'; reroll4.textContent = 'Try 100 different gardens';
+    const order = [...WHO].sort((a, b) => wins[b] - wins[a]);
+    const n0 = wins[order[0]];
+    verdict.textContent = `In 100 gardens, ${NAME[order[0]]} ended with the most open doors ${n0 === 1 ? 'once' : `${n0} times`}. ${NAME[order[1]]} ${wins[order[1]]}. ${NAME[order[2]]} ${wins[order[2]]}.${ties ? ` ${ties === 1 ? 'One tie' : `${ties} ties`}.` : ''}`;
+    strips.hidden = false; explain.textContent = 'Each faint line is one garden. The thick line is a typical one.'; reroll4.textContent = 'New gardens';
   }
-  const soon = () => { if (pend || gone) return; const id = requestAnimationFrame(() => { done(id); compute(); }); pend = id; keep(id); };
+  const soon = () => { if (pend || gone) return; pend = requestAnimationFrame(() => { later.delete(pend); compute(); }); later.add(pend); };
   A4.querySelectorAll('input[type=range]').forEach(i => i.oninput = () => { const k = i.dataset.k, v = +i.value; P4[k] = k === 'rev' || k === 'fade' ? v / 100 : v; outs(); if (calm) compute(); else soon(); });
   A4.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; A4.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); compute(); });
-  reroll4.onclick = () => { seed4 = newSeed(seed4); compute(); };
+  $('.mx-reroll4', A4).onclick = () => { seed4 = newSeed(seed4); compute(); };
   outs(); compute();
 
-  return () => { gone = true; later.forEach(id => cancelAnimationFrame(id)); later.clear(); MX._live.raf = 0; pend = 0; };
+  return () => { gone = true; stopLoop(); io.disconnect(); MX._live.obs = 0; later.forEach(id => cancelAnimationFrame(id)); later.clear(); if (pend) cancelAnimationFrame(pend); pend = 0; };
 }
 const specEl = document.getElementById('spec'), panel = specEl.querySelector('.panel'), closeBtn = specEl.querySelector('.close'), dimEl = specEl.querySelector('.dim');
 const EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';
