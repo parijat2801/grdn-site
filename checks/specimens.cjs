@@ -534,7 +534,7 @@ const mxGarden = (page, sel) => page.evaluate(sel => { const g = document.queryS
 const mxClickTile = async (page, sel, i) => { const b = await page.evaluate(([sel, i]) => { const e = document.querySelector(`${sel} .mx-t[data-i="${i}"]`); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, [sel, i]);
   await page.mouse.click(b.x, b.y); await wait(40); };
 const mxShow = (page, act) => page.evaluate(a => document.querySelector(`#spec-body [data-act="${a}"]`).scrollIntoView({ block: 'start' }), act);
-const mxRuns = page => page.evaluate(() => Object.fromEntries(['cautious', 'bold', 'gardener'].map(w => { const s = document.querySelector(`#spec-body .mx-strip[data-who="${w}"]`);
+const mxRuns = page => page.evaluate(() => Object.fromEntries(['cautious', 'bold', 'steady'].map(w => { const s = document.querySelector(`#spec-body .mx-strip[data-who="${w}"]`);
   return [w, { runs: document.querySelectorAll(`#spec-body [data-act="4"] path[data-run][data-who="${w}"]`).length, median: s ? +s.dataset.median : NaN, dots: s ? s.querySelectorAll('[data-end]').length : 0 }]; })));
 const mxSlide = (page, k, v) => page.evaluate(([k, v]) => { const i = document.querySelector(`#spec-body input[data-k="${k}"]`); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); }, [k, v]);
 
@@ -613,15 +613,15 @@ async function messCheck(page, vp) {
   await mxShow(page, 3); await wait(200);
   const p0 = await page.evaluate(() => ({ who: [...document.querySelectorAll('#spec-body .mx-player')].map(p => p.dataset.who), seeds: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => g.dataset.seed), shown: (document.querySelector('#spec-body [data-act="3"] [data-seed-out]') || {}).textContent,
     homes: [...document.querySelectorAll('#spec-body .mx-player .mx-garden')].map(g => [...g.querySelectorAll('.mx-t[data-s="1"]')].map(e => e.dataset.i).join()) }));
-  check(`${vp}: mess act 3: Cautious, Bold and Gardener play the same seed, shown on the page, from the same start`, p0.who.join() === 'cautious,bold,gardener' && new Set(p0.seeds).size === 1 && p0.shown && p0.shown.includes(p0.seeds[0]) && new Set(p0.homes).size === 1, JSON.stringify(p0));
+  check(`${vp}: mess act 3: Cautious, Bold and Steady play the same seed, shown on the page, from the same start`, p0.who.join() === 'cautious,bold,steady' && new Set(p0.seeds).size === 1 && p0.shown && p0.shown.includes(p0.seeds[0]) && new Set(p0.homes).size === 1, JSON.stringify(p0));
   const playing = await page.evaluate(() => document.querySelector('#spec-body [data-act="3"] .mx-play').getAttribute('aria-pressed') === 'true');
   if (!playing) await page.locator('#spec-body [data-act="3"] .mx-play').click();
   let p1 = null; const tp = Date.now();
   for (let k = 0; k < 200; k++) { p1 = await page.evaluate(() => { const r = document.querySelector('#spec-body [data-act="3"]'); return { turn: +r.querySelector('[data-turn]').dataset.turn, turns: +r.dataset.turns, lines: Object.fromEntries([...r.querySelectorAll('path[data-line]')].map(p => [p.dataset.line, p.dataset.pts])) }; }); if (p1.turn >= p1.turns) break; await wait(100); }
   const secs = (Date.now() - tp) / 1000;
-  check(`${vp}: mess act 3: the three runs play out turn by turn to the end (${p1.turns} turns in ${secs.toFixed(1)} s)`, p1.turn === p1.turns && secs >= 4 && secs <= 16 && ['cautious', 'bold', 'gardener'].every(w => p1.lines[w] && p1.lines[w].split(',').length === p1.turns + 1), JSON.stringify({ turn: p1.turn, turns: p1.turns, secs }));
-  const model = await page.evaluate(([seed, turns]) => { const P = MX.params3(); return Object.fromEntries(['cautious', 'bold', 'gardener'].map(w => [w, [MX.run(+seed, w, { ...P, turns }).join(), MX.run(+seed, w, { ...P, turns }).join()]])); }, [p0.seeds[0], p1.turns]);
-  check(`${vp}: mess act 3: each shown line is exactly that seed's run, and the same seed gives the same line twice`, ['cautious', 'bold', 'gardener'].every(w => model[w][0] === model[w][1] && model[w][0] === p1.lines[w]), JSON.stringify({ model, shown: p1.lines }));
+  check(`${vp}: mess act 3: the three runs play out turn by turn to the end (${p1.turns} turns in ${secs.toFixed(1)} s)`, p1.turn === p1.turns && secs >= 4 && secs <= 16 && ['cautious', 'bold', 'steady'].every(w => p1.lines[w] && p1.lines[w].split(',').length === p1.turns + 1), JSON.stringify({ turn: p1.turn, turns: p1.turns, secs }));
+  const model = await page.evaluate(([seed, turns]) => { const P = MX.params3(); return Object.fromEntries(['cautious', 'bold', 'steady'].map(w => [w, [MX.run(+seed, w, { ...P, turns }).join(), MX.run(+seed, w, { ...P, turns }).join()]])); }, [p0.seeds[0], p1.turns]);
+  check(`${vp}: mess act 3: each shown line is exactly that seed's run, and the same seed gives the same line twice`, ['cautious', 'bold', 'steady'].every(w => model[w][0] === model[w][1] && model[w][0] === p1.lines[w]), JSON.stringify({ model, shown: p1.lines }));
   const players = await page.evaluate(() => [...document.querySelectorAll('#spec-body .mx-player')].map(p => ({ who: p.dataset.who, reach: +p.querySelector('[data-reach]').textContent.trim(), lit: p.querySelectorAll('.mx-t[data-s="1"]').length })));
   check(`${vp}: mess act 3: each player's garden and reach readout match its line's last point`, players.every(p => p.reach === p.lit && p.reach === +p1.lines[p.who].split(',').pop()), JSON.stringify(players));
   await page.locator('#spec-body [data-act="3"] .mx-reroll').click(); await wait(150);
@@ -645,7 +645,7 @@ async function messCheck(page, vp) {
     && words.after.rev === '30%' && words.after.revHint === 'The other 70% burn tiles for good.' && /^\d+ turns$/.test(words.turns) && /^\d+% a turn$/.test(words.fade) && words.fadeHint === 'Leave a door alone and it may shut.', JSON.stringify(words));
   check(`${vp}: mess act 4: the toggle says "Play once" / "Play 100 times", Re-roll in one-run mode, and the chart's y axis says "open doors"`, words.modes.join('|') === 'Play once|Play 100 times' && words.reroll === 'Re-roll' && words.yLabel === 'open doors', JSON.stringify(words));
   const one = await page.evaluate(() => document.querySelector('#spec-body [data-act="4"] .mx-verdict').textContent.trim());
-  check(`${vp}: mess act 4: one run says who ended with the most open doors ("${one}")`, /^(Cautious|Bold|Gardener)( and (Cautious|Bold|Gardener))? (ended|tied) with the most open doors: \d+\.$/.test(one), one);
+  check(`${vp}: mess act 4: one run says who ended with the most open doors ("${one}")`, /^(Cautious|Bold|Steady)( and (Cautious|Bold|Steady))? (ended|tied) with the most open doors: \d+\.$/.test(one), one);
   await page.locator('#spec-body [data-act="4"] [data-mode="many"]').click(); await wait(200);
   const r0 = await mxRuns(page);
   check(`${vp}: mess act 4: "100 runs" draws 100 runs per strategy, with each one's ending as a dot and its median`, Object.values(r0).every(r => r.runs === 100 && r.dots === 100 && Number.isFinite(r.median)), JSON.stringify(r0));
@@ -653,10 +653,10 @@ async function messCheck(page, vp) {
   await mxSlide(page, 'rev', 10); await wait(200); const lo = await mxRuns(page);
   check(`${vp}: mess act 4: more failures you can undo raise Bold's median reach over 100 runs (${lo.bold.median} → ${hi.bold.median})`, hi.bold.median > lo.bold.median + 5, JSON.stringify({ hi, lo }));
   await mxSlide(page, 'rev', 50); await mxSlide(page, 'fade', 0); await wait(200); const f0r = await mxRuns(page); await mxSlide(page, 'fade', 12); await wait(200); const f1r = await mxRuns(page);
-  check(`${vp}: mess act 4: doors that close faster lower Cautious and Gardener (${f0r.cautious.median}/${f0r.gardener.median} → ${f1r.cautious.median}/${f1r.gardener.median})`, f1r.cautious.median < f0r.cautious.median && f1r.gardener.median < f0r.gardener.median, JSON.stringify({ f0r, f1r }));
+  check(`${vp}: mess act 4: doors that close faster lower Cautious and Steady (${f0r.cautious.median}/${f0r.steady.median} → ${f1r.cautious.median}/${f1r.steady.median})`, f1r.cautious.median < f0r.cautious.median && f1r.steady.median < f0r.steady.median, JSON.stringify({ f0r, f1r }));
   const who = await page.evaluate(() => { const A = document.querySelector('#spec-body [data-act="4"]'), t = q => (A.querySelector(q) || {}).textContent?.replace(/\s+/g, ' ').trim() || '';
     return { v: t('.mx-verdict'), note: t('[data-explain]'), title: t('.mx-strips-t'), axis: t('.mx-strip-ax'), typ: [...A.querySelectorAll('.mx-strip-m')].map(e => e.textContent.trim()), reroll: t('.mx-reroll4') }; });
-  const vm = who.v.match(/^In 100 gardens, (Cautious|Bold|Gardener) ended with the most open doors (once|\d+ times)\. (Cautious|Bold|Gardener) (\d+)\. (Cautious|Bold|Gardener) (\d+)\.( (One tie|\d+ ties)\.)?$/);
+  const vm = who.v.match(/^In 100 gardens, (Cautious|Bold|Steady) ended with the most open doors (once|\d+ times)\. (Cautious|Bold|Steady) (\d+)\. (Cautious|Bold|Steady) (\d+)\.( (One tie|\d+ ties)\.)?$/);
   check(`${vp}: mess act 4: the 100-run sentence reads "In 100 gardens, X ended with the most open doors N times. Y n. Z n." ("${who.v}")`, !!vm && !/ 1 times| 1 ties|One ties/.test(who.v) && new Set([vm[1], vm[3], vm[5]]).size === 3, who.v);
   check(`${vp}: mess act 4: the chart caption, the strip title, its axis and "typical: N" read plainly; Re-roll becomes "New gardens"`, who.note === 'Each faint line is one garden. The thick line is a typical one.' && who.title === 'Where each garden ended' && /open doors at the end/.test(who.axis) && who.typ.length === 3 && who.typ.every(x => /^typical: \d+$/.test(x)) && who.reroll === 'New gardens', JSON.stringify(who));
   const vocab = await page.evaluate(() => [...document.querySelectorAll('#spec-body *')].filter(e => !e.closest('.mx-cap') && [...e.childNodes].some(n => n.nodeType === 3 && /\b(room|reach)\b/i.test(n.textContent))).map(e => e.textContent.trim().slice(0, 40)));
@@ -676,15 +676,15 @@ async function messCheck(page, vp) {
 // the model on its own: honest, seeded, and the dials move it
 async function messModel(page) {
   const m = await page.evaluate(() => { const P = { size: 2, rev: .5, fade: .04, turns: 40 }, out = {};
-    out.same = ['cautious', 'bold', 'gardener'].every(w => MX.run(7, w, P).join() === MX.run(7, w, P).join());
+    out.same = ['cautious', 'bold', 'steady'].every(w => MX.run(7, w, P).join() === MX.run(7, w, P).join());
     out.differ = [1, 2, 3, 4, 5].some(s => MX.run(s, 'bold', P).join() !== MX.run(s + 1, 'bold', P).join());
     out.idle = Array.from({ length: 20 }, (_, s) => { const r = MX.run(s + 1, 'cautious', P); return r[r.length - 1] < r[0]; }).filter(Boolean).length;
     out.still = Array.from({ length: 20 }, (_, s) => { const r = MX.run(s + 1, 'cautious', { ...P, fade: 0 }); return r.every(v => v === r[0]); }).filter(Boolean).length;
-    const wins = { bold: 0, gardener: 0 }; for (let s = 1; s <= 100; s++) { const b = MX.run(s, 'bold', P).pop(), g = MX.run(s, 'gardener', P).pop(); if (b > g) wins.bold++; else if (g > b) wins.gardener++; } out.wins = wins;
+    const wins = { bold: 0, steady: 0 }; for (let s = 1; s <= 100; s++) { const b = MX.run(s, 'bold', P).pop(), g = MX.run(s, 'steady', P).pop(); if (b > g) wins.bold++; else if (g > b) wins.steady++; } out.wins = wins;
     return out; });
   check('mess model: the same seed gives the same run; different seeds differ', m.same && m.differ, JSON.stringify(m));
   check(`mess model: doing nothing loses doors slowly (${m.idle}/20 seeds lose reach), and with no fading it holds (${m.still}/20)`, m.idle >= 15 && m.still === 20, JSON.stringify(m));
-  check(`mess model: not rigged: at the default dials both Bold and Gardener win some runs (${m.wins.bold} / ${m.wins.gardener} of 100)`, m.wins.bold >= 15 && m.wins.gardener >= 15, JSON.stringify(m.wins));
+  check(`mess model: not rigged: at the default dials both Bold and Steady win some runs (${m.wins.bold} / ${m.wins.steady} of 100)`, m.wins.bold >= 15 && m.wins.steady >= 15, JSON.stringify(m.wins));
 }
 async function messReduced(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp, { reducedMotion: 'reduce' });

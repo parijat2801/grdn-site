@@ -63,7 +63,7 @@
     /* Mess around and find out: a night garden of doors. Unopened ground, a glowing edge, lit leaves, a bold bet's amber, scorched ash; one line colour per player */
     --mf-ground: #16302D; --mf-ground-hi: #1D3C38; --mf-dark: #24463F; --mf-door: #2C5650; --mf-door-hi: #386A62; --mf-edge: #8FD3BE; --mf-lit: #C4E8A4; --mf-lit-deep: #9FD08A; --mf-fresh: #F5EBAF;
     --mf-bold: #F2B45A; --mf-scorch: #0C1413; --mf-ember: #D2693A; --mf-focus: #FFFFFF;
-    --mf-cautious: #5b6b8c; --mf-boldline: #c4552f; --mf-gardener: #3f7f3a; --mf-cautious-ink: #4a5876; --mf-bold-ink: #a8431f; --mf-gardener-ink: #356c31;
+    --mf-cautious: #5b6b8c; --mf-boldline: #c4552f; --mf-steady: #3f7f3a; --mf-cautious-ink: #4a5876; --mf-bold-ink: #a8431f; --mf-steady-ink: #356c31;
     --card-glass: rgba(250,248,242,.9); --rise: .65s; --peek-h: 56px;
     --read: .8s; --fade: .25s; --hover: .35s; --ease: cubic-bezier(.2,.7,.2,1);
   }
@@ -642,7 +642,7 @@
   .mx-ph [data-reach] { font-size: 22px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
   .mx-ph small { grid-column: 2 / -1; font-size: var(--fs-tag); color: var(--muted-strong); line-height: 1.3; }
   .mx-player .mx-stage { padding: var(--sp-3); }
-  .mx-player[data-who="cautious"] { --who: var(--mf-cautious); --who-ink: var(--mf-cautious-ink); } .mx-player[data-who="bold"] { --who: var(--mf-boldline); --who-ink: var(--mf-bold-ink); } .mx-player[data-who="gardener"] { --who: var(--mf-gardener); --who-ink: var(--mf-gardener-ink); }
+  .mx-player[data-who="cautious"] { --who: var(--mf-cautious); --who-ink: var(--mf-cautious-ink); } .mx-player[data-who="bold"] { --who: var(--mf-boldline); --who-ink: var(--mf-bold-ink); } .mx-player[data-who="steady"] { --who: var(--mf-steady); --who-ink: var(--mf-steady-ink); }
   .mx-chart { display: grid; grid-template-columns: 34px minmax(0, 1fr) 96px; grid-template-rows: 180px 22px; margin-top: var(--sp-4); padding: var(--sp-3) 0 var(--sp-2); border-radius: 14px; background: var(--paper-deep); }
   .mx-chart.tall { grid-template-rows: 220px 22px; }
   .mx-yax, .mx-plot, .mx-ends, .mx-xax { position: relative; }
@@ -652,7 +652,7 @@
   .mx-xt:first-child { transform: none; } .mx-xt:last-child { transform: translateX(-100%); }
   .mx-end { position: absolute; left: 10px; transform: translateY(-50%); font-size: var(--fs-tag); font-weight: 700; color: var(--who-ink); white-space: nowrap; font-variant-numeric: tabular-nums; transition: top .25s var(--ease); }
   .mx-end b { font-size: var(--fs-row); font-weight: 800; color: var(--ink); margin-left: 4px; }
-  .mx-end[data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } .mx-end[data-who="bold"] { --who-ink: var(--mf-bold-ink); } .mx-end[data-who="gardener"] { --who-ink: var(--mf-gardener-ink); }
+  .mx-end[data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } .mx-end[data-who="bold"] { --who-ink: var(--mf-bold-ink); } .mx-end[data-who="steady"] { --who-ink: var(--mf-steady-ink); }
   .mx-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-3); }
   .mx-ctl .mx-meta { font-size: var(--fs-meta); color: var(--muted-strong); font-variant-numeric: tabular-nums; }
   .mx-ctl .mx-meta b { color: var(--ink); font-weight: 650; }
@@ -682,7 +682,7 @@
   .mx-strip svg { display: block; width: 100%; height: 100%; }
   .mx-strip-m { font-size: var(--fs-tag); color: var(--muted-strong); font-variant-numeric: tabular-nums; } .mx-strip-m b { font-size: var(--fs-row); color: var(--ink); font-weight: 800; }
   .mx-strip-ax { grid-column: 2; display: flex; justify-content: space-between; font-size: var(--fs-tag); color: var(--muted-strong); }
-  [data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } [data-who="bold"] { --who-ink: var(--mf-bold-ink); } [data-who="gardener"] { --who-ink: var(--mf-gardener-ink); }
+  [data-who="cautious"] { --who-ink: var(--mf-cautious-ink); } [data-who="bold"] { --who-ink: var(--mf-bold-ink); } [data-who="steady"] { --who-ink: var(--mf-steady-ink); }
   .mx-ylab { position: absolute; left: 0; top: -17px; font-size: var(--fs-tag); font-weight: 600; color: var(--muted-strong); }
   .mx-chart { padding-top: 26px; }
   .mx-strips-t { grid-column: 1 / -1; margin-bottom: 2px; font-size: var(--fs-meta); font-weight: 700; color: var(--ink); }
@@ -1668,7 +1668,7 @@ const MX = (() => {
   const STRATS = {
     cautious: () => null,
     bold: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'bold', t: pick(f, t => stake(G, t, P.size).filter(i => G.s[i] === 0).length, rng) } : null; },
-    gardener: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'small', t: pick(f, t => Math.max(...nb[t].filter(j => G.s[j] === 1).map(j => G.idle[j])), rng) } : null; },
+    steady: (W, G, P, rng) => { const f = frontier(G); return f.length ? { kind: 'small', t: pick(f, t => Math.max(...nb[t].filter(j => G.s[j] === 1).map(j => G.idle[j])), rng) } : null; },
   };
   const stream = seed => rnd(seed ^ 0x5bd1e995);
   function run(seed, who, P, keep) { const W = world(seed), G = start(), rng = stream(seed), states = keep ? [G.s.slice()] : null;
@@ -1680,8 +1680,8 @@ const MX = (() => {
 })();
 
 function mess(el) {
-  const calm = still(), WHO = ['cautious', 'bold', 'gardener'], NAME = { cautious: 'Cautious', bold: 'Bold', gardener: 'Gardener' };
-  const DESC = { cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', gardener: 'Tries one tile at a time. Never risks an open door.' };
+  const calm = still(), WHO = ['cautious', 'bold', 'steady'], NAME = { cautious: 'Cautious', bold: 'Bold', steady: 'Steady' };
+  const DESC = { cautious: 'Never tries anything.', bold: 'Always takes the biggest bet.', steady: 'Tries one tile at a time. Never risks an open door.' };
   const SIZE_TILES = { 1: 7, 2: 19, 3: 37 }, newSeed = old => { let s; do s = 1000 + (Math.random() * 9000 | 0); while (s === old); return s; };
   const { C, N, HOME } = MX, HX = Math.sqrt(3) * 10, VW = C * HX + HX / 2, VH = (MX.R - 1) * 15 + 20, f2 = v => v.toFixed(2);
   const cx = i => (i % C) * HX + ((i / C | 0) & 1) * HX / 2 + HX / 2, cy = i => (i / C | 0) * 15 + 10;
@@ -1714,12 +1714,12 @@ function mess(el) {
     <section class="mx-act" data-act="1"><h4><span class="n">1</span>Mess around</h4><p class="mx-cap">Mess around and find out is how anything gets better. Every experiment teaches you something.</p>
       <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(1, 'Your garden')}</div>
         <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b></div>
-          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
+          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-steady)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
           <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-again">Start over</button></div></div></div></section>
     <section class="mx-act" data-act="2"><h4><span class="n">2</span>Find out</h4><p class="mx-cap">Experiments create knowledge, skills and chances. They can also destroy them.</p>
       <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(2, 'Your second garden, with bold bets')}</div>
         <div class="mx-side"><span class="mx-k">Open doors</span><div class="mx-big"><b data-reach></b></div>
-          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
+          <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-steady)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
           <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-wait">Wait a turn</button><button type="button" class="mx-btn mx-again">Start over</button></div></div></div>
       <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A small try: one tile</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Burned: closed for good</span></div></section>
     <section class="mx-act" data-act="3"><h4><span class="n">3</span>The real variable</h4><p class="mx-cap">What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.</p>
@@ -1856,7 +1856,7 @@ function mess(el) {
 
   // ----- act 4: the dials, once or a hundred times -----
   const A4 = acts[3], chart4 = $('.mx-chart', A4), P4 = { size: 2, rev: .5, turns: 40, fade: .04 }; let mode = 'one', seed4 = newSeed(), pend = 0;
-  const reroll4 = $('.mx-reroll4', A4), COL = { cautious: 'var(--mf-cautious)', bold: 'var(--mf-boldline)', gardener: 'var(--mf-gardener)' }, med = a => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
+  const reroll4 = $('.mx-reroll4', A4), COL = { cautious: 'var(--mf-cautious)', bold: 'var(--mf-boldline)', steady: 'var(--mf-steady)' }, med = a => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
   const outs = () => { const o = k => $(`[data-o="${k}"]`, A4); o('size').textContent = `${SIZE_TILES[P4.size]} tiles`; o('rev').textContent = `${Math.round(P4.rev * 100)}%`; $('#mx-d-rev', A4).textContent = `The other ${100 - Math.round(P4.rev * 100)}% burn tiles for good.`; o('turns').textContent = `${P4.turns} turns`; o('fade').textContent = `${Math.round(P4.fade * 100)}% a turn`;
     A4.querySelectorAll('input[type=range]').forEach(i => i.style.setProperty('--p', ((i.value - i.min) / (i.max - i.min) * 100) + '%')); };
   function compute() {
@@ -1882,7 +1882,7 @@ function mess(el) {
       st.querySelector('svg').innerHTML = fin[w].map(v => `<line data-end="${v}" x1="${f2(v / N * 100)}" x2="${f2(v / N * 100)}" y1="5" y2="21" stroke="${COL[w]}" stroke-opacity=".28" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('')
         + `<line x1="${f2(M[w] / N * 100)}" x2="${f2(M[w] / N * 100)}" y1="1" y2="25" stroke="var(--ink)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
       st.nextElementSibling.innerHTML = `typical: <b>${M[w]}</b>`; });
-    const wins = { cautious: 0, bold: 0, gardener: 0 }; let ties = 0;
+    const wins = { cautious: 0, bold: 0, steady: 0 }; let ties = 0;
     for (let k = 0; k < 100; k++) { const e = WHO.map(w => [w, fin[w][k]]).sort((a, b) => b[1] - a[1]); if (e[0][1] === e[1][1]) ties++; else wins[e[0][0]]++; }
     const order = [...WHO].sort((a, b) => wins[b] - wins[a]);
     const n0 = wins[order[0]];
