@@ -602,7 +602,18 @@
   .mx-t[data-tried] + .mx-m { stroke: rgba(143,211,190,.55); }
   .mx-t[data-s="2"] + .mx-m { stroke: rgba(210,105,58,.3); }
   .mx-home { fill: var(--mf-ground); opacity: .78; }
-  /* beside the garden: the reach, its line, the turn, what just happened */
+  /* until the first tap: an instruction on the stage, the edge breathing, and a ripple on one tile */
+  .mx-stage:has(.mx-hint) { place-items: stretch; align-content: start; }
+  .mx-stage .mx-hint { display: flex; align-items: center; gap: 9px; min-height: 22px; margin: 0 0 var(--sp-3); font: 600 var(--fs-lead) / 1.3 'Bricolage Grotesque', 'Bricolage Fallback', sans-serif; color: var(--mf-lit); text-wrap: pretty; }
+  .mx-stage .mx-hint::before { content: ''; flex: none; width: 13px; height: 15px; background: var(--mf-edge); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .mx-stage:has(.mx-hint) .mx-garden { justify-self: center; }
+  .mx-garden.invite .mx-t[data-f] { animation: mxBreathe 2.4s ease-in-out infinite; }
+  @keyframes mxBreathe { 50% { stroke-width: 3px; stroke-opacity: 1; fill: var(--mf-door-hi); } }
+  .mx-tap { fill: none; stroke: var(--mf-fresh); stroke-width: 1.6px; vector-effect: non-scaling-stroke; pointer-events: none; transform-box: fill-box; transform-origin: center; animation: mxTap 2.4s ease-out infinite; }
+  @keyframes mxTap { 0% { transform: scale(.5); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.45); opacity: 0; } }
+  @media (hover: hover) { .mx-t[data-f] { transition: fill .6s var(--ease), stroke-width .25s ease, transform .25s var(--ease); } .mx-t[data-f]:hover { transform: scale(1.07); } }
+  @media (prefers-reduced-motion: reduce) { .mx-garden.invite .mx-t[data-f] { stroke-width: 2.6px; stroke-opacity: 1; } .mx-garden.invite .mx-t[data-bold] { stroke-width: 3px; } .mx-tap { opacity: .9; } }
+  /* beside the garden: the reach, its line, the turn */
   .mx-side { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-card); background: var(--paper-deep); }
   .mx-k { font-size: var(--fs-meta); font-weight: 650; color: var(--muted-strong); line-height: 1.25; }
   .mx-big { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
@@ -1698,15 +1709,15 @@ function mess(el) {
 
   el.innerHTML = `<div class="mx">
     <section class="mx-act" data-act="1"><h4><span class="n">1</span>Mess around</h4><p class="mx-cap">Mess around and find out is how anything gets better. Every experiment teaches you something.</p>
-      <div class="mx-fig mx-play-area"><div class="mx-stage">${garden(1, 'Your garden')}</div>
+      <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(1, 'Your garden')}</div>
         <div class="mx-side"><span class="mx-k">Room to experiment tomorrow</span><div class="mx-big"><b data-reach></b><span>doors open</span></div>
           <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
-          <span class="mx-turn" data-turn="0"></span><p class="mx-status" aria-live="polite"></p><div class="mx-btns"><button type="button" class="mx-btn mx-again">Start over</button></div></div></div></section>
+          <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-again">Start over</button></div></div></div></section>
     <section class="mx-act" data-act="2"><h4><span class="n">2</span>Find out</h4><p class="mx-cap">Experiments create knowledge, skills and chances. They can also destroy them.</p>
-      <div class="mx-fig mx-play-area"><div class="mx-stage">${garden(2, 'Your second garden, with bold bets')}</div>
+      <div class="mx-fig mx-play-area"><div class="mx-stage"><p class="mx-hint mx-status" aria-live="polite"></p>${garden(2, 'Your second garden, with bold bets')}</div>
         <div class="mx-side"><span class="mx-k">Room to experiment tomorrow</span><div class="mx-big"><b data-reach></b><span>doors open</span></div>
           <div class="mx-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path class="area" fill="rgba(63,127,58,.12)"/><path data-line="you" fill="none" stroke="var(--mf-gardener)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></div>
-          <span class="mx-turn" data-turn="0"></span><p class="mx-status" aria-live="polite"></p><div class="mx-btns"><button type="button" class="mx-btn mx-wait">Wait a turn</button><button type="button" class="mx-btn mx-again">Start over</button></div></div></div>
+          <span class="mx-turn" data-turn="0"></span><div class="mx-btns"><button type="button" class="mx-btn mx-wait">Wait a turn</button><button type="button" class="mx-btn mx-again">Start over</button></div></div></div>
       <div class="mx-legend"><span>${hexIcon('var(--mf-door)', 'var(--mf-edge)', 1.6)}A small try: one tile</span><span>${hexIcon('var(--mf-door)', 'var(--mf-bold)', 3)}A bold bet: up to 19 tiles at once</span><span>${hexIcon('var(--mf-scorch)')}Scorched: closed for good</span></div></section>
     <section class="mx-act" data-act="3"><h4><span class="n">3</span>The real variable</h4><p class="mx-cap">What matters isn’t only what you win or risk today. It’s how today’s move changes what you can try tomorrow. Good experiments open doors. Bad ones close them. Doing nothing closes them too, slowly.</p>
       <div class="mx-fig"><div class="mx-players">${WHO.map(w => `<div class="mx-player" data-who="${w}"><div class="mx-ph"><i aria-hidden="true"></i><b>${NAME[w]}</b><span data-reach></span><small>${DESC[w]}</small></div><div class="mx-stage">${garden(1, NAME[w] + '’s garden')}</div></div>`).join('')}</div>
@@ -1747,8 +1758,13 @@ function mess(el) {
   // ----- acts 1 and 2: your own garden -----
   function playable(act, P, bold) {
     const svg = $('.mx-garden', act), reachEl = $('[data-reach]', act), turnEl = $('[data-turn]', act), statusEl = $('.mx-status', act), line = $('path[data-line]', act), area = $('path.area', act);
-    let W, G, rng, tried, boldNow = [], front = new Set(), focusI = null;
-    const HELLO = bold ? 'Gold rings are bold bets: up to 19 tiles at once, won or lost together.' : 'Tap a glowing tile to try the door next to what you know.';
+    let W, G, rng, tried, boldNow = [], front = new Set(), focusI = null, tries = 0, invite = true;
+    // until the first tap in this act: the edge breathes, and one tile near the middle carries a small ripple
+    const HELLO = bold ? 'Tap a glowing tile, or an amber one for a bold bet.' : 'Tap a glowing tile to try it.';
+    svg.classList.add('invite');
+    const mark = () => { svg.querySelector('.mx-tap')?.remove(); if (!invite || !front.size) return;
+      const t = [...front].sort((a, b) => MX.dist(a, HOME) - MX.dist(b, HOME) || cx(b) - cx(a))[0];
+      svg.insertAdjacentHTML('beforeend', `<circle class="mx-tap" cx="${f2(cx(t))}" cy="${cy(t)}" r="5.5" aria-hidden="true"/>`); };
     const boldPicks = f => { if (!bold) return []; const sc = f.map(t => [t, MX.stake(G, t, P.size).filter(i => G.s[i] === 0).length]).filter(x => x[1] >= 6).sort((a, b) => b[1] - a[1] || a[0] - b[0]), out = [];
       for (const [t] of sc) { if (out.length < 3 && out.every(o => MX.dist(o, t) >= 3)) out.push(t); } return out; };
     const draw = (o = {}) => {
@@ -1764,21 +1780,26 @@ function mess(el) {
       const top = niceTop(Math.max(...G.reach)), turns = Math.max(20, G.turn); line.dataset.pts = G.reach.join(); const d = lineD(G.reach, turns, top, 200, 60);
       line.setAttribute('d', d); area.setAttribute('d', `${d}L${f2(G.turn / turns * 200)} 60L0 60Z`);
     };
-    const reset = seed => { W = MX.world(seed); reseed(svg, seed); G = MX.start(); rng = MX.stream(seed); tried = new Set(); focusI = null; statusEl.textContent = HELLO; draw(); };
-    const say = (out, n) => { const k = out.kind;
-      if (k === 'wait') return out.faded.length ? `A turn passes. ${out.faded.length} unused door${out.faded.length === 1 ? '' : 's'} closed.` : 'A turn passes. Nothing changes, yet.';
-      if (out.ok) return k === 'bold' ? `It worked: ${out.opened.length} doors opened at once.` : 'It worked. A new door is open.';
-      if (out.burnt.length) return k === 'bold' ? `It burned: ${out.burnt.length} tiles closed for good.` : 'That door closed for good.';
-      return k === 'bold' ? 'It didn’t work, but nothing broke. You can try again.' : 'Nothing this time. That door stays shut for now.'; };
+    const reset = seed => { W = MX.world(seed); reseed(svg, seed); G = MX.start(); rng = MX.stream(seed); tried = new Set(); focusI = null; tries = 0; statusEl.textContent = HELLO; draw(); mark(); };
+    // the line on the stage: what the last try did to the garden, in tiles, then how many tries so far
+    const say = (out, d) => { const pl = n => `${n} door${n === 1 ? '' : 's'}`, so = `Keep going: ${tries} ${tries === 1 ? 'try' : 'tries'} so far.`;
+      if (out.kind === 'wait') return out.faded.length ? `A turn passed: ${pl(out.faded.length)} faded. ${tries ? so : HELLO}` : `A turn passed. ${tries ? so : HELLO}`;
+      const r = out.burnt.length ? `Scorched ${pl(out.burnt.length)}` : d > 0 ? `It grew: +${pl(d)}` : d < 0 ? `No luck, and ${pl(-d)} faded` : 'No luck this time';
+      return `${r}. ${so}`; };
     const act1 = (move) => {
-      const hadFocus = svg.contains(document.activeElement), out = MX.play(W, G, move, P, rng);
+      if (move) { tries++; if (invite) { invite = false; svg.classList.remove('invite'); mark(); } }
+      const n0 = MX.lit(G.s), hadFocus = svg.contains(document.activeElement), out = MX.play(W, G, move, P, rng);
       if (move && !out.ok && !out.burnt.length) tried.add(move.t);
       if (move && !out.ok && !out.burnt.length && !calm) svg._t[move.t].animate([{ transform: 'none' }, { transform: 'translateX(-1.4px)' }, { transform: 'translateX(1.2px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-in-out' });
-      draw({ anim: true, from: move ? move.t : null, fresh: new Set(out.opened) }); statusEl.textContent = say(out);
+      draw({ anim: true, from: move ? move.t : null, fresh: new Set(out.opened) }); statusEl.textContent = say(out, MX.lit(G.s) - n0);
       if (hadFocus && focusI != null) svg._t[focusI].focus({ preventScroll: true });
     };
     const tryAt = i => { if (!front.has(i)) return; focusI = i; act1({ kind: boldNow.includes(i) ? 'bold' : 'small', t: i }); };
-    svg.addEventListener('click', e => { const t = e.target.closest('.mx-t[data-f]'); if (t) tryAt(+t.dataset.i); });
+    // a tap counts for the nearest edge tile when it lands in the gap or the margin beside one, so small screens forgive a near miss
+    svg.addEventListener('click', e => { const t = e.target.closest('.mx-t[data-f]'); if (t) { tryAt(+t.dataset.i); return; }
+      const m = svg.getScreenCTM(); if (!m || (e.target.closest('.mx-t') && !e.target.closest('.mx-t[data-s="0"], .mx-t[data-s="2"]') && e.target.closest('.mx-t').dataset.s === '1')) return;
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); let best = null, bd = 11.5;
+      front.forEach(i => { const d = Math.hypot(cx(i) - pt.x, cy(i) - pt.y); if (d < bd) { bd = d; best = i; } }); if (best != null) tryAt(best); });
     // a bold bet shows what it stakes while you point at it or focus it
     const zone = i => { svg._t.forEach(e => e.classList.remove('zone')); if (i != null && boldNow.includes(i)) MX.stake(G, i, P.size).forEach(j => svg._t[j].classList.add('zone')); };
     svg.addEventListener('pointerover', e => { const t = e.target.closest('.mx-t[data-bold]'); zone(t ? +t.dataset.i : null); });
