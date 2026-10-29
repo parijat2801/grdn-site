@@ -538,6 +538,28 @@ const mxRuns = page => page.evaluate(() => Object.fromEntries(['cautious', 'bold
   return [w, { runs: document.querySelectorAll(`#spec-body [data-act="4"] path[data-run][data-who="${w}"]`).length, median: s ? +s.dataset.median : NaN, dots: s ? s.querySelectorAll('[data-end]').length : 0 }]; })));
 const mxSlide = (page, k, v) => page.evaluate(([k, v]) => { const i = document.querySelector(`#spec-body input[data-k="${k}"]`); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); }, [k, v]);
 
+// the "tap a tile" affordance: an instruction on the stage, frontier tiles breathing until the first tap, a one-time hint mark
+const mxInvite = (page, act) => page.evaluate(a => { const r = document.querySelector(`#spec-body [data-act="${a}"]`), h = r.querySelector('.mx-hint'), st = r.querySelector('.mx-stage').getBoundingClientRect(), hb = h && h.getBoundingClientRect();
+  const f = [...r.querySelectorAll('.mx-t[data-f]')];
+  return { text: h ? h.textContent.replace(/\s+/g, ' ').trim() : '', shown: !!hb && hb.height > 8 && hb.width > 40 && getComputedStyle(h).visibility !== 'hidden' && hb.top >= st.top - 60 && hb.bottom <= st.bottom && hb.left >= st.left - 2,
+    breathing: f.filter(e => e.getAnimations().some(x => x.animationName === 'mxBreathe' && x.playState === 'running')).length, frontier: f.length, ring: f.length ? Math.min(...f.map(e => parseFloat(getComputedStyle(e).strokeWidth))) : 0,
+    mark: !!r.querySelector('.mx-tap'), cursor: f.length ? getComputedStyle(f[0]).cursor : '' }; }, act);
+async function mxAffordance(page, vp, act) {
+  const sel = `#spec-body [data-act="${act}"] .mx-garden`;
+  await mxShow(page, act); await wait(150);
+  const a = await mxInvite(page, act), g0 = await mxGarden(page, sel);
+  check(`${vp}: mess act ${act}: before any tap, an instruction on the stage says to tap a tile ("${a.text}")`, a.shown && /^tap a glowing tile/i.test(a.text), JSON.stringify(a));
+  check(`${vp}: mess act ${act}: before the first tap every edge tile breathes, one carries a hint mark, and the cursor is a pointer`, a.frontier > 0 && a.breathing === a.frontier && a.mark && a.cursor === 'pointer', JSON.stringify(a));
+  await mxClickTile(page, sel, g0.frontier[0]); await wait(80);
+  const b = await mxInvite(page, act), g1 = await mxGarden(page, sel), d = g1.lit.length - g0.lit.length;
+  check(`${vp}: mess act ${act}: after the first tap the breathing and the hint mark stop`, b.breathing === 0 && !b.mark, JSON.stringify(b));
+  check(`${vp}: mess act ${act}: the instruction now gives the try's result with its tile change (${d >= 0 ? '+' : ''}${d}) and counts tries ("${b.text}")`, /1 try so far/.test(b.text) && (d > 0 ? b.text.includes(`+${d} door`) : /no luck|scorched/i.test(b.text)), b.text);
+  // a tap just off a tile's edge, in the gap, still tries it
+  const t0 = g1.turn, pt = await page.evaluate(sel => { const g = document.querySelector(sel), e = g.querySelector('.mx-t[data-f]'), r = e.getBoundingClientRect(); return { x: r.right + 1, y: r.top + r.height / 2, w: r.width }; }, sel);
+  await page.mouse.click(pt.x, pt.y); await wait(60);
+  const t1 = (await mxGarden(page, sel)).turn;
+  check(`${vp}: mess act ${act}: a tap in the gap just beside an edge tile still counts as a try (tile ${pt.w.toFixed(0)}px wide)`, t1 === t0 + 1, JSON.stringify({ t0, t1, pt }));
+}
 async function messCheck(page, vp) {
   await page.evaluate(() => openSpec('mess')); await wait(450);
   const head = await page.evaluate(() => ({ kind: document.querySelector('#spec-kind .kind').textContent, home: document.querySelector('#spec-kind .home').textContent, title: document.getElementById('spec-title').textContent,
@@ -549,6 +571,8 @@ async function messCheck(page, vp) {
   check(`${vp}: mess: the four captions, in order, then the closing line, then the made line`, head.caps.join('|') === MX_CAPS.join('|') && head.close === MX_CLOSE && head.order.length === 6 && head.order.every((y, i) => !i || y > head.order[i - 1]), JSON.stringify({ caps: head.caps, close: head.close, order: head.order }));
   check(`${vp}: mess: "More to explore" sits under the view with 3 rows`, head.navHead === 'More to explore' && head.rows === 3 && head.below, JSON.stringify(head));
 
+  await mxAffordance(page, vp, 1); await mxAffordance(page, vp, 2);
+  await page.locator('#spec-body [data-act="1"] .mx-again').click(); await page.locator('#spec-body [data-act="2"] .mx-again').click(); await mxShow(page, 1);
   // Act 1: a click on a glowing edge tile is a try; success lights it, a miss costs the turn
   const A1 = '#spec-body [data-act="1"] .mx-garden';
   const a0 = await mxGarden(page, A1);
@@ -651,6 +675,8 @@ async function messModel(page) {
 async function messReduced(browser, vp) {
   const { ctx, page, errors } = await newPage(browser, vp, { reducedMotion: 'reduce' });
   await explore(page); await page.evaluate(() => openSpec('mess')); await wait(300);
+  const inv = await mxInvite(page, 1);
+  check(`${vp}: reduced motion: mess act 1 shows the instruction and a still, thicker ring on edge tiles instead of breathing`, inv.shown && /tap/i.test(inv.text) && inv.breathing === 0 && inv.ring >= 2.5 && inv.mark && (await bodyAnims(page, '#spec-body *')) === 0, JSON.stringify(inv));
   const A1 = '#spec-body [data-act="1"] .mx-garden'; let a = await mxGarden(page, A1), n = 0;
   for (let k = 0; k < 10; k++) { await mxClickTile(page, A1, a.frontier[0]); n += await bodyAnims(page, '#spec-body *'); a = await mxGarden(page, A1); }
   check(`${vp}: reduced motion: mess act 1 tries apply at once with nothing animating`, a.turn === 10 && n === 0, JSON.stringify({ turn: a.turn, n }));
@@ -1636,7 +1662,7 @@ async function fullPass(browser, vp) {
     { const { ctx, page, errors } = await newPage(browser, 'small'); await explore(page); await sheet(page, 'small', specs); await frame(page, 'small', specs);
       await page.evaluate(() => openSpec('stream')); await wait(400); { const o = await overflow(page); check('small: stream view has no horizontal overflow', noOverflow(o), JSON.stringify(o)); }
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/small-stream-initial.png` }); await closeEsc(page);
-      await page.evaluate(() => openSpec('mess')); await wait(400); for (const k of [1, 2, 3, 4]) { await mxShow(page, k); await wait(150); const o = await overflow(page); check(`small: mess act ${k} has no horizontal overflow`, noOverflow(o), JSON.stringify(o)); } await closeEsc(page);
+      await page.evaluate(() => openSpec('mess')); await wait(400); await mxAffordance(page, 'small', 1); await mxAffordance(page, 'small', 2); for (const k of [1, 2, 3, 4]) { await mxShow(page, k); await wait(150); const o = await overflow(page); check(`small: mess act ${k} has no horizontal overflow`, noOverflow(o), JSON.stringify(o)); } await closeEsc(page);
       check('small: no errors', errors.length === 0, errors.join(' | ')); await ctx.close(); }
     await reducedPolish(browser, 'desktop'); await reducedPolish(browser, 'phone'); await messReduced(browser, 'desktop'); await messReduced(browser, 'phone'); await openingPolish(browser, 'desktop'); await openingPolish(browser, 'phone');
     await motion(browser, 'desktop', specs);
